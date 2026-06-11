@@ -1,0 +1,20 @@
+{
+  "name": "fitaura",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Fitaura — face + outfit + dating verdict cards made for social sharing.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @fitaura/web",
+    "build": "npm run build --workspace @fitaura/web",
+    "preview": "npm run preview --workspace @fitaura/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,295 @@
+/* ============================================================
+   Sticker customization — ported subset of the Card Studio
+   (studio.css) needed to reposition stickers in-place on the
+   Verdict card and to export a 9:16 image. Scoped to the
+   sticker layer / overlay; the studio's standalone page chrome
+   is intentionally not ported.
+   ============================================================ */
+
+/* the sticker layer shares the card's 360×640 coordinate box */
+.st-stickerlayer {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+.st-stickerlayer.editing {
+  pointer-events: auto;
+}
+
+/* the editable sticker (studio-controlled position) */
+.st-sticker {
+  position: absolute;
+  font-family: 'Hanken Grotesk';
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding: 8px 13px;
+  border-radius: 9px;
+  font-size: 13px;
+  color: #0a0c11;
+  background: var(--lime);
+  border: 2px solid #0a0c11;
+  box-shadow: 0 8px 22px -8px rgba(0, 0, 0, 0.7), 0 0 0 2px rgba(255, 255, 255, 0.5) inset;
+  transform: translate(-50%, -50%) rotate(var(--rot, -7deg));
+  will-change: left, top, transform;
+  transition: opacity 0.25s ease, box-shadow 0.2s ease;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+.st-sticker.accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+.st-sticker.warn {
+  background: var(--red);
+  color: #fff;
+}
+.st-sticker.chrome {
+  background: var(--chrome);
+  color: #15181f;
+  border-color: #fff;
+}
+.st-sticker.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.st-sticker.snapped {
+  transition: left 0.16s cubic-bezier(0.22, 1, 0.36, 1), top 0.16s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+}
+.st-sticker:hover {
+  box-shadow: 0 10px 28px -8px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(255, 255, 255, 0.6) inset,
+    0 0 0 5px color-mix(in oklab, var(--accent) 24%, transparent);
+}
+.st-sticker.sel {
+  outline: 2px solid color-mix(in oklab, var(--accent) 90%, #fff);
+  outline-offset: 4px;
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.8), 0 0 0 2px rgba(255, 255, 255, 0.6) inset,
+    0 0 0 6px color-mix(in oklab, var(--accent) 18%, transparent);
+}
+.st-sticker:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 4px;
+}
+.st-sticker.grabbing {
+  cursor: grabbing;
+  transform: translate(-50%, -50%) rotate(var(--rot, -7deg)) scale(1.05);
+}
+.st-sticker .pip {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1.5px var(--accent);
+  display: none;
+}
+.st-sticker.sel .pip {
+  display: block;
+}
+.st-sticker .pip.tl { top: -3.5px; left: -3.5px; }
+.st-sticker .pip.tr { top: -3.5px; right: -3.5px; }
+.st-sticker .pip.bl { bottom: -3.5px; left: -3.5px; }
+.st-sticker .pip.br { bottom: -3.5px; right: -3.5px; }
+
+/* safe-zone + exclusion overlay (edit mode) */
+.st-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+  display: none;
+  border-radius: 26px;
+  overflow: hidden;
+}
+.st-overlay.show {
+  display: block;
+}
+.st-overlay .scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 6, 10, 0.5);
+}
+.st-safe {
+  position: absolute;
+  border: 2px dashed color-mix(in oklab, var(--accent) 86%, #fff);
+  border-radius: 14px;
+  box-shadow: 0 0 0 100vmax rgba(4, 6, 10, 0.42), 0 0 18px -2px color-mix(in oklab, var(--accent) 60%, transparent);
+}
+.st-safe-tag {
+  position: absolute;
+  top: -9px;
+  left: 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--bg-0);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+.st-excl {
+  position: absolute;
+  border: 1.5px solid color-mix(in oklab, var(--red) 80%, transparent);
+  border-radius: 8px;
+  background: repeating-linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--red) 30%, transparent) 0 6px,
+    color-mix(in oklab, var(--red) 8%, transparent) 6px 12px
+  );
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+.st-excl .lab {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in oklab, var(--red) 50%, #fff);
+  background: color-mix(in oklab, var(--red) 22%, #100);
+  padding: 2px 5px;
+  border-radius: 0 7px 0 6px;
+}
+.st-guide {
+  position: absolute;
+  background: color-mix(in oklab, var(--accent) 90%, #fff);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.st-guide.v { top: 0; bottom: 0; width: 1px; box-shadow: 0 0 8px var(--accent); }
+.st-guide.h { left: 0; right: 0; height: 1px; box-shadow: 0 0 8px var(--accent); }
+.st-guide.on { opacity: 0.9; }
+
+/* receipt preset slots */
+.st-preset {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  border: 1.5px dashed color-mix(in oklab, var(--accent) 55%, transparent);
+  display: grid;
+  place-items: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  cursor: pointer;
+  background: color-mix(in oklab, var(--bg-0) 30%, transparent);
+  pointer-events: auto;
+  transition: 0.18s;
+}
+.st-preset:hover {
+  background: color-mix(in oklab, var(--accent) 14%, transparent);
+}
+.st-preset[aria-pressed='true'] {
+  border-style: solid;
+  background: color-mix(in oklab, var(--accent) 20%, transparent);
+  box-shadow: 0 0 26px -8px var(--accent);
+}
+.st-preset.wide { width: 150px; }
+
+/* the live receipt stamp */
+.st-receipt-stamp {
+  font-family: 'Anton', sans-serif;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--verdict);
+  border: 3px solid var(--verdict);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  line-height: 0.95;
+  z-index: 6;
+  pointer-events: none;
+  text-shadow: 0 0 24px color-mix(in oklab, var(--verdict) 50%, transparent);
+  box-shadow: 0 0 30px -12px var(--verdict);
+  background: color-mix(in oklab, var(--verdict) 8%, transparent);
+}
+.st-receipt-stamp.wide { padding: 10px 22px; font-size: 30px; }
+
+/* The "VERIFIED" stamp is an overlay sibling of the receipt (not a descendant),
+   so the receipt's thermal `--verdict` override can't reach it — it would stay
+   neon and wash out on cream. The card mount / export card carry data-paper +
+   data-verdict; recolor the stamp to the same paper-legible ink per verdict and
+   drop the neon glow (invisible on cream anyway). */
+[data-paper="thermal"][data-verdict="green_flag"] .st-receipt-stamp { --verdict:#0d6b2f; }
+[data-paper="thermal"][data-verdict="normie"]     .st-receipt-stamp { --verdict:#0c6f7d; }
+[data-paper="thermal"][data-verdict="red_flag"]   .st-receipt-stamp { --verdict:#c01c2b; }
+[data-paper="thermal"] .st-receipt-stamp {
+  text-shadow: none;
+  box-shadow: none;
+  background: color-mix(in oklab, var(--verdict) 12%, transparent);
+}
+
+/* edit-mode hint line above the card */
+.st-edithint {
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translate(-50%, -130%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: color-mix(in oklab, var(--accent) 12%, var(--bg-1));
+  border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+  padding: 6px 12px;
+  border-radius: 999px;
+  z-index: 9;
+}
+.st-edithint kbd {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  background: var(--panel-2);
+  border: 1px solid var(--hair);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--ink);
+}
+
+/* offscreen full-scale render host used only for export capture */
+.rs-exporthost {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.rs-export-card {
+  position: relative;
+  width: 360px;
+  height: 640px;
+}
+.rs-export-card.is-receipt {
+  width: 340px;
+}
+.rs-export-card .asset {
+  position: absolute;
+  inset: 0;
+}
+.rs-export-card .receipt {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .st-sticker,
+  .st-sticker.snapped {
+    transition: none !important;
+  }
+}

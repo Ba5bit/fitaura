@@ -1,0 +1,239 @@
+/* ============================================================
+   Production-only supplements.
+   Styles for components that replace design-time scaffolding
+   (the <image-slot> custom element → <CardImage>), plus small
+   helpers the React app needs that weren't in the static design.
+   ============================================================ */
+
+/* CardImage — fills whatever frame the card CSS positions it in. */
+.card-image {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.04);
+}
+.card-image img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+/* circle slots (face) inherit the 50% radius from the card CSS; make the img
+   follow the frame's rounding. */
+.card-image[data-shape='circle'],
+.card-image[data-shape='circle'] img {
+  border-radius: 50%;
+}
+.card-image-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+/* Upload page — the design's `.ua` sat inside a fixed-width device frame in the
+   QA harness. As a real standalone page it needs a centered max-width and real
+   responsive behaviour (the design toggled mobile via a `data-mobile` attr). */
+.ua-page {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 28px 20px 64px;
+}
+.ua-page .ua {
+  width: 100%;
+  max-width: 880px;
+}
+.ua-page .brand {
+  text-decoration: none;
+  color: inherit;
+}
+@media (max-width: 720px) {
+  .ua-page {
+    padding: 12px 0 64px;
+  }
+  .ua-page .ua-zones {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+
+/* Scanner page — center the `.sa` board (it was full-bleed in a device frame). */
+.scan-page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 20px;
+}
+.scan-page .sa {
+  width: 100%;
+  max-width: 1040px;
+  border: 1px solid var(--hair);
+  border-radius: 24px;
+  background: linear-gradient(170deg, var(--bg-2), #0a0c11 75%);
+  box-shadow: var(--shadow-card);
+}
+@media (max-width: 720px) {
+  .scan-page {
+    padding: 0;
+  }
+  .scan-page .sa {
+    border: 0;
+    border-radius: 0;
+    min-height: 100vh;
+  }
+}
+
+/* Credit packs are <button>s (mock checkout) — reset native button styling so
+   they keep the design's card look, and reveal a CTA line on hover/focus. */
+button.ln-pack {
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  width: 100%;
+  display: block;
+}
+.ln-pack-cta {
+  display: block;
+  margin-top: 16px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.65;
+  transition: opacity 0.18s;
+}
+button.ln-pack:hover .ln-pack-cta,
+button.ln-pack:focus-visible .ln-pack-cta {
+  opacity: 1;
+}
+
+/* Outfit "Supporting read" — secondary physique stats below the main four.
+   Transparent, gym-app inspired, subtle borders + neon segments. Deliberately
+   smaller/dimmer than `.rs-trait` so it stays visually subordinate. */
+.rs-subhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 20px 0 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hair-soft);
+}
+.rs-subhead .lbl {
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.rs-subhead .n {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+}
+.rs-subgrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.rs-substat {
+  border: 1px solid var(--hair-soft);
+  background: rgba(255, 255, 255, 0.025);
+  border-radius: 12px;
+  padding: 11px 13px 12px;
+}
+.rs-substat .top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+.rs-substat .nm {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  color: var(--ink-dim);
+}
+.rs-substat .val {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.rs-substat .line {
+  position: relative;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 3px 0 1px;
+}
+.rs-substat .line .fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 50%, #fff), var(--accent));
+  box-shadow: 0 0 8px -1px var(--accent);
+}
+.rs-substat .line .dot {
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8px var(--accent), 0 0 0 2px color-mix(in oklab, var(--accent) 65%, transparent);
+}
+.rs-substat .note {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--ink-faint);
+  margin-top: 9px;
+  text-wrap: pretty;
+}
+@media (max-width: 560px) {
+  .rs-subgrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Generic visually-hidden helper for accessible labels. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
