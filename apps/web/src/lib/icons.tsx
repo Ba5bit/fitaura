@@ -267,6 +267,67 @@ export const Icon = {
       <path d="M4 21a8 8 0 0116 0" />
     </svg>
   ),
+  home: (p: IconProps) => (
+    <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 11l8-6.5L20 11M6 9.6V19a1 1 0 001 1h10a1 1 0 001-1V9.6" />
+    </svg>
+  ),
+  grid: (p: IconProps) => (
+    <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.8}>
+      <rect x="4" y="4" width="7" height="7" rx="1.6" />
+      <rect x="13" y="4" width="7" height="7" rx="1.6" />
+      <rect x="4" y="13" width="7" height="7" rx="1.6" />
+      <rect x="13" y="13" width="7" height="7" rx="1.6" />
+    </svg>
+  ),
+  users: (p: IconProps) => (
+    <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.7} strokeLinecap="round">
+      <circle cx="8.5" cy="8" r="3.1" />
+      <path d="M2.5 19c.6-3 2.8-4.5 6-4.5" />
+      <circle cx="16.5" cy="9" r="2.7" />
+      <path d="M14 14.8c3-.3 5.3 1.1 6 4.2" />
+    </svg>
+  ),
+  sparkle: (p: IconProps) => (
+    <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.6} strokeLinejoin="round">
+      <path d="M12 3l1.8 5.4L19 10l-5.2 1.6L12 17l-1.8-5.4L5 10l5.2-1.6L12 3z" />
+      <path d="M18.5 14.5l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7.7-2z" />
+    </svg>
+  ),
+  gear: (p: IconProps) => (
+    <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.7} strokeLinecap="round">
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M12 2.5v2.2M12 19.3v2.2M21.5 12h-2.2M4.7 12H2.5M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6M18.7 18.7l-1.6-1.6M6.9 6.9L5.3 5.3" />
+    </svg>
+  ),
+  dots: (p: IconProps) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...p}>
+      <circle cx="5" cy="12" r="1.9" />
+      <circle cx="12" cy="12" r="1.9" />
+      <circle cx="19" cy="12" r="1.9" />
+    </svg>
+  ),
+  open: (p: IconProps) => (
+    <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 5h5v5M19 5l-8 8M18 13v5a1 1 0 01-1 1H6a1 1 0 01-1-1V7a1 1 0 011-1h5" />
+    </svg>
+  ),
+  layers: (p: IconProps) => (
+    <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.7} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l9 5-9 5-9-5 9-5zM3 13l9 5 9-5M3 17l9 5 9-5" />
+    </svg>
+  ),
+  pencil: (p: IconProps) => (
+    <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 20h4L19 9a2 2 0 00-3-3L5 17v3zM14 7l3 3" />
+    </svg>
+  ),
+  key: (p: IconProps) => (
+    <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.7} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="15" r="4.5" />
+      <path d="M11.2 11.8L20 3M16 7l2.5 2.5M18.5 4.5L21 7" />
+    </svg>
+  ),
   apple: (p: IconProps) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...p}>
       <path d="M16.4 12.9c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9-.7 0-1.8-.8-3-.8-1.5 0-2.9.9-3.7 2.3-1.6 2.7-.4 6.8 1.1 9 .7 1.1 1.6 2.3 2.8 2.2 1.1 0 1.5-.7 2.9-.7 1.3 0 1.7.7 2.9.7 1.2 0 2-1.1 2.7-2.1.8-1.2 1.2-2.4 1.2-2.4s-2.3-.9-2.3-3.5zM14.2 5.9c.6-.8 1-1.8.9-2.9-.9 0-2 .6-2.6 1.3-.6.7-1.1 1.7-1 2.7 1 .1 2-.5 2.7-1.1z" />

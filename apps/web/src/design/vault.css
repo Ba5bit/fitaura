@@ -1,0 +1,415 @@
+/* ============================================================
+   FITAURA — VAULT (authenticated product dashboard) · v3 IA
+   The Vault is the product home: compact nav (Home · Vault · profile),
+   a left scan-mode selector, mode content + saved cards, and the
+   profile-menu secondary pages (Account · Pricing · Settings).
+   Reuses fitaura.css tokens + fonts. Anton · Hanken Grotesk · Space Mono.
+   ============================================================ */
+
+.vlt { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ============================ COMPACT TOP NAV ============================ */
+.vlt-nav {
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+  padding: 16px clamp(20px, 4vw, 52px);
+  background: color-mix(in oklab, var(--bg-0) 78%, transparent);
+  backdrop-filter: blur(16px); border-bottom: 1px solid var(--hair-soft);
+}
+.vlt-brand { display: flex; align-items: center; gap: 11px; cursor: pointer; background: none; border: 0; padding: 0; }
+.vlt-brand .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 3px #fff inset; }
+.vlt-brand .wm { font-family: "Hanken Grotesk"; font-weight: 800; letter-spacing: 0.42em; font-size: 15px; text-transform: uppercase; padding-left: 2px; color: var(--ink); }
+.vlt-navmid { display: flex; align-items: center; gap: 6px; }
+.vlt-navlink {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: "Hanken Grotesk"; font-weight: 600; font-size: 13.5px; color: var(--ink-dim);
+  padding: 9px 15px; border-radius: 999px; border: 1px solid transparent; background: none; cursor: pointer; transition: .16s;
+}
+.vlt-navlink svg { width: 15px; height: 15px; }
+.vlt-navlink:hover { color: var(--ink); background: var(--panel); }
+.vlt-navlink[aria-current="true"] { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 45%, transparent); background: color-mix(in oklab, var(--accent) 9%, transparent); }
+.vlt-navright { display: flex; align-items: center; gap: 12px; position: relative; }
+
+/* profile avatar button */
+.vlt-avatar {
+  width: 42px; height: 42px; border-radius: 50%; flex: none; cursor: pointer; padding: 0;
+  display: grid; place-items: center; font-family: "Hanken Grotesk"; font-weight: 800; font-size: 16px; color: var(--accent-ink);
+  background: var(--chrome); border: 1px solid rgba(255,255,255,.5); box-shadow: 0 6px 18px -8px #000; transition: .18s;
+}
+.vlt-avatar:hover, .vlt-avatar[aria-expanded="true"] { transform: translateY(-1px); box-shadow: 0 8px 22px -8px #000, 0 0 0 3px color-mix(in oklab, var(--accent) 30%, transparent); }
+.vlt-avatar.guest { background: var(--panel-2); color: var(--ink-dim); border-color: var(--hair); }
+.vlt-avatar.guest svg { width: 20px; height: 20px; }
+
+/* ============================ PROFILE MENU (popover) ============================ */
+.vlt-menu {
+  position: absolute; top: calc(100% + 12px); right: 0; z-index: 60; width: 268px;
+  border-radius: 16px; border: 1px solid var(--hair); overflow: hidden;
+  background: linear-gradient(180deg, #181b23, #0f1117);
+  box-shadow: 0 30px 70px -24px #000, 0 0 0 1px rgba(255,255,255,.02) inset;
+  animation: vltpop .18s cubic-bezier(.22,1,.36,1);
+}
+@keyframes vltpop { from { transform: translateY(-6px) scale(.98); } to { transform: none; } }
+.vlt-menu-id { display: flex; align-items: center; gap: 12px; padding: 16px 16px 15px; border-bottom: 1px solid var(--hair-soft); background: rgba(255,255,255,.018); }
+.vlt-menu-id .av { width: 42px; height: 42px; border-radius: 50%; flex: none; display: grid; place-items: center; font-family: "Hanken Grotesk"; font-weight: 800; font-size: 17px; color: var(--accent-ink); background: var(--chrome); border: 1px solid rgba(255,255,255,.5); }
+.vlt-menu-id .tx { min-width: 0; }
+.vlt-menu-id .em { font-family: "Hanken Grotesk"; font-weight: 700; font-size: 13.5px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vlt-menu-id .mb { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.14em; color: var(--ink-faint); text-transform: uppercase; margin-top: 4px; }
+.vlt-menu-list { padding: 6px; display: flex; flex-direction: column; gap: 1px; }
+.vlt-menu-item {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  font-family: "Hanken Grotesk"; font-weight: 600; font-size: 13.5px; color: var(--ink);
+  padding: 11px 11px; border-radius: 10px; border: 0; background: none; cursor: pointer; transition: .14s;
+}
+.vlt-menu-item .mi { width: 30px; height: 30px; flex: none; border-radius: 8px; display: grid; place-items: center; border: 1px solid var(--hair); background: var(--panel); color: var(--ink-dim); }
+.vlt-menu-item .mi svg { width: 15px; height: 15px; }
+.vlt-menu-item .mx { margin-left: auto; font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.06em; color: var(--accent); }
+.vlt-menu-item:hover { background: var(--panel-2); }
+.vlt-menu-item:hover .mi { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 45%, var(--hair)); }
+.vlt-menu-sep { height: 1px; background: var(--hair-soft); margin: 6px 8px; }
+.vlt-menu-item.danger { color: var(--red); }
+.vlt-menu-item.danger:hover { background: color-mix(in oklab, var(--red) 10%, transparent); }
+.vlt-menu-item.danger .mi { color: var(--red); border-color: color-mix(in oklab, var(--red) 30%, var(--hair)); }
+
+/* ============================ SHELL: rail + main ============================ */
+.vlt-body { flex: 1; width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 52px); }
+.vlt-cols { display: grid; grid-template-columns: 236px 1fr; gap: 34px; align-items: start; padding: 34px 0 90px; }
+
+/* ---- scan-mode selector (left) ---- */
+.vlt-rail { position: sticky; top: 92px; display: flex; flex-direction: column; gap: 10px; }
+.vlt-rail-h { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-faint); padding: 2px 6px 4px; }
+.vlt-mode {
+  position: relative; display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; cursor: pointer;
+  padding: 14px 15px; border-radius: 14px; border: 1px solid var(--hair-soft); background: var(--panel); transition: transform .18s ease, opacity .18s ease; overflow: hidden;
+}
+.vlt-mode::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 3px; background: transparent; }
+.vlt-mode .mic { width: 40px; height: 40px; flex: none; border-radius: 11px; display: grid; place-items: center; border: 1px solid var(--hair); background: rgba(0,0,0,.25); color: var(--ink-dim); }
+.vlt-mode .mic svg { width: 21px; height: 21px; }
+.vlt-mode .mtx { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.vlt-mode .mnm { font-family: "Hanken Grotesk"; font-weight: 700; font-size: 14.5px; color: var(--ink); line-height: 1.05; }
+.vlt-mode .mtg { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); display: inline-flex; align-items: center; gap: 6px; }
+.vlt-mode .mtg .d { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+.vlt-mode:hover { border-color: var(--hair); transform: translateY(-1px); }
+
+.vlt-mode[aria-current="true"] {
+  border-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  background: color-mix(in oklab, var(--accent) 10%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 22%, transparent), 0 18px 44px -28px var(--accent);
+}
+.vlt-mode[aria-current="true"]::before { background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.vlt-mode[aria-current="true"] .mic { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 50%, var(--hair)); background: color-mix(in oklab, var(--accent) 12%, transparent); }
+.vlt-mode[aria-current="true"] .mtg { color: var(--accent); }
+.vlt-mode[aria-current="true"] .mtg .d { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+/* locked modes */
+.vlt-mode.locked { opacity: .62; }
+.vlt-mode.locked .mtg { color: var(--gold); }
+.vlt-mode.locked .mtg .d { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.vlt-mode.locked .lk { margin-left: auto; flex: none; color: var(--ink-faint); display: inline-flex; }
+.vlt-mode.locked .lk svg { width: 15px; height: 15px; }
+.vlt-mode.locked:hover { opacity: .8; }
+.vlt-mode.locked[aria-current="true"] { opacity: 1; border-color: color-mix(in oklab, var(--gold) 45%, transparent); background: color-mix(in oklab, var(--gold) 8%, transparent); box-shadow: 0 0 0 1px color-mix(in oklab, var(--gold) 18%, transparent); }
+.vlt-mode.locked[aria-current="true"]::before { background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+.vlt-mode.locked[aria-current="true"] .mic { color: var(--gold); border-color: color-mix(in oklab, var(--gold) 45%, var(--hair)); background: color-mix(in oklab, var(--gold) 10%, transparent); }
+
+.vlt-rail-foot { margin-top: 8px; padding: 14px 15px; border-radius: 14px; border: 1px dashed var(--hair); }
+.vlt-rail-foot .t { font-family: "Hanken Grotesk"; font-weight: 700; font-size: 12.5px; color: var(--ink-dim); }
+.vlt-rail-foot .s { font-family: "Hanken Grotesk"; font-size: 12px; color: var(--ink-faint); line-height: 1.45; margin-top: 6px; }
+
+/* ============================ MAIN: shared atoms ============================ */
+.vlt-eyebrow { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ink-faint); display: inline-flex; align-items: center; gap: 10px; }
+.vlt-eyebrow::before { content: ""; width: 20px; height: 1px; background: color-mix(in oklab, var(--accent) 60%, transparent); box-shadow: 0 0 8px var(--accent); }
+.vlt-eyebrow.lock::before { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.vlt-eyebrow svg { width: 13px; height: 13px; }
+.vlt-h1 { font-family: "Anton", sans-serif; font-weight: 400; text-transform: uppercase; font-size: clamp(34px, 4.2vw, 52px); line-height: 0.92; letter-spacing: 0.01em; color: #fff; margin: 14px 0 0; }
+.vlt-h1 .hl { color: var(--accent); text-shadow: 0 0 30px color-mix(in oklab, var(--accent) 55%, transparent); }
+.vlt-lead { font-family: "Hanken Grotesk"; font-size: 15.5px; line-height: 1.55; color: var(--ink-dim); max-width: 560px; margin: 14px 0 0; text-wrap: pretty; }
+
+/* buttons */
+.vlt-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  font-family: "Hanken Grotesk"; font-weight: 700; font-size: 14px; letter-spacing: 0.01em;
+  padding: 13px 20px; border-radius: 12px; cursor: pointer; text-decoration: none; white-space: nowrap;
+  border: 1px solid var(--hair); background: var(--panel); color: var(--ink); transition: .18s;
+}
+.vlt-btn svg { width: 16px; height: 16px; }
+.vlt-btn:hover { border-color: color-mix(in oklab, var(--accent) 55%, var(--hair)); box-shadow: 0 0 28px -16px var(--accent); transform: translateY(-1px); }
+.vlt-btn.primary { border-color: color-mix(in oklab, var(--accent) 65%, transparent); background: color-mix(in oklab, var(--accent) 16%, transparent); color: var(--accent); box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 22%, transparent), 0 16px 40px -22px var(--accent); }
+.vlt-btn.primary:hover { background: color-mix(in oklab, var(--accent) 22%, transparent); }
+.vlt-btn.ghost { background: transparent; }
+.vlt-btn.lg { font-size: 15px; padding: 15px 26px; }
+.vlt-btn.sm { font-size: 12.5px; padding: 9px 14px; }
+.vlt-btn.block { width: 100%; }
+.vlt-btn:disabled { opacity: .5; cursor: default; transform: none; box-shadow: none; border-style: dashed; }
+.vlt-btn:disabled:hover { border-color: var(--hair); }
+
+/* origin tags */
+.vlt-tag { display: inline-flex; align-items: center; gap: 7px; font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 10px; border-radius: 999px; white-space: nowrap; }
+.vlt-tag svg { width: 12px; height: 12px; }
+.vlt-tag.server { color: var(--icy); border: 1px solid color-mix(in oklab, var(--icy) 38%, var(--hair)); background: color-mix(in oklab, var(--icy) 9%, transparent); }
+.vlt-tag.local { color: var(--gold); border: 1px solid color-mix(in oklab, var(--gold) 38%, var(--hair)); background: color-mix(in oklab, var(--gold) 9%, transparent); }
+
+/* ============================ GENERATE PANEL ============================ */
+.vlt-gen {
+  position: relative; overflow: hidden; margin-top: 26px;
+  border-radius: 20px; border: 1px solid var(--hair); background: linear-gradient(150deg, var(--bg-2), #0a0c11 86%);
+  box-shadow: var(--shadow-card); padding: 28px 30px;
+  display: flex; align-items: center; justify-content: space-between; gap: 28px; flex-wrap: wrap;
+}
+.vlt-gen::before { content: ""; position: absolute; top: -90px; right: -50px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%); }
+.vlt-gen .lhs { position: relative; min-width: 0; }
+.vlt-gen .ttl { font-family: "Anton", sans-serif; font-size: 30px; line-height: 0.96; text-transform: uppercase; color: #fff; letter-spacing: 0.01em; }
+.vlt-gen .outs { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.vlt-gen .out { display: inline-flex; align-items: center; gap: 7px; font-family: "Space Mono", monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); padding: 6px 11px; border-radius: 999px; border: 1px solid var(--hair-soft); background: rgba(255,255,255,.02); }
+.vlt-gen .out .d { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.vlt-gen .rhs { position: relative; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+.vlt-credit { display: inline-flex; align-items: center; gap: 9px; font-family: "Hanken Grotesk"; font-weight: 700; font-size: 13.5px; color: var(--ink); padding: 9px 15px; border-radius: 999px; border: 1px solid var(--hair); background: var(--panel); }
+.vlt-credit .gem { width: 16px; height: 16px; color: var(--accent); display: inline-flex; }
+.vlt-credit b { color: var(--accent); }
+.vlt-credit.zero b { color: var(--red); }
+.vlt-credit.free { color: var(--lime); border-color: color-mix(in oklab, var(--lime) 45%, var(--hair)); background: color-mix(in oklab, var(--lime) 9%, transparent); }
+.vlt-credit.free .gem { color: var(--lime); }
+.vlt-credit .x { color: var(--ink-faint); font-family: "Space Mono", monospace; font-size: 10.5px; letter-spacing: 0.04em; }
+
+/* ============================ COLLECTION ============================ */
+.vlt-colhead { display: flex; align-items: flex-end; justify-content: space-between; gap: 22px; margin-top: 44px; flex-wrap: wrap; }
+.vlt-colt { font-family: "Anton", sans-serif; font-weight: 400; text-transform: uppercase; font-size: 24px; color: #fff; margin: 10px 0 0; letter-spacing: 0.01em; }
+.vlt-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+.vlt-chip { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-family: "Hanken Grotesk"; font-weight: 600; font-size: 12.5px; color: var(--ink-dim); padding: 8px 13px; border-radius: 999px; border: 1px solid var(--hair-soft); background: transparent; transition: .16s; }
+.vlt-chip .d { width: 7px; height: 7px; border-radius: 50%; background: var(--vc, var(--accent)); box-shadow: 0 0 8px var(--vc, var(--accent)); }
+.vlt-chip .ct { font-family: "Space Mono", monospace; font-size: 10.5px; color: var(--ink-faint); }
+.vlt-chip:hover { color: var(--ink); border-color: var(--hair); }
+.vlt-chip[aria-selected="true"] { color: var(--ink); border-color: color-mix(in oklab, var(--vc, var(--accent)) 55%, var(--hair)); background: color-mix(in oklab, var(--vc, var(--accent)) 10%, transparent); }
+.vlt-chip[aria-selected="true"] .ct { color: var(--vc, var(--accent)); }
+
+.vlt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(244px, 1fr)); gap: 18px; margin-top: 22px; }
+
+/* ---- solo result card (Outfit Card as lead thumbnail) ---- */
+.vlt-card { position: relative; border-radius: 16px; border: 1px solid var(--hair); background: linear-gradient(168deg, var(--bg-2), #0a0c11 80%); overflow: hidden; display: flex; flex-direction: column; transition: .18s; }
+.vlt-card:hover { transform: translateY(-3px); border-color: color-mix(in oklab, var(--vc, var(--accent)) 50%, var(--hair)); box-shadow: 0 28px 64px -32px var(--vc, var(--accent)); }
+
+.vlt-thumb { position: relative; aspect-ratio: 4 / 5; overflow: hidden; cursor: pointer; background: linear-gradient(160deg, color-mix(in oklab, var(--vc) 16%, #0c0e13), #07080b); }
+.vlt-thumb .img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vlt-thumb .hatch { position: absolute; inset: 0; background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.05) 0 1.5px, transparent 1.5px 11px); opacity: .5; }
+.vlt-thumb .figure { position: absolute; left: 50%; bottom: -6%; transform: translateX(-50%); width: 56%; height: 78%; border-radius: 60px 60px 0 0; background: radial-gradient(120% 90% at 50% 14%, color-mix(in oklab, var(--vc) 26%, transparent), transparent 62%); filter: blur(1px); }
+.vlt-thumb .scrim { position: absolute; inset: 0; z-index: 2; background: linear-gradient(180deg, rgba(6,7,10,.5) 0%, transparent 26%, transparent 50%, rgba(6,7,10,.9) 100%); }
+.vlt-thumb .ph { position: absolute; top: 14px; left: 14px; z-index: 3; font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--ink-faint); text-transform: uppercase; }
+.vlt-thumb .vdot { position: absolute; top: 14px; left: 14px; z-index: 3; display: inline-flex; align-items: center; gap: 7px; font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.14em; color: #fff; text-transform: uppercase; }
+.vlt-thumb .vdot .d { width: 8px; height: 8px; border-radius: 50%; background: var(--vc); box-shadow: 0 0 10px var(--vc); }
+.vlt-thumb .badge { position: absolute; top: 13px; right: 13px; z-index: 3; width: 62px; height: 62px; border-radius: 16px; display: grid; place-items: center; text-align: center; background: rgba(6,7,10,.5); backdrop-filter: blur(8px); border: 1px solid color-mix(in oklab, var(--vc) 50%, var(--hair)); box-shadow: 0 0 28px -10px var(--vc); }
+.vlt-thumb .badge .num { font-family: "Anton", sans-serif; font-size: 30px; line-height: .8; color: #fff; }
+.vlt-thumb .badge .sub { font-family: "Space Mono", monospace; font-size: 7.5px; letter-spacing: 0.12em; color: var(--vc); text-transform: uppercase; margin-top: 3px; }
+.vlt-thumb .cap { position: absolute; left: 14px; right: 14px; bottom: 13px; z-index: 3; font-family: "Anton", sans-serif; font-size: 17px; line-height: 0.98; letter-spacing: 0.005em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 14px #000; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+/* asset strip — "1 verdict = 3 cards" */
+.vlt-assets { display: flex; align-items: stretch; gap: 0; padding: 0 4px; border-top: 1px solid var(--hair-soft); }
+.vlt-assets .a { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 4px; font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+.vlt-assets .a + .a { border-left: 1px solid var(--hair-soft); }
+.vlt-assets .a .gd { width: 5px; height: 5px; border-radius: 50%; background: var(--ink-ghost); }
+.vlt-assets .a.on .gd { background: var(--vc); box-shadow: 0 0 6px var(--vc); }
+.vlt-assets .a.on { color: var(--ink-dim); }
+
+.vlt-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px 13px; border-top: 1px solid var(--hair-soft); }
+.vlt-meta { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.vlt-meta .vd { font-family: "Anton", sans-serif; font-size: 15px; line-height: 1; letter-spacing: 0.01em; text-transform: uppercase; color: #fff; }
+.vlt-meta .id { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.08em; color: var(--ink-faint); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vlt-actions { display: flex; align-items: center; gap: 5px; flex: none; position: relative; }
+.vlt-ic { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; border: 1px solid var(--hair); background: var(--panel); color: var(--ink-dim); cursor: pointer; transition: .15s; }
+.vlt-ic:hover { color: var(--ink); border-color: color-mix(in oklab, var(--vc, var(--accent)) 50%, var(--hair)); background: var(--panel-2); }
+.vlt-ic svg { width: 16px; height: 16px; }
+
+/* manage menu (card ⋯) */
+.vlt-cardmenu { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 25; width: 226px; padding: 6px; border-radius: 12px; border: 1px solid var(--hair); background: color-mix(in oklab, var(--bg-2) 97%, transparent); box-shadow: 0 24px 54px -18px #000; backdrop-filter: blur(10px); display: flex; flex-direction: column; gap: 1px; }
+.vlt-cardmenu button { display: flex; align-items: center; gap: 11px; width: 100%; text-align: left; padding: 10px 11px; border-radius: 8px; border: 0; background: none; cursor: pointer; font-family: "Hanken Grotesk"; font-weight: 600; font-size: 13px; color: var(--ink); transition: .14s; }
+.vlt-cardmenu button svg { width: 15px; height: 15px; color: var(--ink-faint); }
+.vlt-cardmenu button:hover { background: var(--panel-2); }
+.vlt-cardmenu button.danger { color: var(--red); } .vlt-cardmenu button.danger svg { color: var(--red); }
+
+/* create tile */
+.vlt-create { align-items: center; justify-content: center; text-align: center; gap: 10px; cursor: pointer; border-style: dashed; background: var(--panel); display: flex; flex-direction: column; padding: 30px 18px; min-height: 100%; }
+.vlt-create:hover { transform: translateY(-3px); border-color: color-mix(in oklab, var(--accent) 55%, var(--hair)); box-shadow: 0 26px 60px -34px var(--accent); }
+.vlt-create .ic { width: 54px; height: 54px; border-radius: 15px; display: grid; place-items: center; color: var(--accent); border: 1px solid color-mix(in oklab, var(--accent) 45%, transparent); background: color-mix(in oklab, var(--accent) 10%, transparent); }
+.vlt-create .ic svg { width: 25px; height: 25px; }
+.vlt-create .tt { font-family: "Hanken Grotesk"; font-weight: 800; font-size: 16px; color: #fff; }
+.vlt-create .sb { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.08em; color: var(--ink-faint); }
+
+/* broken / missing card */
+.vlt-card.broken { border-style: dashed; background: var(--panel); }
+.vlt-broken { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 38px 18px; }
+.vlt-broken .g { color: var(--ink-faint); } .vlt-broken .g svg { width: 34px; height: 34px; }
+.vlt-broken .tt { font-family: "Hanken Grotesk"; font-weight: 700; font-size: 14px; color: var(--ink-dim); }
+.vlt-broken .sb { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.06em; color: var(--ink-faint); }
+
+/* ============================ EMPTY STATE ============================ */
+.vlt-empty { margin-top: 22px; border-radius: 20px; border: 1px dashed var(--hair); background: rgba(255,255,255,.012); padding: 56px 40px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+.vlt-empty .ic { width: 70px; height: 70px; border-radius: 20px; display: grid; place-items: center; color: var(--accent); border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent); background: color-mix(in oklab, var(--accent) 9%, transparent); box-shadow: 0 0 44px -14px var(--accent); }
+.vlt-empty .ic svg { width: 34px; height: 34px; }
+.vlt-empty .et { font-family: "Anton", sans-serif; font-size: 28px; text-transform: uppercase; color: #fff; margin-top: 22px; letter-spacing: 0.01em; align-self: stretch; }
+.vlt-empty .es { font-family: "Hanken Grotesk"; font-size: 14.5px; line-height: 1.55; color: var(--ink-dim); max-width: 440px; margin: 12px 0 0; text-wrap: pretty; align-self: stretch; }
+.vlt-empty .ea { margin-top: 26px; }
+.vlt-empty .outs { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
+
+/* ============================ LOCKED MODE (coming soon) ============================ */
+.vlt-locked { margin-top: 26px; }
+.vlt-locked-hero { position: relative; overflow: hidden; border-radius: 20px; border: 1px solid color-mix(in oklab, var(--gold) 26%, var(--hair)); background: linear-gradient(160deg, color-mix(in oklab, var(--gold) 7%, var(--bg-2)), #0a0c11 84%); box-shadow: var(--shadow-card); padding: 34px 34px; display: grid; grid-template-columns: 1fr 320px; gap: 30px; align-items: center; }
+.vlt-locked-hero::before { content: ""; position: absolute; top: -90px; left: -40px; width: 280px; height: 280px; border-radius: 50%; background: radial-gradient(circle, color-mix(in oklab, var(--gold) 16%, transparent), transparent 70%); }
+.vlt-locked-hero .lk-eyebrow { color: var(--gold); }
+.vlt-locked-hero .vlt-h1 { font-size: clamp(30px, 3.2vw, 44px); line-height: 1.0; margin-bottom: 6px; }
+.vlt-locked-hero .lk-eyebrow::before { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+.vlt-locked-hero .lk-acts { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; position: relative; }
+.vlt-lockbtn { display: inline-flex; align-items: center; gap: 9px; font-family: "Hanken Grotesk"; font-weight: 700; font-size: 14px; padding: 13px 20px; border-radius: 12px; border: 1px dashed color-mix(in oklab, var(--gold) 45%, var(--hair)); background: color-mix(in oklab, var(--gold) 8%, transparent); color: var(--gold); cursor: default; }
+.vlt-lockbtn svg { width: 16px; height: 16px; }
+
+/* mode preview mock */
+.lk-preview { position: relative; aspect-ratio: 4 / 5; border-radius: 16px; border: 1px solid var(--hair); background: linear-gradient(168deg, var(--bg-2), #07080b 82%); overflow: hidden; display: flex; flex-direction: column; }
+.lk-preview .lk-badge { position: absolute; top: 12px; right: 12px; z-index: 4; font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); padding: 5px 10px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--gold) 45%, transparent); background: color-mix(in oklab, var(--gold) 10%, transparent); }
+.lk-preview .lk-blur { position: absolute; inset: 0; backdrop-filter: blur(2px); z-index: 3; background: rgba(6,7,10,.18); }
+.lk-vs { flex: 1; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; padding: 18px; }
+.lk-vs .p { aspect-ratio: 3/4; border-radius: 12px; background: linear-gradient(160deg, #14171e, #0a0c11); border: 1px solid var(--hair-soft); position: relative; overflow: hidden; }
+.lk-vs .p::after { content: ""; position: absolute; left: 50%; bottom: -8%; transform: translateX(-50%); width: 58%; height: 72%; border-radius: 40px 40px 0 0; background: radial-gradient(120% 90% at 50% 16%, rgba(255,255,255,.08), transparent 62%); }
+.lk-vs .vsx { font-family: "Anton", sans-serif; font-size: 22px; color: var(--gold); }
+.lk-ba { flex: 1; display: grid; grid-template-rows: 1fr 1fr; gap: 8px; padding: 16px; }
+.lk-ba .row { display: flex; align-items: center; gap: 10px; }
+.lk-ba .row .lab { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.14em; color: var(--ink-faint); width: 44px; flex: none; }
+.lk-ba .row .bar { flex: 1; height: 100%; min-height: 54px; border-radius: 10px; background: linear-gradient(160deg, #14171e, #0a0c11); border: 1px solid var(--hair-soft); }
+
+/* mode outputs list under locked hero */
+.vlt-lk-outs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+.vlt-lk-out { border-radius: 14px; border: 1px solid var(--hair-soft); background: var(--panel); padding: 16px 16px; }
+.vlt-lk-out .n { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.14em; color: var(--gold); text-transform: uppercase; }
+.vlt-lk-out .t { font-family: "Hanken Grotesk"; font-weight: 700; font-size: 14px; color: var(--ink); margin-top: 8px; }
+
+/* ============================ SECONDARY PAGES ============================ */
+.vlt-sub { width: 100%; max-width: 920px; margin: 0 auto; padding: 30px 0 90px; }
+.vlt-back { display: inline-flex; align-items: center; gap: 9px; font-family: "Hanken Grotesk"; font-weight: 600; font-size: 13.5px; color: var(--ink-dim); padding: 9px 14px 9px 11px; border-radius: 999px; border: 1px solid var(--hair-soft); background: var(--panel); cursor: pointer; transition: .16s; }
+.vlt-back svg { width: 16px; height: 16px; }
+.vlt-back:hover { color: var(--ink); border-color: var(--hair); }
+.vlt-sub-head { margin-top: 22px; }
+
+.vlt-panel { border-radius: 18px; border: 1px solid var(--hair); background: var(--panel); padding: 26px 28px; margin-top: 22px; }
+.vlt-panel.glow { background: linear-gradient(170deg, var(--bg-2), #0a0c11 84%); box-shadow: var(--shadow-card); position: relative; overflow: hidden; }
+.vlt-panel.glow::before { content: ""; position: absolute; top: -70px; right: -70px; width: 220px; height: 220px; border-radius: 50%; background: radial-gradient(circle, color-mix(in oklab, var(--accent) 18%, transparent), transparent 70%); }
+.vlt-panel-h { font-family: "Hanken Grotesk"; font-weight: 800; font-size: 15px; color: #fff; display: flex; align-items: center; gap: 10px; margin: 0 0 4px; }
+.vlt-panel-h svg { width: 17px; height: 17px; color: var(--accent); }
+
+/* account identity */
+.vlt-acct-id { display: flex; align-items: center; gap: 18px; position: relative; }
+.vlt-acct-id .av { width: 64px; height: 64px; border-radius: 50%; flex: none; display: grid; place-items: center; font-family: "Hanken Grotesk"; font-weight: 800; font-size: 26px; color: var(--accent-ink); background: var(--chrome); border: 1px solid rgba(255,255,255,.5); box-shadow: 0 8px 22px -10px #000; }
+.vlt-acct-id .em { font-family: "Hanken Grotesk"; font-weight: 700; font-size: 18px; color: var(--ink); }
+.vlt-acct-id .badges { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.vlt-status { display: inline-flex; align-items: center; gap: 7px; font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lime); padding: 4px 10px; border-radius: 999px; border: 1px solid color-mix(in oklab, var(--lime) 36%, var(--hair)); background: color-mix(in oklab, var(--lime) 8%, transparent); }
+.vlt-status .d { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 8px var(--lime); }
+
+.vlt-rows { display: flex; flex-direction: column; }
+.vlt-row { display: flex; align-items: center; gap: 14px; padding: 15px 4px; border-top: 1px solid var(--hair-soft); }
+.vlt-row .ic { width: 36px; height: 36px; flex: none; border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--hair); background: var(--panel); color: var(--ink-dim); }
+.vlt-row .ic svg { width: 17px; height: 17px; }
+.vlt-row .tx { flex: 1; min-width: 0; }
+.vlt-row .tx .k { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+.vlt-row .tx .v { font-family: "Hanken Grotesk"; font-weight: 600; font-size: 14.5px; color: var(--ink); margin-top: 3px; }
+.vlt-row .act { flex: none; }
+
+/* pricing balance + packs */
+.vlt-balance { display: flex; align-items: center; justify-content: space-between; gap: 22px; flex-wrap: wrap; }
+.vlt-balance .lbl { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+.vlt-balance .n { font-family: "Anton", sans-serif; font-size: 68px; line-height: 0.84; color: #fff; margin-top: 8px; }
+.vlt-balance .n.zero { color: var(--red); }
+.vlt-balance .meta { font-family: "Hanken Grotesk"; font-size: 13px; color: var(--ink-dim); margin-top: 8px; }
+.vlt-balance .gem { width: 74px; height: 74px; flex: none; border-radius: 18px; display: grid; place-items: center; color: var(--accent); border: 1px solid color-mix(in oklab, var(--accent) 40%, var(--hair)); background: color-mix(in oklab, var(--accent) 8%, transparent); box-shadow: 0 0 40px -14px var(--accent); }
+.vlt-balance .gem svg { width: 38px; height: 38px; }
+
+.vlt-packs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+.vlt-pack { position: relative; text-align: left; cursor: pointer; padding: 24px 22px; border-radius: 18px; border: 1px solid var(--hair); background: var(--panel); transition: .18s; display: flex; flex-direction: column; }
+.vlt-pack:hover { transform: translateY(-3px); border-color: color-mix(in oklab, var(--accent) 45%, var(--hair)); }
+.vlt-pack[aria-checked="true"] { border-color: color-mix(in oklab, var(--accent) 65%, transparent); background: color-mix(in oklab, var(--accent) 8%, transparent); box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 30%, transparent), 0 24px 60px -34px var(--accent); }
+.vlt-pack .radio { position: absolute; top: 20px; right: 20px; width: 19px; height: 19px; border-radius: 50%; border: 2px solid var(--hair); transition: .16s; }
+.vlt-pack[aria-checked="true"] .radio { border-color: var(--accent); background: radial-gradient(circle, var(--accent) 0 42%, transparent 48%); box-shadow: 0 0 12px -2px var(--accent); }
+.vlt-pack .tier { font-family: "Space Mono", monospace; font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); }
+.vlt-pack .credits { font-family: "Anton", sans-serif; font-size: 48px; line-height: 0.88; color: #fff; margin-top: 12px; }
+.vlt-pack .credits span { font-family: "Hanken Grotesk"; font-weight: 700; font-size: 13px; color: var(--ink-dim); margin-left: 7px; }
+.vlt-pack .price { font-family: "Hanken Grotesk"; font-weight: 800; font-size: 22px; color: var(--accent); margin-top: 12px; }
+.vlt-pack .per { font-family: "Space Mono", monospace; font-size: 10.5px; color: var(--ink-faint); margin-top: 6px; letter-spacing: 0.04em; }
+.vlt-pack-badge { position: absolute; top: -10px; left: 22px; font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; padding: 5px 11px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+.vlt-unlock { margin-top: 20px; border-radius: 16px; border: 1px solid var(--hair); background: var(--panel); padding: 20px 22px; }
+.vlt-unlock .h { font-family: "Hanken Grotesk"; font-weight: 800; font-size: 14.5px; color: #fff; display: flex; align-items: center; gap: 10px; }
+.vlt-unlock .h .bolt { color: var(--accent); display: inline-flex; } .vlt-unlock .h .bolt svg { width: 16px; height: 16px; }
+.vlt-unlock ul { list-style: none; padding: 0; margin: 14px 0 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 22px; }
+.vlt-unlock li { display: flex; align-items: center; gap: 11px; padding: 9px 0; font-family: "Hanken Grotesk"; font-size: 14px; color: var(--ink); border-bottom: 1px solid var(--hair-soft); }
+.vlt-unlock li .ck { width: 18px; height: 18px; flex: none; border-radius: 5px; display: grid; place-items: center; background: color-mix(in oklab, var(--accent) 16%, transparent); border: 1px solid color-mix(in oklab, var(--accent) 50%, transparent); color: var(--accent); }
+.vlt-unlock li .ck svg { width: 11px; height: 11px; }
+
+/* settings */
+.vlt-setrow { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 4px; border-top: 1px solid var(--hair-soft); }
+.vlt-setrow:first-child { border-top: 0; }
+.vlt-setrow .tx .k { font-family: "Hanken Grotesk"; font-weight: 600; font-size: 14.5px; color: var(--ink); }
+.vlt-setrow .tx .s { font-family: "Hanken Grotesk"; font-size: 12.5px; color: var(--ink-faint); margin-top: 4px; line-height: 1.45; max-width: 460px; }
+.vlt-toggle { width: 46px; height: 27px; border-radius: 999px; border: 1px solid var(--hair); background: var(--panel-2); position: relative; cursor: pointer; flex: none; transition: .18s; }
+.vlt-toggle .k { position: absolute; top: 2.5px; left: 2.5px; width: 20px; height: 20px; border-radius: 50%; background: var(--ink-dim); transition: .18s; }
+.vlt-toggle[aria-checked="true"] { background: color-mix(in oklab, var(--accent) 26%, transparent); border-color: color-mix(in oklab, var(--accent) 55%, var(--hair)); }
+.vlt-toggle[aria-checked="true"] .k { left: 21px; background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+.vlt-seg { display: inline-flex; gap: 5px; padding: 4px; border-radius: 11px; background: rgba(0,0,0,.3); border: 1px solid var(--hair-soft); flex: none; }
+.vlt-seg button { font-family: "Hanken Grotesk"; font-weight: 700; font-size: 12.5px; padding: 8px 14px; border-radius: 8px; border: 0; background: none; color: var(--ink-dim); cursor: pointer; transition: .14s; }
+.vlt-seg button[aria-selected="true"] { background: var(--panel-2); color: var(--ink); box-shadow: 0 2px 8px -4px #000; }
+
+/* storage meter (settings) */
+.vlt-meter { margin-top: 14px; }
+.vlt-meter .top { display: flex; justify-content: space-between; font-family: "Space Mono", monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; }
+.vlt-meter .track { height: 6px; border-radius: 99px; background: rgba(255,255,255,0.08); overflow: hidden; }
+.vlt-meter .fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, color-mix(in oklab, var(--gold) 60%, #fff), var(--gold)); box-shadow: 0 0 10px -1px var(--gold); }
+
+/* storage two-col (settings privacy) */
+.vlt-store-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+.vlt-store-col { border-radius: 16px; padding: 22px 22px; border: 1px solid var(--hair); }
+.vlt-store-col.server { border-color: color-mix(in oklab, var(--icy) 30%, var(--hair)); background: color-mix(in oklab, var(--icy) 5%, transparent); }
+.vlt-store-col.local { border-color: color-mix(in oklab, var(--gold) 30%, var(--hair)); background: color-mix(in oklab, var(--gold) 5%, transparent); }
+.vlt-store-col .ch { display: flex; align-items: center; gap: 12px; }
+.vlt-store-col .ch .ic { width: 40px; height: 40px; flex: none; border-radius: 11px; display: grid; place-items: center; }
+.vlt-store-col.server .ch .ic { color: var(--icy); border: 1px solid color-mix(in oklab, var(--icy) 45%, transparent); background: color-mix(in oklab, var(--icy) 12%, transparent); }
+.vlt-store-col.local .ch .ic { color: var(--gold); border: 1px solid color-mix(in oklab, var(--gold) 45%, transparent); background: color-mix(in oklab, var(--gold) 12%, transparent); }
+.vlt-store-col .ch .ic svg { width: 20px; height: 20px; }
+.vlt-store-col .ch .ti { font-family: "Anton", sans-serif; font-size: 18px; text-transform: uppercase; color: #fff; line-height: 1.1; white-space: nowrap; }
+.vlt-store-col .ch .tag { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; }
+.vlt-store-col.server .ch .tag { color: var(--icy); } .vlt-store-col.local .ch .tag { color: var(--gold); }
+.vlt-store-col ul { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; }
+.vlt-store-col li { display: flex; align-items: center; gap: 11px; padding: 10px 0; font-family: "Hanken Grotesk"; font-size: 13.5px; color: var(--ink); border-bottom: 1px solid var(--hair-soft); }
+.vlt-store-col li:last-child { border-bottom: 0; }
+.vlt-store-col li svg { width: 15px; height: 15px; flex: none; }
+.vlt-store-col.server li svg { color: var(--icy); } .vlt-store-col.local li svg { color: var(--gold); }
+
+/* ============================ MODAL (logout confirm) ============================ */
+.vlt-scrim { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center; padding: 30px; background: rgba(4,5,8,0.68); backdrop-filter: blur(6px); }
+.vlt-modal { position: relative; width: 100%; max-width: 440px; border-radius: 20px; border: 1px solid var(--hair); background: linear-gradient(180deg, var(--bg-2), #090b10 92%); box-shadow: var(--shadow-card); padding: 32px 32px 28px; text-align: center; animation: vltpop2 .42s cubic-bezier(.22,1,.36,1); }
+@keyframes vltpop2 { from { transform: translateY(12px) scale(.985); } to { transform: none; } }
+.vlt-modal .glyph { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto; display: grid; place-items: center; color: var(--red); border: 2px solid color-mix(in oklab, var(--red) 55%, transparent); background: color-mix(in oklab, var(--red) 10%, transparent); }
+.vlt-modal .glyph svg { width: 30px; height: 30px; }
+.vlt-modal h3 { font-family: "Anton", sans-serif; font-weight: 400; font-size: 28px; text-transform: uppercase; color: #fff; margin: 18px 0 0; letter-spacing: 0.01em; }
+.vlt-modal p { font-family: "Hanken Grotesk"; font-size: 14px; line-height: 1.55; color: var(--ink-dim); margin: 12px auto 0; max-width: 340px; text-wrap: pretty; }
+.vlt-modal .acts { display: flex; gap: 10px; margin-top: 26px; }
+.vlt-modal .acts .vlt-btn { flex: 1; }
+
+/* ============================ TOAST ============================ */
+.vlt-toast { position: fixed; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 90; display: inline-flex; align-items: center; gap: 10px; padding: 13px 20px; border-radius: 12px; font-family: "Hanken Grotesk"; font-weight: 600; font-size: 14px; color: var(--ink); background: #15181f; border: 1px solid var(--hair); box-shadow: 0 18px 50px -20px #000; animation: vlttoast .3s ease; }
+.vlt-toast svg { width: 16px; height: 16px; color: var(--lime); }
+@keyframes vlttoast { from { transform: translate(-50%, 10px); } to { transform: translate(-50%, 0); } }
+
+/* ============================ RESPONSIVE ============================ */
+@media (max-width: 920px) {
+  .vlt-cols { grid-template-columns: 1fr; gap: 22px; }
+  .vlt-rail { position: static; flex-direction: row; flex-wrap: wrap; }
+  .vlt-rail .vlt-mode { flex: 1; min-width: 200px; }
+  .vlt-rail-h { width: 100%; }
+  .vlt-rail-foot { display: none; }
+  .vlt-locked-hero { grid-template-columns: 1fr; }
+  .lk-preview { max-width: 280px; }
+}
+@media (max-width: 620px) {
+  .vlt-navmid .vlt-navlink span { display: none; }
+  .vlt-gen { flex-direction: column; align-items: stretch; }
+  .vlt-gen .rhs { align-items: stretch; }
+  .vlt-packs { grid-template-columns: 1fr; }
+  .vlt-store-cols { grid-template-columns: 1fr; }
+  .vlt-unlock ul { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vlt-menu, .vlt-modal, .vlt-toast, .vlt-scrim { animation: none !important; }
+}

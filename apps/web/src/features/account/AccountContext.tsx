@@ -102,8 +102,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       };
       setAcct({ signedIn: true, user });
       setScene(null);
-      flash("Signed in — let's get you credits.");
-      navigate('/credits');
+      flash("Signed in — welcome to your vault.");
+      navigate('/vault');
     },
     [setAcct, flash, navigate],
   );

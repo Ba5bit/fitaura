@@ -15,6 +15,8 @@ export interface UploadedPhoto {
 export interface GenerationResult extends FullGenerationResult {
   /** When this generation was produced (device-local history). */
   producedAt: string;
+  /** Optional user-given name for the vault (defaults to the generation id). */
+  name?: string;
 }
 
 /** Newest results kept on-device. Capped so localStorage stays small. */
@@ -74,6 +76,10 @@ interface GenerationContextValue {
   startNewScan: () => void;
   /** Make a stored history result the current one. Returns false if missing. */
   openResult: (generationId: string) => boolean;
+  /** Permanently remove a result from the on-device history. */
+  removeResult: (generationId: string) => void;
+  /** Rename a result in the on-device history. */
+  renameResult: (generationId: string, name: string) => void;
 }
 
 const GenerationContext = createContext<GenerationContextValue | null>(null);
@@ -160,6 +166,33 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     [setState],
   );
 
+  const removeResult = useCallback(
+    (generationId: string) =>
+      setState((s) => ({
+        ...s,
+        history: s.history.filter((h) => h.receipt.generationId !== generationId),
+        // Drop the open result too if it's the one being deleted.
+        result: s.result?.receipt.generationId === generationId ? null : s.result,
+      })),
+    [setState],
+  );
+
+  const renameResult = useCallback(
+    (generationId: string, name: string) => {
+      const clean = name.trim();
+      setState((s) => {
+        const apply = (r: GenerationResult): GenerationResult =>
+          r.receipt.generationId === generationId ? { ...r, name: clean || undefined } : r;
+        return {
+          ...s,
+          history: s.history.map(apply),
+          result: s.result ? apply(s.result) : s.result,
+        };
+      });
+    },
+    [setState],
+  );
+
   const value = useMemo<GenerationContextValue>(
     () => ({
       credits: state.credits,
@@ -177,8 +210,10 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
       runGeneration,
       startNewScan,
       openResult,
+      removeResult,
+      renameResult,
     }),
-    [state, isFree, canAffordScan, bothPhotosReady, setFace, setOutfit, addCredits, runGeneration, startNewScan, openResult],
+    [state, isFree, canAffordScan, bothPhotosReady, setFace, setOutfit, addCredits, runGeneration, startNewScan, openResult, removeResult, renameResult],
   );
 
   return <GenerationContext.Provider value={value}>{children}</GenerationContext.Provider>;

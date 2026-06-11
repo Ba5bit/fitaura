@@ -39,7 +39,7 @@ function Nav() {
       </div>
       <div className="ln-nav-cta">
         <AccountEntry />
-        <Link className="ln-btn primary" to="/scan">
+        <Link className="ln-btn primary" to="/vault">
           Get your verdict
         </Link>
         <button className="ln-burger" aria-label="Menu">
@@ -63,7 +63,7 @@ function Hero() {
             Two photos in. A Face Card, an Outfit Check and a Dating Receipt out — built to post.
           </p>
           <div className="ln-hero-actions">
-            <Link className="ln-btn primary lg" to="/scan">
+            <Link className="ln-btn primary lg" to="/vault">
               Scan me — it's free <Icon.arrow />
             </Link>
             <a className="ln-btn lg ghost" href="#examples">
@@ -223,7 +223,7 @@ function Bundle() {
             dating verdict in a single pass.
           </p>
           <div className="ln-hero-actions" style={{ marginTop: '26px' }}>
-            <Link className="ln-btn primary" to="/scan">
+            <Link className="ln-btn primary" to="/vault">
               Run your first scan free <Icon.arrow />
             </Link>
           </div>
@@ -371,7 +371,7 @@ function FinalCTA() {
         Two photos, one credit, three cards your group chat will not let go of. The first one's free.
       </p>
       <div className="ln-hero-actions">
-        <Link className="ln-btn primary lg" to="/scan">
+        <Link className="ln-btn primary lg" to="/vault">
           Get your verdict <Icon.arrow />
         </Link>
       </div>
@@ -429,7 +429,7 @@ function MobileBar() {
         <div className="l1">Get your full verdict</div>
         <div className="l2">First scan free · 1 credit = 3 cards</div>
       </div>
-      <Link className="ln-btn primary" to="/scan">
+      <Link className="ln-btn primary" to="/vault">
         Scan me <Icon.arrow />
       </Link>
     </div>

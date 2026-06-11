@@ -341,6 +341,10 @@ export function Result() {
             <b>{credits}</b> left
           </button>
           <div className="rs-h-actions" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button className="rs-newscan" onClick={() => navigate('/vault')}>
+              <Icon.grid />
+              <span>Vault</span>
+            </button>
             <button className="rs-newscan" onClick={newScan}>
               <Icon.plus />
               <span>New scan</span>

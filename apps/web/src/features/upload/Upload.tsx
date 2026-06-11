@@ -33,10 +33,27 @@ export function Upload() {
       <div className="ua" data-mobile="false">
         <div className="ua-pad">
           <div className="ua-head">
-            <Link className="brand" to="/" aria-label="Fitaura home">
-              <span className="dot" />
-              <span className="wm">Fitaura</span>
-            </Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <Link className="brand" to="/" aria-label="Fitaura home">
+                <span className="dot" />
+                <span className="wm">Fitaura</span>
+              </Link>
+              <Link
+                to="/vault"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  fontFamily: '"Hanken Grotesk"',
+                  fontWeight: 600,
+                  fontSize: 13,
+                  color: 'var(--ink-dim)',
+                  textDecoration: 'none',
+                }}
+              >
+                <Icon.back style={{ width: 16, height: 16 }} /> Vault
+              </Link>
+            </div>
             {isFree ? (
               <span className="status-chip free">
                 <span className="d" />
