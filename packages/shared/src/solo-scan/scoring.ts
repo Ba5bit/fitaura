@@ -27,6 +27,8 @@ export function weightedAverage(items: Weighted[]): number | null {
   return sum / wsum;
 }
 
+// photoPresentation feeds the aggregate face score (and thus the Aura Index) but is
+// deliberately not shown as its own breakdown trait — it rates the photo, not the face.
 const FACE_WEIGHTS: Record<(typeof FACE_KEYS)[number], number> = {
   photoPresentation: 0.10, faceHarmony: 0.20, jawPresence: 0.10, haircutMatch: 0.20,
   groomingCoherence: 0.15, visualPresence: 0.20, mainCharacterEnergy: 0.05,

@@ -182,8 +182,9 @@ export function Scan() {
       navigate('/result#face');
       return;
     }
-    // Any failure after spending → give the credit back.
-    if (outcome.reason !== 'missing_photos') await refundScan();
+    // Any failure after a successful spend → give the credit back (always — including
+    // the should-never-happen missing_photos case, since the spend already landed).
+    await refundScan();
     if (outcome.reason === 'retake') {
       setScanError({ kind: 'retake', message: outcome.retake.instruction });
     } else if (outcome.reason === 'error') {
