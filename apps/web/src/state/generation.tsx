@@ -22,57 +22,35 @@ export interface GenerationResult extends FullGenerationResult {
 /** Newest results kept on-device. Capped so localStorage stays small. */
 const HISTORY_CAP = 4;
 
+/** Device-domain only — photos/results never leave the device (privacy rule). */
 interface PersistedState {
-  /** Remaining paid credits. */
-  credits: number;
-  /** Whether the one free complete generation has been used. */
-  freeUsed: boolean;
   face: UploadedPhoto | null;
   outfit: UploadedPhoto | null;
-  /** Most recent full result — lives on the device so it survives reload. */
   result: GenerationResult | null;
-  /** Recent results (newest first), device-local — never on the server. */
   history: GenerationResult[];
 }
 
 const INITIAL: PersistedState = {
-  credits: 0,
-  freeUsed: false,
   face: null,
   outfit: null,
   result: null,
   history: [],
 };
 
-type RunOutcome = { ok: true; result: GenerationResult } | { ok: false; reason: 'no_credits' | 'missing_photos' };
-
-/**
- * Credit enforcement is OFF until the backend (NestJS + Supabase) owns the credit
- * ledger. While off: scans never consume credits or the free flag, and are never
- * blocked for lack of credits. The credit UI + mock checkout stay intact so flipping
- * this back to `true` restores the full free-then-paid behaviour with no other edits.
- */
-const CREDITS_ENFORCED = false;
+type RunOutcome = { ok: true; result: GenerationResult } | { ok: false; reason: 'missing_photos' };
 
 interface GenerationContextValue {
-  credits: number;
-  freeUsed: boolean;
   face: UploadedPhoto | null;
   outfit: UploadedPhoto | null;
   result: GenerationResult | null;
-  /** True when the next generation costs nothing (first free scan). */
-  isFree: boolean;
-  /** Whether a generation can be started right now (free or has credits). */
-  canAffordScan: boolean;
   bothPhotosReady: boolean;
   /** Recent on-device results (newest first). */
   history: GenerationResult[];
   setFace: (photo: UploadedPhoto | null) => void;
   setOutfit: (photo: UploadedPhoto | null) => void;
-  addCredits: (n: number) => void;
-  /** Runs a generation: consumes free/credit, builds the result from photos. */
+  /** Builds the result from the uploaded photos. Credit gating happens in AccountContext. */
   runGeneration: (verdict?: DatingVerdict) => RunOutcome;
-  /** Clears the current photos to begin a fresh scan (keeps credits/result). */
+  /** Clears the current photos to begin a fresh scan (keeps result/history). */
   startNewScan: () => void;
   /** Make a stored history result the current one. Returns false if missing. */
   openResult: (generationId: string) => boolean;
@@ -91,9 +69,14 @@ function pickVerdict(): DatingVerdict {
 export function GenerationProvider({ children }: { children: ReactNode }) {
   const [rawState, setState] = useLocalStorage<PersistedState>('fitaura.state', INITIAL);
 
-  // Coerce against legacy persisted state that predates newer fields (e.g.
-  // `history` was added later — an older stored object won't have it).
-  const state: PersistedState = { ...INITIAL, ...rawState, history: rawState.history ?? [] };
+  // Coerce against legacy persisted state (older blobs predate `history`, and
+  // earlier versions stored credits/freeUsed here — those are dropped on read).
+  const state: PersistedState = {
+    face: rawState.face ?? null,
+    outfit: rawState.outfit ?? null,
+    result: rawState.result ?? null,
+    history: rawState.history ?? [],
+  };
 
   // Mirror of the latest state so runGeneration can decide its outcome purely,
   // without relying on side-effects inside a setState updater (which React
@@ -109,21 +92,13 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     (photo: UploadedPhoto | null) => setState((s) => ({ ...s, outfit: photo })),
     [setState],
   );
-  const addCredits = useCallback(
-    (n: number) => setState((s) => ({ ...s, credits: s.credits + n })),
-    [setState],
-  );
 
-  const isFree = !state.freeUsed;
-  const canAffordScan = !CREDITS_ENFORCED || isFree || state.credits > 0;
   const bothPhotosReady = !!state.face && !!state.outfit;
 
   const runGeneration = useCallback<GenerationContextValue['runGeneration']>(
     (verdict) => {
       const s = stateRef.current;
       if (!s.face || !s.outfit) return { ok: false, reason: 'missing_photos' };
-      const free = !s.freeUsed;
-      if (CREDITS_ENFORCED && !free && s.credits <= 0) return { ok: false, reason: 'no_credits' };
 
       const chosen = verdict ?? pickVerdict();
       const base = MOCK_GENERATIONS[chosen];
@@ -136,15 +111,12 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
         receipt: { ...base.receipt, generatedAt: now },
       };
 
-      // Prepend to the on-device history (newest first, de-duped, capped).
       const history = [result, ...s.history.filter((h) => h.receipt.generationId !== result.receipt.generationId)].slice(
         0,
         HISTORY_CAP,
       );
-      const next: PersistedState = CREDITS_ENFORCED
-        ? { ...s, freeUsed: true, credits: free ? s.credits : s.credits - 1, result, history }
-        : { ...s, result, history }; // no credit/free consumption until the backend lands
-      stateRef.current = next; // keep the ref authoritative for back-to-back calls
+      const next: PersistedState = { ...s, result, history };
+      stateRef.current = next;
       setState(next);
       return { ok: true, result };
     },
@@ -171,7 +143,6 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
       setState((s) => ({
         ...s,
         history: s.history.filter((h) => h.receipt.generationId !== generationId),
-        // Drop the open result too if it's the one being deleted.
         result: s.result?.receipt.generationId === generationId ? null : s.result,
       })),
     [setState],
@@ -195,25 +166,20 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<GenerationContextValue>(
     () => ({
-      credits: state.credits,
-      freeUsed: state.freeUsed,
       face: state.face,
       outfit: state.outfit,
       result: state.result,
-      isFree,
-      canAffordScan,
       bothPhotosReady,
       history: state.history,
       setFace,
       setOutfit,
-      addCredits,
       runGeneration,
       startNewScan,
       openResult,
       removeResult,
       renameResult,
     }),
-    [state, isFree, canAffordScan, bothPhotosReady, setFace, setOutfit, addCredits, runGeneration, startNewScan, openResult, removeResult, renameResult],
+    [state, bothPhotosReady, setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult],
   );
 
   return <GenerationContext.Provider value={value}>{children}</GenerationContext.Provider>;

@@ -2,14 +2,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Chainable supabase query mock.
-const { single, eqSelect, select, eqUpdate, update, from } = vi.hoisted(() => {
+const { single, eqUpdate, update, from } = vi.hoisted(() => {
   const single = vi.fn();
   const eqSelect = vi.fn(() => ({ single }));
   const select = vi.fn(() => ({ eq: eqSelect }));
   const eqUpdate = vi.fn();
   const update = vi.fn(() => ({ eq: eqUpdate }));
   const from = vi.fn(() => ({ select, update }));
-  return { single, eqSelect, select, eqUpdate, update, from };
+  return { single, eqUpdate, update, from };
 });
 
 vi.mock('../lib/supabase', () => ({ supabase: { from } }));
