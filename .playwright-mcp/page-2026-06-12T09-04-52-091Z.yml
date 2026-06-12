@@ -1,0 +1,145 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - button "FITAURA — home" [ref=e5] [cursor=pointer]:
+        - generic [ref=e7]: FITAURA
+      - generic [ref=e8]:
+        - button "Home" [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
+          - generic [ref=e12]: Home
+        - button "Vault" [ref=e13] [cursor=pointer]:
+          - img [ref=e14]
+          - generic [ref=e19]: Vault
+      - button "Sign in" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+    - generic [ref=e26]:
+      - complementary [ref=e27]:
+        - generic [ref=e28]: Scan modes
+        - button "Solo Scan Available" [ref=e29] [cursor=pointer]:
+          - img [ref=e31]
+          - generic [ref=e33]:
+            - generic [ref=e34]: Solo Scan
+            - generic [ref=e35]: Available
+        - button "Friend vs Friend Coming soon" [ref=e37] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e44]:
+            - generic [ref=e45]: Friend vs Friend
+            - generic [ref=e46]: Coming soon
+          - img [ref=e49]
+        - button "Glow Up Coming soon" [ref=e52] [cursor=pointer]:
+          - img [ref=e54]
+          - generic [ref=e57]:
+            - generic [ref=e58]: Glow Up
+            - generic [ref=e59]: Coming soon
+          - img [ref=e62]
+        - generic [ref=e65]:
+          - generic [ref=e66]: More modes incoming
+          - generic [ref=e67]: Friend vs Friend and Glow Up unlock the same Vault — your cards, new previews.
+      - main [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: SCAN MODE · AVAILABLE
+          - heading "SOLO SCAN" [level=1] [ref=e71]
+          - paragraph [ref=e72]: Upload your face and fit. Get your full three-part verdict — Face Card, Outfit Check and Dating Score Receipt.
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - generic [ref=e75]: Start a Solo Scan
+              - generic [ref=e76]:
+                - generic [ref=e77]: Face Card
+                - generic [ref=e79]: Outfit Card
+                - generic [ref=e81]: Dating Receipt
+            - generic [ref=e83]:
+              - generic [ref=e84]:
+                - img [ref=e86]
+                - generic [ref=e88]: "1"
+                - text: free verdict
+              - button "Generate verdict" [ref=e89] [cursor=pointer]:
+                - img [ref=e90]
+                - text: Generate verdict
+          - generic [ref=e92]:
+            - generic [ref=e93]:
+              - generic [ref=e94]: YOUR COLLECTION · ON THIS DEVICE
+              - heading "1 saved verdict" [level=2] [ref=e95]
+            - tablist "Filter verdicts" [ref=e96]:
+              - tab "All 1" [selected] [ref=e97] [cursor=pointer]:
+                - text: All
+                - generic [ref=e98]: "1"
+              - tab "Green flag 1" [ref=e99] [cursor=pointer]:
+                - text: Green flag
+                - generic [ref=e101]: "1"
+              - tab "Normie 0" [ref=e102] [cursor=pointer]:
+                - text: Normie
+                - generic [ref=e104]: "0"
+              - tab "Red flag 0" [ref=e105] [cursor=pointer]:
+                - text: Red flag
+                - generic [ref=e107]: "0"
+          - generic [ref=e108]:
+            - button "Run a new scan 1 CREDIT · FACE · OUTFIT · RECEIPT" [ref=e109] [cursor=pointer]:
+              - img [ref=e111]
+              - generic [ref=e113]: Run a new scan
+              - generic [ref=e114]: 1 CREDIT · FACE · OUTFIT · RECEIPT
+            - article [ref=e115]:
+              - button "GREEN FLAG 91 FIT LET HIM COOK" [ref=e116] [cursor=pointer]:
+                - generic [ref=e119]: GREEN FLAG
+                - generic [ref=e121]:
+                  - generic [ref=e122]: "91"
+                  - generic [ref=e123]: FIT
+                - generic [ref=e124]: LET HIM COOK
+              - generic "This verdict contains three cards" [ref=e125]:
+                - generic [ref=e126]: Face
+                - generic [ref=e128]: Outfit
+                - generic [ref=e130]: Receipt
+              - generic [ref=e132]:
+                - generic [ref=e133]:
+                  - generic [ref=e134]: GREEN FLAG
+                  - generic [ref=e135]: 0xC10E · 11 JUN 2026 · 18:08
+                - generic [ref=e136]:
+                  - button "Open verdict" [ref=e137] [cursor=pointer]:
+                    - img [ref=e138]
+                  - button "Download cards" [ref=e140] [cursor=pointer]:
+                    - img [ref=e141]
+                  - button "More actions" [ref=e143] [cursor=pointer]:
+                    - img [ref=e144]
+  - dialog [ref=e149]:
+    - button "Close" [active] [ref=e150] [cursor=pointer]:
+      - img [ref=e151]
+    - generic [ref=e153]:
+      - generic [ref=e154]:
+        - generic [ref=e155]: ACCOUNT REQUIRED TO CONTINUE
+        - heading "SAVE YOUR SCANS. KEEP GOING." [level=2] [ref=e156]:
+          - text: SAVE YOUR SCANS.
+          - text: KEEP GOING.
+        - paragraph [ref=e157]: Your first verdict was free and stayed on this device. An account lets you buy credits and run more — on any device you log in from.
+        - list [ref=e158]:
+          - listitem [ref=e159]:
+            - img [ref=e161]
+            - generic [ref=e163]:
+              - text: Credits follow your login
+              - generic [ref=e164]: Not tied to one browser
+          - listitem [ref=e165]:
+            - img [ref=e167]
+            - generic [ref=e169]:
+              - text: Payment receipts saved
+              - generic [ref=e170]: On your account, server-side
+          - listitem [ref=e171]:
+            - img [ref=e173]
+            - generic [ref=e175]:
+              - text: Your photos stay on your device
+              - generic [ref=e176]: We never store source photos
+      - generic [ref=e177]:
+        - tablist [ref=e178]:
+          - tab "Sign up" [selected] [ref=e179] [cursor=pointer]
+          - tab "Log in" [ref=e180] [cursor=pointer]
+        - generic [ref=e181]:
+          - generic [ref=e182]: Email
+          - textbox "you@email.com" [ref=e184]
+        - generic [ref=e185]:
+          - generic [ref=e186]: Password
+          - textbox "Create a password" [ref=e188]
+        - button "Create account" [ref=e189] [cursor=pointer]:
+          - text: Create account
+          - img [ref=e190]
+        - generic [ref=e192]:
+          - img [ref=e193]
+          - generic [ref=e196]:
+            - text: We store your account, credit balance and payment receipts — never your photos.
+            - button "How your data is stored" [ref=e197] [cursor=pointer]

@@ -1,0 +1,67 @@
+- generic [ref=e3]:
+  - navigation [ref=e4]:
+    - button "FITAURA — home" [ref=e5] [cursor=pointer]:
+      - generic [ref=e7]: FITAURA
+    - generic [ref=e8]:
+      - button "Home" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+        - generic [ref=e12]: Home
+      - button "Vault" [ref=e13] [cursor=pointer]:
+        - img [ref=e14]
+        - generic [ref=e19]: Vault
+    - button "Profile menu" [ref=e22] [cursor=pointer]: D
+  - generic [ref=e24]:
+    - complementary [ref=e25]:
+      - generic [ref=e26]: Scan modes
+      - button "Solo Scan Available" [ref=e27] [cursor=pointer]:
+        - img [ref=e29]
+        - generic [ref=e31]:
+          - generic [ref=e32]: Solo Scan
+          - generic [ref=e33]: Available
+      - button "Friend vs Friend Coming soon" [ref=e35] [cursor=pointer]:
+        - img [ref=e37]
+        - generic [ref=e42]:
+          - generic [ref=e43]: Friend vs Friend
+          - generic [ref=e44]: Coming soon
+        - img [ref=e47]
+      - button "Glow Up Coming soon" [ref=e50] [cursor=pointer]:
+        - img [ref=e52]
+        - generic [ref=e55]:
+          - generic [ref=e56]: Glow Up
+          - generic [ref=e57]: Coming soon
+        - img [ref=e60]
+      - generic [ref=e63]:
+        - generic [ref=e64]: More modes incoming
+        - generic [ref=e65]: Friend vs Friend and Glow Up unlock the same Vault — your cards, new previews.
+    - main [ref=e66]:
+      - generic [ref=e67]:
+        - generic [ref=e68]: SCAN MODE · AVAILABLE
+        - heading "SOLO SCAN" [level=1] [ref=e69]
+        - paragraph [ref=e70]: Upload your face and fit. Get your full three-part verdict — Face Card, Outfit Check and Dating Score Receipt.
+        - generic [ref=e71]:
+          - generic [ref=e72]:
+            - generic [ref=e73]: Start a Solo Scan
+            - generic [ref=e74]:
+              - generic [ref=e75]: Face Card
+              - generic [ref=e77]: Outfit Card
+              - generic [ref=e79]: Dating Receipt
+          - generic [ref=e81]:
+            - generic [ref=e82]:
+              - img [ref=e84]
+              - generic [ref=e86]: "0"
+              - text: credits
+              - generic [ref=e87]: · 1 / scan
+            - button "Buy credits to scan" [ref=e88] [cursor=pointer]:
+              - img [ref=e89]
+              - text: Buy credits to scan
+        - generic [ref=e91]:
+          - img [ref=e93]
+          - generic [ref=e95]: No verdicts yet
+          - generic [ref=e96]: Drop a face photo and an outfit photo and FitAura returns your full three-part verdict. Your first scan is free.
+          - generic [ref=e97]:
+            - generic [ref=e98]: Face Card
+            - generic [ref=e100]: Outfit Card
+            - generic [ref=e102]: Dating Receipt
+          - button "Run your first scan — free" [ref=e105] [cursor=pointer]:
+            - img [ref=e106]
+            - text: Run your first scan — free

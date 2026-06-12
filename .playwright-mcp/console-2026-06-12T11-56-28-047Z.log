@@ -1,0 +1,3 @@
+[    1079ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:5176/node_modules/.vite/deps/chunk-K4GR42KS.js?v=dc0fa209:21608
+[   22938ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5176/vault:0
+[   84774ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://rxtlbhjysksoxkdcdqyr.supabase.co/auth/v1/token?grant_type=password:0

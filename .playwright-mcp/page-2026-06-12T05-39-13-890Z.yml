@@ -1,0 +1,101 @@
+- generic [ref=e174]:
+  - generic [ref=e175]:
+    - generic [ref=e176]:
+      - link "Fitaura home" [ref=e177] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e179]: Fitaura
+      - link "Vault" [ref=e180] [cursor=pointer]:
+        - /url: /vault
+        - img [ref=e181]
+        - text: Vault
+    - generic [ref=e183]: First scan free
+  - generic [ref=e185]:
+    - generic [ref=e186]: Upload · 2 photos
+    - heading "Drop your face & fit" [level=2] [ref=e187]
+    - paragraph [ref=e188]: Two photos, one scan. We read your face and outfit, then score the aura.
+  - generic [ref=e189]:
+    - generic [ref=e190]:
+      - generic [ref=e191]:
+        - generic [ref=e192]:
+          - generic [ref=e193]: "01"
+          - text: Face photo
+        - generic [ref=e194]: Required
+      - generic [ref=e195] [cursor=pointer]:
+        - img [ref=e197]
+        - generic [ref=e200]: Drop your selfie
+        - generic [ref=e201]: or browse files
+        - button "Use a sample" [ref=e202]
+      - generic [ref=e203]:
+        - generic [ref=e204]:
+          - generic [ref=e205]: JPG·
+          - generic [ref=e206]: PNG·
+          - generic [ref=e207]: WEBP·
+          - generic [ref=e208]: HEIC
+          - generic [ref=e209]: ·
+          - generic [ref=e210]: up to 20 MB
+        - list [ref=e211]:
+          - listitem [ref=e212]:
+            - img [ref=e213]
+            - text: Front-facing, head & shoulders
+          - listitem [ref=e215]:
+            - img [ref=e216]
+            - text: Even light, no heavy shadow
+          - listitem [ref=e218]:
+            - img [ref=e219]
+            - text: Just you — solo shot
+          - listitem [ref=e221]:
+            - img [ref=e222]
+            - text: No group shots or sunglasses
+    - generic [ref=e224]:
+      - generic [ref=e225]:
+        - generic [ref=e226]:
+          - generic [ref=e227]: "02"
+          - text: Outfit photo
+        - generic [ref=e228]: Required
+      - generic [ref=e229] [cursor=pointer]:
+        - img [ref=e231]
+        - generic [ref=e233]: Drop your outfit shot
+        - generic [ref=e234]: or browse files
+        - button "Use a sample" [ref=e235]
+      - generic [ref=e236]:
+        - generic [ref=e237]:
+          - generic [ref=e238]: JPG·
+          - generic [ref=e239]: PNG·
+          - generic [ref=e240]: WEBP·
+          - generic [ref=e241]: HEIC
+          - generic [ref=e242]: ·
+          - generic [ref=e243]: up to 20 MB
+        - list [ref=e244]:
+          - listitem [ref=e245]:
+            - img [ref=e246]
+            - text: Full outfit, head to shoes
+          - listitem [ref=e248]:
+            - img [ref=e249]
+            - text: Stand back, plain background
+          - listitem [ref=e251]:
+            - img [ref=e252]
+            - text: Mirror or full-length is perfect
+          - listitem [ref=e254]:
+            - img [ref=e255]
+            - text: No close-ups or cropped legs
+  - generic [ref=e257]:
+    - generic [ref=e258]:
+      - generic [ref=e259]:
+        - img [ref=e260]
+        - text: Face needed
+      - generic [ref=e263]:
+        - img [ref=e264]
+        - text: Outfit needed
+    - generic [ref=e266]:
+      - button "Scan my aura — free" [ref=e267]:
+        - img [ref=e268]
+        - text: Scan my aura — free
+      - generic [ref=e270]:
+        - generic [ref=e271]:
+          - img [ref=e272]
+          - text: First generation is on us
+        - generic [ref=e274]: ~20 sec
+      - generic [ref=e275]: Add both photos to unlock your scan.
+    - generic [ref=e276]:
+      - img [ref=e277]
+      - text: Photos are processed for your scan only · never permanently stored on our servers

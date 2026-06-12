@@ -1,0 +1,113 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - navigation [ref=e4]:
+      - button "FITAURA — home" [ref=e5] [cursor=pointer]:
+        - generic [ref=e7]: FITAURA
+      - generic [ref=e8]:
+        - button "Home" [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
+          - generic [ref=e12]: Home
+        - button "Vault" [ref=e13] [cursor=pointer]:
+          - img [ref=e14]
+          - generic [ref=e19]: Vault
+      - button "Sign in" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+    - generic [ref=e26]:
+      - complementary [ref=e27]:
+        - generic [ref=e28]: Scan modes
+        - button "Solo Scan Available" [ref=e29] [cursor=pointer]:
+          - img [ref=e31]
+          - generic [ref=e33]:
+            - generic [ref=e34]: Solo Scan
+            - generic [ref=e35]: Available
+        - button "Friend vs Friend Coming soon" [ref=e37] [cursor=pointer]:
+          - img [ref=e39]
+          - generic [ref=e44]:
+            - generic [ref=e45]: Friend vs Friend
+            - generic [ref=e46]: Coming soon
+          - img [ref=e49]
+        - button "Glow Up Coming soon" [ref=e52] [cursor=pointer]:
+          - img [ref=e54]
+          - generic [ref=e57]:
+            - generic [ref=e58]: Glow Up
+            - generic [ref=e59]: Coming soon
+          - img [ref=e62]
+        - generic [ref=e65]:
+          - generic [ref=e66]: More modes incoming
+          - generic [ref=e67]: Friend vs Friend and Glow Up unlock the same Vault — your cards, new previews.
+      - main [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: SCAN MODE · AVAILABLE
+          - heading "SOLO SCAN" [level=1] [ref=e71]
+          - paragraph [ref=e72]: Upload your face and fit. Get your full three-part verdict — Face Card, Outfit Check and Dating Score Receipt.
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - generic [ref=e75]: Start a Solo Scan
+              - generic [ref=e76]:
+                - generic [ref=e77]: Face Card
+                - generic [ref=e79]: Outfit Card
+                - generic [ref=e81]: Dating Receipt
+            - generic [ref=e83]:
+              - generic [ref=e84]:
+                - img [ref=e86]
+                - generic [ref=e88]: "1"
+                - text: free verdict
+              - button "Generate verdict" [ref=e89] [cursor=pointer]:
+                - img [ref=e90]
+                - text: Generate verdict
+          - generic [ref=e92]:
+            - img [ref=e94]
+            - generic [ref=e96]: No verdicts yet
+            - generic [ref=e97]: Drop a face photo and an outfit photo and FitAura returns your full three-part verdict. Your first scan is free.
+            - generic [ref=e98]:
+              - generic [ref=e99]: Face Card
+              - generic [ref=e101]: Outfit Card
+              - generic [ref=e103]: Dating Receipt
+            - button "Run your first scan — free" [ref=e106] [cursor=pointer]:
+              - img [ref=e107]
+              - text: Run your first scan — free
+  - dialog [ref=e110]:
+    - button "Close" [ref=e111] [cursor=pointer]:
+      - img [ref=e112]
+    - generic [ref=e114]:
+      - generic [ref=e115]:
+        - generic [ref=e116]: ACCOUNT REQUIRED TO CONTINUE
+        - heading "SAVE YOUR SCANS. KEEP GOING." [level=2] [ref=e117]:
+          - text: SAVE YOUR SCANS.
+          - text: KEEP GOING.
+        - paragraph [ref=e118]: Your first verdict was free and stayed on this device. An account lets you buy credits and run more — on any device you log in from.
+        - list [ref=e119]:
+          - listitem [ref=e120]:
+            - img [ref=e122]
+            - generic [ref=e124]:
+              - text: Credits follow your login
+              - generic [ref=e125]: Not tied to one browser
+          - listitem [ref=e126]:
+            - img [ref=e128]
+            - generic [ref=e130]:
+              - text: Payment receipts saved
+              - generic [ref=e131]: On your account, server-side
+          - listitem [ref=e132]:
+            - img [ref=e134]
+            - generic [ref=e136]:
+              - text: Your photos stay on your device
+              - generic [ref=e137]: We never store source photos
+      - generic [ref=e138]:
+        - tablist [ref=e139]:
+          - tab "Sign up" [ref=e140] [cursor=pointer]
+          - tab "Log in" [selected] [ref=e141] [cursor=pointer]
+        - generic [ref=e142]:
+          - generic [ref=e143]: Email
+          - textbox "you@email.com" [ref=e145]: demo+register01@fitaura.test
+        - generic [ref=e146]:
+          - generic [ref=e147]: Password
+          - textbox "Your password" [ref=e159]: WRONGpassword999
+        - alert [ref=e161]: Wrong email or password.
+        - button "Log in" [ref=e160] [cursor=pointer]:
+          - text: Log in
+          - img [ref=e151]
+        - generic [ref=e153]:
+          - img [ref=e154]
+          - generic [ref=e157]:
+            - text: We store your account, credit balance and payment receipts — never your photos.
+            - button "How your data is stored" [ref=e158] [cursor=pointer]
