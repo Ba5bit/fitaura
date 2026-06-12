@@ -106,6 +106,49 @@ async function buildFontEmbedCSS(): Promise<string> {
   return fontEmbedCSSPromise;
 }
 
+/**
+ * Raise a translucent background colour to near-opaque. Frosted-glass elements
+ * lean on `backdrop-filter` for contrast; once that blur is dropped for export
+ * (see below), the thin background must carry the contrast on its own.
+ */
+export function solidify(bg: string): string {
+  const m = /rgba?\(([^)]+)\)/.exec(bg);
+  if (!m) return bg;
+  const [r, g, b, a] = m[1].split(',').map((s) => s.trim());
+  const alpha = a != null ? parseFloat(a) : 1;
+  if (Number.isNaN(alpha) || alpha >= 0.85) return bg;
+  return `rgba(${r}, ${g}, ${b}, ${Math.max(alpha, 0.9).toFixed(2)})`;
+}
+
+/**
+ * html-to-image rasterizes through an SVG `<foreignObject>`, which cannot render
+ * `backdrop-filter` — so frosted-glass elements (e.g. the card's score badge)
+ * come out as a grey blob on download. For the snapshot only, drop the blur and
+ * make each glass element's background near-opaque; returns a fn that restores
+ * the live DOM afterwards.
+ */
+function neutralizeGlass(root: HTMLElement): () => void {
+  const nodes: HTMLElement[] = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
+  const restores: Array<() => void> = [];
+  for (const n of nodes) {
+    const cs = getComputedStyle(n);
+    const bf = cs.backdropFilter || cs.getPropertyValue('-webkit-backdrop-filter');
+    if (!bf || bf === 'none') continue;
+    const prevBackdrop = n.style.backdropFilter;
+    const prevWebkit = n.style.getPropertyValue('-webkit-backdrop-filter');
+    const prevBg = n.style.background;
+    n.style.backdropFilter = 'none';
+    n.style.setProperty('-webkit-backdrop-filter', 'none');
+    n.style.background = solidify(cs.backgroundColor);
+    restores.push(() => {
+      n.style.backdropFilter = prevBackdrop;
+      n.style.setProperty('-webkit-backdrop-filter', prevWebkit);
+      n.style.background = prevBg;
+    });
+  }
+  return () => restores.forEach((r) => r());
+}
+
 /** Render the given card element to a 9:16 PNG blob. */
 export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
   const { el, kind, verdict, accentHex = '#83b4ff' } = args;
@@ -146,15 +189,23 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
   } catch {
     fontEmbedCSS = undefined;
   }
-  const cardCanvas = await toCanvas(el, {
-    pixelRatio: 3,
-    width: el.offsetWidth,
-    height: el.offsetHeight,
-    fontEmbedCSS,
-    skipFonts: fontEmbedCSS === undefined,
-    filter: (n) =>
-      !(n instanceof Element && (n.classList.contains('st-overlay') || n.classList.contains('st-edithint'))),
-  });
+  // Drop backdrop-filters for the snapshot (html-to-image can't render them) and
+  // restore the live DOM right after, even if capture throws.
+  const restoreGlass = neutralizeGlass(el);
+  let cardCanvas: HTMLCanvasElement;
+  try {
+    cardCanvas = await toCanvas(el, {
+      pixelRatio: 3,
+      width: el.offsetWidth,
+      height: el.offsetHeight,
+      fontEmbedCSS,
+      skipFonts: fontEmbedCSS === undefined,
+      filter: (n) =>
+        !(n instanceof Element && (n.classList.contains('st-overlay') || n.classList.contains('st-edithint'))),
+    });
+  } finally {
+    restoreGlass();
+  }
 
   // Center the card with a small uniform margin + a soft shadow.
   const margin = base.h * 0.04;
