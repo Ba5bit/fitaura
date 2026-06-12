@@ -107,10 +107,12 @@ function Rail({ idx }: { idx: number }) {
 export function Scan() {
   const navigate = useNavigate();
   const { face, outfit, bothPhotosReady, runGeneration } = useGeneration();
-  const { signedIn, openAuth, canScan, spendForScan, openPaywall } = useAccount();
+  const { signedIn, openAuth, canScan, spendForScan, openPaywall, refundScan } = useAccount();
   // Set when a guest hit "reveal" — once they sign in, the effect below finishes
   // the reveal. The verdict is only generated after authentication.
   const [pendingReveal, setPendingReveal] = useState(false);
+  const [revealing, setRevealing] = useState(false);
+  const [scanError, setScanError] = useState<{ kind: 'retake' | 'error'; message: string } | null>(null);
 
   const reduced =
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -157,23 +159,31 @@ export function Scan() {
   }, [phase]);
 
   const doReveal = useCallback(async () => {
-    // Spend first (guest → consume the free scan; signed-in → spend 1 credit).
-    // If there's nothing to spend, fall back to the paywall instead of revealing.
+    setScanError(null);
     const ok = await spendForScan();
     if (!ok) {
       openPaywall();
       return;
     }
-    const outcome = runGeneration();
+    setRevealing(true);
+    const outcome = await runGeneration();
+    setRevealing(false);
+
     if (outcome.ok) {
-      // A freshly completed scan always opens on the first card (01 Face),
-      // not whatever tab was last viewed. Reset the persisted/hash tab state.
       localStorage.setItem('fitaura.tab', 'face');
       navigate('/result#face');
+      return;
+    }
+    // Any failure after spending → give the credit back.
+    if (outcome.reason !== 'missing_photos') await refundScan();
+    if (outcome.reason === 'retake') {
+      setScanError({ kind: 'retake', message: outcome.retake.instruction });
+    } else if (outcome.reason === 'error') {
+      setScanError({ kind: 'error', message: 'That scan did not go through. Your credit was refunded — give it another go.' });
     } else {
       navigate('/scan');
     }
-  }, [spendForScan, openPaywall, runGeneration, navigate]);
+  }, [spendForScan, openPaywall, runGeneration, refundScan, navigate]);
 
   // Reveal policy: a guest's first scan is free (reveals straight away); once it's
   // used, a guest is sent to sign-in (returning here on success), and a signed-in
@@ -270,9 +280,34 @@ export function Scan() {
               Your verdict is <span className="hl">in.</span>
             </h2>
             <p className="sub">Three cards and one dating receipt — fresh off the press.</p>
-            <button className="go" onClick={onReveal}>
-              {canScan ? 'Reveal my verdict' : 'Log in to reveal your verdict'} <Icon.arrow />
+            <button className="go" onClick={onReveal} disabled={revealing}>
+              {revealing
+                ? 'Reading the room…'
+                : canScan
+                  ? 'Reveal my verdict'
+                  : 'Log in to reveal your verdict'}{' '}
+              {!revealing && <Icon.arrow />}
             </button>
+            {scanError && (
+              <div className="crop-note warn" style={{ marginTop: 16, maxWidth: 420 }}>
+                <Icon.alert />
+                <span>
+                  {scanError.kind === 'retake' ? scanError.message : scanError.message}
+                  {scanError.kind === 'retake' && (
+                    <>
+                      {' '}
+                      <button
+                        className="leave-btn"
+                        style={{ textDecoration: 'underline', width: 'auto', padding: 0 }}
+                        onClick={() => navigate('/scan')}
+                      >
+                        Replace a photo
+                      </button>
+                    </>
+                  )}
+                </span>
+              </div>
+            )}
           </div>
         )}
         </div>
