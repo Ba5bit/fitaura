@@ -123,6 +123,8 @@ export function Scan() {
   const [microIdx, setMicroIdx] = useState(0);
   const rafRef = useRef(0);
   const startRef = useRef<number | null>(null);
+  // Guards against a double-tap double-spend before `revealing` disables the button.
+  const revealingRef = useRef(false);
 
   // Guard: a scan needs both confirmed photos.
   useEffect(() => {
@@ -159,15 +161,21 @@ export function Scan() {
   }, [phase]);
 
   const doReveal = useCallback(async () => {
+    // Synchronous guard: the button is only disabled after `spendForScan` resolves,
+    // so without this a fast double-tap could spend two credits on slow networks.
+    if (revealingRef.current) return;
+    revealingRef.current = true;
     setScanError(null);
     const ok = await spendForScan();
     if (!ok) {
+      revealingRef.current = false;
       openPaywall();
       return;
     }
     setRevealing(true);
     const outcome = await runGeneration();
     setRevealing(false);
+    revealingRef.current = false;
 
     if (outcome.ok) {
       localStorage.setItem('fitaura.tab', 'face');
@@ -292,7 +300,7 @@ export function Scan() {
               <div className="crop-note warn" style={{ marginTop: 16, maxWidth: 420 }}>
                 <Icon.alert />
                 <span>
-                  {scanError.kind === 'retake' ? scanError.message : scanError.message}
+                  {scanError.message}
                   {scanError.kind === 'retake' && (
                     <>
                       {' '}
