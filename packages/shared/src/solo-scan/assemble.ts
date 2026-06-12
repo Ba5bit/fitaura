@@ -1,0 +1,165 @@
+// packages/shared/src/solo-scan/assemble.ts
+import type {
+  FullGenerationResult, ScoreItem, FaceTrait, SupportingStat, ReceiptRow,
+} from '../result';
+import { STICKER_BANK, stickerFromPreset } from '../sticker-bank';
+import { VERDICT_LABEL } from '../verdict';
+import type { SoloScanAIOutput, RubricRating } from './schema';
+import {
+  scoreFromRating, faceScore, outfitScore, auraIndex, displayScore, percent, pickVerdict,
+} from './scoring';
+import { pickFaceArchetype, pickOutfitCaption, pickPunchline } from './content-bank';
+
+const DESCRIPTOR: Record<number, string> = { 5: 'Elite', 4: 'Strong', 3: 'Even', 2: 'Soft', 1: 'Off' };
+const descriptorFor = (r: number | null) => (r == null ? '—' : DESCRIPTOR[r]);
+
+function faceStickerById(id: string) {
+  return stickerFromPreset(STICKER_BANK.face.find((s) => s.id === id) ?? STICKER_BANK.face[0]);
+}
+function outfitStickerById(id: string) {
+  return stickerFromPreset(STICKER_BANK.outfit.find((s) => s.id === id) ?? STICKER_BANK.outfit[0]);
+}
+
+const score = (id: string, label: string, value: number, hot = false): ScoreItem => ({ id, label, value, hot });
+
+/** Generation id like "0xA73F" derived deterministically from the scan id. */
+function genId(scanId: string): string {
+  let h = 0;
+  for (let i = 0; i < scanId.length; i++) h = (h * 31 + scanId.charCodeAt(i)) >>> 0;
+  return '0x' + (h & 0xffff).toString(16).toUpperCase().padStart(4, '0');
+}
+
+/**
+ * Turn the AI rubric into a fully-rendered FullGenerationResult.
+ * Throws Error('insufficient_signal') when face/outfit cannot be scored.
+ */
+export function assembleResult(
+  ai: SoloScanAIOutput,
+  scanId: string,
+  promptVersion: string,
+): FullGenerationResult {
+  const face = faceScore(ai);
+  const outfit = outfitScore(ai);
+  if (face == null || outfit == null) throw new Error('insufficient_signal');
+
+  const aura = auraIndex(ai, face, outfit);
+  const verdict = pickVerdict(aura, scanId);
+  const d = (s: number, key: string) => displayScore(s, scanId, key, promptVersion);
+
+  const archetype = pickFaceArchetype(ai.contentSelection.faceArchetypeCandidates, verdict);
+  const caption = pickOutfitCaption(ai.contentSelection.outfitCaptionCandidates, verdict);
+  const punchline = pickPunchline(ai.receiptContent.punchlineCandidates, verdict);
+
+  const fa = ai.faceAnalysis;
+  const oa = ai.outfitAnalysis;
+  const sc = (r: RubricRating, key: string) => d(scoreFromRating(r.rating) ?? 50, key);
+
+  /* ---- Face ---- */
+  const faceCard = {
+    imageUrl: null,
+    eyebrow: 'FACE VERDICT',
+    verdict: archetype.line,
+    index: `AURA INDEX ${aura}`,
+    scores: [
+      score('aura', 'Aura', aura),
+      score('jaw-presence', 'Jaw Presence', sc(fa.jawPresence, 'jaw')),
+      score('face-harmony', 'Face Harmony', sc(fa.faceHarmony, 'harmony')),
+      score('main-character', 'Main Character', sc(fa.mainCharacterEnergy, 'mainchar'), true),
+    ],
+    sticker: faceStickerById(archetype.stickerId),
+  };
+
+  const faceTraits: FaceTrait[] = [
+    { id: 'jaw', label: 'Jaw Presence', value: sc(fa.jawPresence, 'jaw'), descriptor: descriptorFor(fa.jawPresence.rating), icon: 'jaw' },
+    { id: 'harmony', label: 'Face Harmony', value: sc(fa.faceHarmony, 'harmony'), descriptor: descriptorFor(fa.faceHarmony.rating), icon: 'harmony' },
+    { id: 'presence', label: 'Visual Presence', value: sc(fa.visualPresence, 'presence'), descriptor: descriptorFor(fa.visualPresence.rating), icon: 'eye' },
+    { id: 'haircut', label: 'Haircut Match', value: sc(fa.haircutMatch, 'haircut'), descriptor: descriptorFor(fa.haircutMatch.rating), icon: 'brow' },
+    { id: 'grooming', label: 'Grooming', value: sc(fa.groomingCoherence, 'grooming'), descriptor: descriptorFor(fa.groomingCoherence.rating), icon: 'beard' },
+    { id: 'main-character', label: 'Main Character', value: sc(fa.mainCharacterEnergy, 'mainchar'), descriptor: descriptorFor(fa.mainCharacterEnergy.rating), icon: 'star' },
+  ];
+
+  /* ---- Outfit ---- */
+  const outfitCard = {
+    imageUrl: null,
+    caption: caption.caption,
+    overallScore: d(outfit, 'outfit-overall'),
+    scores: [
+      score('silhouette', 'Silhouette', sc(oa.silhouette, 'silhouette')),
+      score('proportions', 'Proportions', sc(oa.proportions, 'proportions')),
+      score('fit', 'Fit', sc(oa.fit, 'fit')),
+      score('physique-match', 'Physique Match', sc(oa.physiqueMatch, 'physique')),
+    ],
+    sticker: outfitStickerById(caption.stickerId),
+  };
+
+  // Supporting stats from the remaining rubric categories; skip not_assessable.
+  const supportingDefs: Array<{ id: string; label: string; r: RubricRating; key: string }> = [
+    { id: 'color-story', label: 'Color Story', r: oa.colorCoherence, key: 'color' },
+    { id: 'layering', label: 'Layering', r: oa.layering, key: 'layering' },
+    { id: 'styling-intent', label: 'Styling Intent', r: oa.stylingIntent, key: 'styling' },
+    { id: 'overall-cohesion', label: 'Overall Cohesion', r: oa.overallCohesion, key: 'cohesion' },
+    { id: 'accessories', label: 'Accessories', r: oa.accessories, key: 'accessories' },
+  ];
+  const supporting: SupportingStat[] = supportingDefs
+    .filter((s) => s.r.rating != null)
+    .slice(0, 4)
+    .map((s) => ({ id: s.id, label: s.label, value: d(scoreFromRating(s.r.rating)!, s.key), note: s.r.evidence }));
+
+  // Two tags from the strongest + weakest assessed outfit category.
+  const assessed = supportingDefs.filter((s) => s.r.rating != null);
+  const sorted = [...assessed].sort((a, b) => (b.r.rating! - a.r.rating!));
+  const tags = sorted.length >= 2
+    ? [
+        { label: `${sorted[0].label.toLowerCase()} on point`, tone: 'good' as const },
+        { label: `${sorted[sorted.length - 1].label.toLowerCase()} needs work`, tone: 'bad' as const },
+      ]
+    : [{ label: 'clean fit', tone: 'good' as const }];
+
+  /* ---- Receipt ---- */
+  const datingScore = Math.round(aura) / 10;
+  const auraValue = Math.round((aura - 50) * 12);
+  const goodTone = verdict === 'green_flag';
+  const rows: ReceiptRow[] = [
+    { id: 'dating-score', label: 'Dating Score', value: `${datingScore.toFixed(1)} / 10`, tone: goodTone ? 'good' : 'default' },
+    { id: 'aura-gained', label: 'Aura Gained', value: `${auraValue >= 0 ? '+' : ''}${auraValue}`, tone: auraValue >= 0 ? 'good' : 'default' },
+    { id: 'lover-boy', label: 'Lover-Boy Prob.', value: `${percent(scanId, 'loverboy', verdict === 'green_flag' ? 84 : 48)}%`, tone: goodTone ? 'good' : 'default' },
+    { id: 'ghosting', label: 'Ghosting Potential', value: `${percent(scanId, 'ghost', verdict === 'red_flag' ? 72 : 34)}%`, tone: verdict === 'red_flag' ? 'hi' : 'default' },
+    { id: 'main-char', label: 'Main-Char Energy', value: `${percent(scanId, 'mce', scoreFromRating(fa.mainCharacterEnergy.rating) ?? 50)}%`, tone: 'default' },
+  ];
+
+  return {
+    verdict,
+    chip: `VERDICT · ${VERDICT_LABEL[verdict]}`,
+    face: {
+      card: faceCard,
+      analysis: {
+        aura,
+        explanation: ai.faceCopy.summary,
+        roast: ai.faceCopy.improvement,
+        breakdown: faceTraits,
+      },
+    },
+    outfit: {
+      card: outfitCard,
+      analysis: {
+        explanation: ai.outfitCopy.works,
+        works: ai.outfitCopy.works,
+        hurts: ai.outfitCopy.hurts,
+        verdict: ai.outfitCopy.verdict,
+        tags,
+        supporting,
+      },
+    },
+    receipt: {
+      generationId: genId(scanId),
+      generatedAt: new Date().toISOString(),
+      datingScore,
+      auraValue,
+      rows,
+      datingVerdict: verdict,
+      finalPunchline: punchline,
+      stamp: ['FITAURA', 'VERIFIED'],
+      summary: `${ai.faceCopy.summary} ${ai.outfitCopy.verdict}`,
+    },
+  };
+}
