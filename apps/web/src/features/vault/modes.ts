@@ -26,7 +26,7 @@ export const SCAN_MODES: ScanMode[] = [
     status: 'live',
     icon: 'scan',
     blurb:
-      'Upload your face and fit. Get your full three-part verdict — Face Card, Outfit Check and Dating Score Receipt.',
+      'Upload your face and fit. Get your full three-part verdict: Face Card, Outfit Check and Dating Score Receipt.',
     outputs: ['Face Card', 'Outfit Card', 'Dating Receipt'],
   },
   {
@@ -46,7 +46,7 @@ export const SCAN_MODES: ScanMode[] = [
     status: 'locked',
     icon: 'sparkle',
     blurb:
-      'Compare an old you and a new you. Track aura, fit and verdict changes from before to after — with a transformation receipt.',
+      'Compare an old you and a new you. Track how your aura, fit and verdict shift from before to after, plus a transformation receipt.',
     outputs: ['Before / After', 'Score changes', 'Verdict shift'],
   },
 ];
