@@ -403,7 +403,12 @@
   .lk-preview { max-width: 280px; }
 }
 @media (max-width: 620px) {
+  /* Group the icon-only Home/Vault links next to the profile avatar instead of
+     stranding them in the centre (the nav is space-between by default). */
+  .vlt-nav { gap: 10px; }
+  .vlt-navmid { margin-left: auto; }
   .vlt-navmid .vlt-navlink span { display: none; }
+  .vlt-navlink { padding: 9px 11px; }
   .vlt-gen { flex-direction: column; align-items: stretch; }
   .vlt-gen .rhs { align-items: stretch; }
   .vlt-packs { grid-template-columns: 1fr; }
