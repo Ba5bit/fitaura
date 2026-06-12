@@ -7,7 +7,6 @@ import { useAccount } from './AccountContext';
 import { WebModal, WebDialogBody, WebField } from './WebModal';
 
 const packById = (id: string): CreditPack => CREDIT_PACKS.find((p) => p.id === id) ?? CREDIT_PACKS[1];
-const perScan = (p: CreditPack) => p.perScan.replace(' / scan', '');
 
 /* ============================ AUTH GATE ============================ */
 export function AuthGate() {
@@ -173,10 +172,6 @@ export function Checkout() {
             <div className="row">
               <span className="k">Pack</span>
               <span className="v">{p.credits} credits</span>
-            </div>
-            <div className="row">
-              <span className="k">Price per scan</span>
-              <span className="v">{perScan(p)}</span>
             </div>
             <div className="row">
               <span className="k">Billing</span>

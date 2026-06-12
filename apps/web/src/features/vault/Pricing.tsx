@@ -62,7 +62,6 @@ export function Pricing() {
                   <span>credits</span>
                 </span>
                 <span className="price">{p.price}</span>
-                <span className="per">{p.perScan}</span>
               </button>
             ))}
           </div>

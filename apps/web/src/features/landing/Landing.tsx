@@ -82,7 +82,10 @@ function Hero() {
         </div>
 
         <div className="ln-fan">
-          <div className="ln-fan-stage">
+          <div
+            className="ln-fan-stage"
+            style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
+          >
             <div className="ln-fan-card left">
               <OutfitCard content={HERO.outfit.card} run />
             </div>
@@ -124,7 +127,7 @@ function Artifacts() {
           </span>
         </div>
       </div>
-      <div className="ln-arts">
+      <div className="ln-arts" style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}>
         <div className="ln-art">
           <div className="ln-art-stage">
             <FaceCard content={HERO.face.card} run={seen} />
@@ -276,7 +279,6 @@ function Credits() {
                 <span>credits</span>
               </div>
               <div className="price">{p.price}</div>
-              <div className="per">{p.perScan}</div>
               <span className="ln-pack-cta">Get {p.credits} credits →</span>
             </button>
           ))}

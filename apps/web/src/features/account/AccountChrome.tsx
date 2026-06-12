@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { useGeneration } from '../../state/generation';
 import { useAccount } from './AccountContext';
+import { ProfileMenu } from './ProfileMenu';
 
 /* ============================ ACCOUNT ENTRY (chip + avatar) ============================ */
 /**
@@ -11,7 +12,7 @@ import { useAccount } from './AccountContext';
  */
 export function AccountEntry() {
   const navigate = useNavigate();
-  const { signedIn, user, openAuth } = useAccount();
+  const { signedIn, openAuth } = useAccount();
   const { credits, isFree } = useGeneration();
 
   let chip;
@@ -35,7 +36,7 @@ export function AccountEntry() {
     );
   } else {
     chip = (
-      <button className="aw-chip zero" onClick={openAuth}>
+      <button className="aw-chip zero" onClick={() => openAuth()}>
         <span className="gem">
           <Icon.gem />
         </span>
@@ -47,13 +48,7 @@ export function AccountEntry() {
   return (
     <div className="aw-nav-right">
       {chip}
-      <button
-        className={'aw-avatar' + (signedIn ? '' : ' guest')}
-        onClick={() => (signedIn ? navigate('/vault') : openAuth())}
-        aria-label="Account"
-      >
-        {signedIn ? user?.initial : <Icon.user />}
-      </button>
+      <ProfileMenu avatarClassName="aw-avatar" />
     </div>
   );
 }

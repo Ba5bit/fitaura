@@ -244,7 +244,7 @@
 .vlt-empty .ic { width: 70px; height: 70px; border-radius: 20px; display: grid; place-items: center; color: var(--accent); border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent); background: color-mix(in oklab, var(--accent) 9%, transparent); box-shadow: 0 0 44px -14px var(--accent); }
 .vlt-empty .ic svg { width: 34px; height: 34px; }
 .vlt-empty .et { font-family: "Anton", sans-serif; font-size: 28px; text-transform: uppercase; color: #fff; margin-top: 22px; letter-spacing: 0.01em; align-self: stretch; }
-.vlt-empty .es { font-family: "Hanken Grotesk"; font-size: 14.5px; line-height: 1.55; color: var(--ink-dim); max-width: 440px; margin: 12px 0 0; text-wrap: pretty; align-self: stretch; }
+.vlt-empty .es { font-family: "Hanken Grotesk"; font-size: 14.5px; line-height: 1.55; color: var(--ink-dim); max-width: 440px; margin: 12px 0 0; text-wrap: pretty; align-self: center; }
 .vlt-empty .ea { margin-top: 26px; }
 .vlt-empty .outs { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 22px; flex-wrap: wrap; }
 

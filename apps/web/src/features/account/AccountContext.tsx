@@ -48,7 +48,8 @@ interface AccountContextValue {
 
   flash: (msg: string) => void;
   closeScene: () => void;
-  openAuth: () => void;
+  /** Open the auth modal; `redirectTo` overrides the post-sign-in destination. */
+  openAuth: (redirectTo?: string) => void;
   signIn: (email?: string) => void;
   requestLogout: () => void;
   confirmLogout: () => void;
@@ -76,6 +77,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const procTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Where to land after a successful sign-in (defaults to the vault). Lets a
+  // guest who signs in mid-flow (e.g. from the scan-reveal gate) return to
+  // finish what they were doing instead of being dropped on the vault.
+  const authRedirect = useRef<string | null>(null);
 
   const flash = useCallback((msg: string) => {
     setToast(msg);
@@ -83,8 +88,14 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     toastTimer.current = setTimeout(() => setToast(null), 2400);
   }, []);
 
-  const closeScene = useCallback(() => setScene(null), []);
-  const openAuth = useCallback(() => setScene('auth'), []);
+  const closeScene = useCallback(() => {
+    authRedirect.current = null;
+    setScene(null);
+  }, []);
+  const openAuth = useCallback((redirectTo?: string) => {
+    authRedirect.current = redirectTo ?? null;
+    setScene('auth');
+  }, []);
   const openPaywall = useCallback(() => setScene('paywall'), []);
   const openMissing = useCallback((id: string) => {
     setMissingId(id);
@@ -102,8 +113,10 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       };
       setAcct({ signedIn: true, user });
       setScene(null);
-      flash("Signed in — welcome to your vault.");
-      navigate('/vault');
+      const dest = authRedirect.current ?? '/vault';
+      authRedirect.current = null;
+      flash(dest === '/vault' ? 'Signed in — welcome to your vault.' : 'Signed in — revealing your verdict…');
+      navigate(dest);
     },
     [setAcct, flash, navigate],
   );
@@ -120,6 +133,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     (packId?: string) => {
       if (packId) setPack(packId);
       if (!acct.signedIn) {
+        authRedirect.current = null;
         setScene('auth');
         return;
       }

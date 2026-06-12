@@ -59,6 +59,17 @@ real on-device ops.
   storage meter, clear-all, reduce-motion toggle, receipt-paper segment). No
   console errors beyond a favicon 404.
 
+## Follow-up fix — shared ProfileMenu on the Landing
+
+The Landing's `AccountEntry` avatar navigated to `/vault` instead of opening the
+profile dropdown. Extracted the dropdown into a shared `features/account/ProfileMenu.tsx`
+(avatar + dismissible menu; guest → "Sign in") used by **both** `VaultNav`
+(`avatarClassName="vlt-avatar"`) and the Landing `AccountEntry`
+(`avatarClassName="aw-avatar"`). Now the profile button shows the same
+Account info · Pricing & credits · Settings · Log out dropdown everywhere.
+Verified on the Landing via the accessibility tree (menu opens with identity +
+all four items).
+
 ## Known minor follow-up
 
 Clicking "Vault" / signing in while already on `/vault` keeps the previously

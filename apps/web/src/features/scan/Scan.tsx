@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { CardImage } from '../../components/cards';
 import { useGeneration } from '../../state/generation';
+import { useAccount } from '../account/AccountContext';
 import '../../design/scanner.css';
 
 interface Stage {
@@ -105,6 +106,10 @@ function Rail({ idx }: { idx: number }) {
 export function Scan() {
   const navigate = useNavigate();
   const { face, outfit, bothPhotosReady, runGeneration } = useGeneration();
+  const { signedIn, openAuth } = useAccount();
+  // Set when a guest hit "reveal" — once they sign in, the effect below finishes
+  // the reveal. The verdict is only generated after authentication.
+  const [pendingReveal, setPendingReveal] = useState(false);
 
   const reduced =
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -149,16 +154,38 @@ export function Scan() {
     return () => clearInterval(id);
   }, [phase]);
 
-  const reveal = useCallback(() => {
+  const doReveal = useCallback(() => {
     const outcome = runGeneration();
     if (outcome.ok) {
-      navigate('/result');
+      // A freshly completed scan always opens on the first card (01 Face),
+      // not whatever tab was last viewed. Reset the persisted/hash tab state.
+      localStorage.setItem('fitaura.tab', 'face');
+      navigate('/result#face');
     } else if (outcome.reason === 'no_credits') {
       navigate('/#credits');
     } else {
       navigate('/scan');
     }
   }, [runGeneration, navigate]);
+
+  // Guests must log in or register before the verdict is revealed. Open the auth
+  // modal (returning here on success) instead of revealing straight away.
+  const onReveal = useCallback(() => {
+    if (signedIn) {
+      doReveal();
+    } else {
+      setPendingReveal(true);
+      openAuth('/scan/run');
+    }
+  }, [signedIn, doReveal, openAuth]);
+
+  // Once a pending guest signs in, finish the reveal (generates + opens result).
+  useEffect(() => {
+    if (pendingReveal && signedIn) {
+      setPendingReveal(false);
+      doReveal();
+    }
+  }, [pendingReveal, signedIn, doReveal]);
 
   const micro = stage.micro[microIdx % stage.micro.length];
   const faceSrc = face?.url ?? null;
@@ -233,8 +260,8 @@ export function Scan() {
               Your verdict is <span className="hl">in.</span>
             </h2>
             <p className="sub">Three cards and one dating receipt — fresh off the press.</p>
-            <button className="go" onClick={reveal}>
-              Reveal my verdict <Icon.arrow />
+            <button className="go" onClick={onReveal}>
+              {signedIn ? 'Reveal my verdict' : 'Log in to reveal your verdict'} <Icon.arrow />
             </button>
           </div>
         )}

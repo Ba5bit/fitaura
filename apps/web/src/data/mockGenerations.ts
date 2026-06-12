@@ -6,6 +6,16 @@ import {
   type FullGenerationResult,
   type ScoreItem,
 } from '@fitaura/shared';
+import exampleFace from '../assets/example-face.jpg';
+import exampleFit from '../assets/example-fit.jpg';
+
+/**
+ * Example demo photos baked into the mock so the Landing's example Face/Outfit
+ * cards render real imagery (real generations override these with the user's own
+ * uploads in `runGeneration`). Face Card ← portrait, Outfit Card ← full silhouette.
+ */
+const EXAMPLE_FACE = exampleFace;
+const EXAMPLE_FIT = exampleFit;
 
 /**
  * Ported content bank — the three mutually-exclusive verdict states from the
@@ -124,7 +134,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
     chip: 'VERDICT · GREEN FLAG',
     face: {
       card: {
-        imageUrl: null,
+        imageUrl: EXAMPLE_FACE,
         eyebrow: 'FACE VERDICT',
         verdict: ['CERTIFIED', 'MAIN CHARACTER'],
         index: 'AURA INDEX 92',
@@ -153,7 +163,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
     },
     outfit: {
       card: {
-        imageUrl: null,
+        imageUrl: EXAMPLE_FIT,
         caption: 'LET HIM COOK',
         overallScore: 91,
         scores: [
@@ -290,7 +300,8 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
   },
 };
 
-/** The featured demo lands on RED FLAG (per the design brief). */
-export const DEFAULT_VERDICT: DatingVerdict = 'red_flag';
+/** The featured demo lands on GREEN FLAG — the example photos sit with the
+ * highest scores (aura 92, dating 9.1, "Certified Main Character / Lover Boy"). */
+export const DEFAULT_VERDICT: DatingVerdict = 'green_flag';
 
 export { VERDICT_LABEL };

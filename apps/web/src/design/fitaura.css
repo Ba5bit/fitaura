@@ -317,8 +317,16 @@ body::before{
   background:color-mix(in oklab,var(--verdict) 8%,transparent);
   box-shadow:0 0 24px -10px var(--verdict); opacity:.92; line-height:1.08; padding:5px; }
 
+/* Each paper sets its OWN `--receipt-bg` so the receipt is self-contained: a
+   stray `--receipt-bg` on an ancestor can never flip a dark receipt to cream. */
+.receipt[data-style="neon"]{ --receipt-bg:#0a0c11; }
+
 /* thermal-paper variant */
-.receipt[data-style="thermal"]{ --receipt-bg:#f4f1e9; --receipt-ink:#16181d; --receipt-line:rgba(0,0,0,.34); border-color:rgba(0,0,0,.12); }
+.receipt[data-style="thermal"]{ --receipt-bg:#f4f1e9; --receipt-ink:#16181d; --receipt-line:rgba(0,0,0,.34); border-color:rgba(0,0,0,.12); background:#f4f1e9; overflow:hidden; }
+/* Thermal is a clean cheque, not a torn receipt: drop the scalloped perforation
+   edges (the "half circles") — on cream their cutouts revealed the dark card
+   behind as a black line at the top/bottom. The body fills straight to the edge. */
+.receipt[data-style="thermal"] .r-edge{ display:none; }
 /* The neon accents are tuned for dark paper and wash out on cream. Remap them
    to paper-legible ink versions, scoped to this subtree: same hues, far higher
    contrast on #f4f1e9. Two parts are needed:
