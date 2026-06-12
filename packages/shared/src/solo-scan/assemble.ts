@@ -10,8 +10,14 @@ import {
 } from './scoring';
 import { pickFaceArchetype, pickOutfitCaption, pickPunchline } from './content-bank';
 
+/** Display value for a rubric category that is null (not assessable). */
+const UNSCORED_DISPLAY = 50;
+/** Playful multiplier turning the Aura Index into the receipt's "Aura Gained"
+ * flavor number (e.g. aura 70 → +240), matching the scale of the original mock. */
+const AURA_GAIN_SCALE = 12;
+
 const DESCRIPTOR: Record<number, string> = { 5: 'Elite', 4: 'Strong', 3: 'Even', 2: 'Soft', 1: 'Off' };
-const descriptorFor = (r: number | null) => (r == null ? '—' : DESCRIPTOR[r]);
+const descriptorFor = (r: number | null) => (r == null ? '—' : (DESCRIPTOR[r] ?? '—'));
 
 function faceStickerById(id: string) {
   return stickerFromPreset(STICKER_BANK.face.find((s) => s.id === id) ?? STICKER_BANK.face[0]);
@@ -52,7 +58,7 @@ export function assembleResult(
 
   const fa = ai.faceAnalysis;
   const oa = ai.outfitAnalysis;
-  const sc = (r: RubricRating, key: string) => d(scoreFromRating(r.rating) ?? 50, key);
+  const sc = (r: RubricRating, key: string) => d(scoreFromRating(r.rating) ?? UNSCORED_DISPLAY, key);
 
   /* ---- Face ---- */
   const faceCard = {
@@ -116,8 +122,9 @@ export function assembleResult(
     : [{ label: 'clean fit', tone: 'good' as const }];
 
   /* ---- Receipt ---- */
+  // `aura` is already an integer (auraIndex rounds), so this yields whole-tenths (e.g. 77 → 7.7).
   const datingScore = Math.round(aura) / 10;
-  const auraValue = Math.round((aura - 50) * 12);
+  const auraValue = Math.round((aura - 50) * AURA_GAIN_SCALE);
   const goodTone = verdict === 'green_flag';
   const rows: ReceiptRow[] = [
     { id: 'dating-score', label: 'Dating Score', value: `${datingScore.toFixed(1)} / 10`, tone: goodTone ? 'good' : 'default' },

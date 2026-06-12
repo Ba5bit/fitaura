@@ -35,6 +35,8 @@ describe('assembleResult', () => {
     const again = assembleResult(sampleAIOutput(), 'scan-test-1', 'v1');
     expect(again.face.card.scores[0].value).toBe(result.face.card.scores[0].value);
     expect(again.verdict).toBe(result.verdict);
+    expect(again.receipt.generationId).toBe(result.receipt.generationId);
+    expect(again.receipt.auraValue).toBe(result.receipt.auraValue);
   });
 
   it('throws on insufficient signal (all face ratings null)', () => {
