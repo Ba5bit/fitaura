@@ -203,6 +203,13 @@
 .aw-toast svg { width: 16px; height: 16px; color: var(--lime); }
 @keyframes awtoast { from { transform: translate(-50%, 10px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
+.aw-formerror {
+  margin: 10px 0 0;
+  color: var(--red, #ff5470);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 /* ============================ RESPONSIVE ============================ */
 @media (max-width: 880px) {
   .aw-checkout, .aw-auth { grid-template-columns: 1fr; }

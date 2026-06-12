@@ -10,11 +10,19 @@ const packById = (id: string): CreditPack => CREDIT_PACKS.find((p) => p.id === i
 
 /* ============================ AUTH GATE ============================ */
 export function AuthGate() {
-  const { signIn, closeScene } = useAccount();
+  const { closeScene, signUp, logIn, authStatus, authError } = useAccount();
   const navigate = useNavigate();
   const [mode, setMode] = useState<'signup' | 'login'>('signup');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const isSignup = mode === 'signup';
+  const pending = authStatus === 'pending';
+
+  const submit = () => {
+    if (pending) return;
+    if (isSignup) void signUp(email.trim(), password);
+    else void logIn(email.trim(), password);
+  };
 
   return (
     <WebModal size="lg" onClose={closeScene}>
@@ -67,23 +75,26 @@ export function AuthGate() {
               Log in
             </button>
           </div>
-          <div className="aw-oauth">
-            <button onClick={() => signIn(email || 'you@icloud.com')}>
-              <Icon.apple /> Continue with Apple
-            </button>
-            <button onClick={() => signIn(email || 'you@gmail.com')}>
-              <Icon.google /> Continue with Google
-            </button>
-          </div>
-          <div className="aw-or">
-            <span className="ln" />
-            OR
-            <span className="ln" />
-          </div>
           <WebField label="Email" type="email" placeholder="you@email.com" value={email} onChange={setEmail} />
-          <WebField label="Password" type="password" placeholder={isSignup ? 'Create a password' : 'Your password'} lock />
-          <button className="aw-btn primary block" style={{ marginTop: '18px' }} onClick={() => signIn(email)}>
-            {isSignup ? 'Create account' : 'Log in'} <Icon.arrow />
+          <WebField
+            label="Password"
+            type="password"
+            placeholder={isSignup ? 'Create a password' : 'Your password'}
+            value={password}
+            onChange={setPassword}
+          />
+          {authError && (
+            <p className="aw-formerror" role="alert">
+              {authError}
+            </p>
+          )}
+          <button
+            className="aw-btn primary block"
+            style={{ marginTop: '18px' }}
+            onClick={submit}
+            disabled={pending}
+          >
+            {pending ? 'Working…' : isSignup ? 'Create account' : 'Log in'} <Icon.arrow />
           </button>
           <div className="aw-finehelp">
             <Icon.shield />
