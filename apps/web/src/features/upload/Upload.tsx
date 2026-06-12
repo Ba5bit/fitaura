@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { useGeneration } from '../../state/generation';
+import { useMediaQuery } from '../../lib/useMediaQuery';
 import { UploadZone } from './UploadZone';
 import '../../design/upload.css';
 
@@ -13,6 +14,7 @@ import '../../design/upload.css';
 export function Upload() {
   const navigate = useNavigate();
   const { face, outfit, setFace, setOutfit, isFree, credits, canAffordScan } = useGeneration();
+  const mobile = useMediaQuery('(max-width: 760px)');
   const [attempted, setAttempted] = useState(false);
 
   const faceReady = !!face;
@@ -30,7 +32,7 @@ export function Upload() {
 
   return (
     <div className="ua-page">
-      <div className="ua" data-mobile="false">
+      <div className="ua" data-mobile={mobile ? 'true' : 'false'}>
         <div className="ua-pad">
           <div className="ua-head">
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -78,11 +80,13 @@ export function Upload() {
           <div className="ua-zones">
             <UploadZone
               kind="face"
+              mobile={mobile}
               missing={attempted && !faceReady}
               onConfirm={(url) => setFace(url ? { url } : null)}
             />
             <UploadZone
               kind="outfit"
+              mobile={mobile}
               missing={attempted && !outfitReady}
               onConfirm={(url) => setOutfit(url ? { url } : null)}
             />

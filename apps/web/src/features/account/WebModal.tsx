@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Icon } from '../../lib/icons';
 
 type ModalSize = 'sm' | 'md' | 'lg';
@@ -10,20 +10,60 @@ interface WebModalProps {
   children: ReactNode;
 }
 
-/** Centered desktop modal. Ported from the account UI atoms. */
+const FOCUSABLE =
+  'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+/** Centered desktop modal with Esc-close, a focus trap and focus return. */
 export function WebModal({ size = 'md', onClose, closeable = true, children }: WebModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (!closeable || !onClose) return;
+    const node = modalRef.current;
+    const restoreTo = document.activeElement as HTMLElement | null;
+    const focusables = () => Array.from(node?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []);
+    // Move focus into the dialog on open.
+    (focusables()[0] ?? node)?.focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape' && closeable && onClose) {
+        onClose();
+        return;
+      }
+      if (e.key !== 'Tab' || !node) return;
+      const items = focusables();
+      if (items.length === 0) {
+        e.preventDefault();
+        node.focus();
+        return;
+      }
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      // Return focus to whatever opened the modal.
+      restoreTo?.focus?.();
+    };
   }, [closeable, onClose]);
 
   return (
     <div className="aw-scrim" onClick={closeable ? onClose : undefined}>
-      <div className={'aw-modal ' + size} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+      <div
+        ref={modalRef}
+        className={'aw-modal ' + size}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
         {closeable && (
           <button className="aw-modal-close" onClick={onClose} aria-label="Close">
             <Icon.x />

@@ -107,10 +107,21 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
   const savedView = useRef<View | null>(null);
   const fileInfo = useRef('');
   const cancelTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  // The current blob: object URL, so we can revoke it on replace/remove/unmount.
+  const objUrlRef = useRef<string | null>(null);
+  const revokeObjUrl = () => {
+    if (objUrlRef.current) {
+      URL.revokeObjectURL(objUrlRef.current);
+      objUrlRef.current = null;
+    }
+  };
 
   useEffect(() => {
     onReadyChange?.(status === 'ready');
   }, [status, onReadyChange]);
+
+  // Revoke any outstanding object URL when the zone unmounts.
+  useEffect(() => () => revokeObjUrl(), []);
 
   function setClamped(v: View) {
     if (src) setView(clampView(v, src, frame));
@@ -118,6 +129,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
 
   function reset() {
     if (cancelTimer.current) clearInterval(cancelTimer.current);
+    revokeObjUrl();
     setStatus('empty');
     setErrorType(null);
     setSrc(null);
@@ -139,6 +151,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
 
   async function ingest(file: File) {
     if (cancelTimer.current) clearInterval(cancelTimer.current);
+    revokeObjUrl(); // free the previous photo's object URL before replacing it
     fileInfo.current = `${file.name} · ${(file.size / (1024 * 1024)).toFixed(1)} MB`;
     if (!ACCEPT_MIME.includes(file.type)) {
       setStatus('error');
@@ -169,6 +182,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
       URL.revokeObjectURL(url);
       return;
     }
+    objUrlRef.current = url; // passed validation — track for later revocation
     runProgress(() => {
       const v = clampView({ zoom: 1, x: 0, y: 0 }, { w, h }, frame);
       imgElRef.current = im;
@@ -206,6 +220,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
   }
 
   async function loadSample() {
+    revokeObjUrl(); // drop any prior file's object URL before switching to the sample
     const s = makeSample(kind);
     const im = await loadImageEl(s.url);
     fileInfo.current = (kind === 'face' ? 'selfie' : 'outfit') + '.webp · sample';

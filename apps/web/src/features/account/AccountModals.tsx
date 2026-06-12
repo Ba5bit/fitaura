@@ -20,7 +20,7 @@ export function AuthGate() {
     <WebModal size="lg" onClose={closeScene}>
       <div className="aw-auth">
         <div className="aw-auth-left">
-          <span className="aw-eyebrow accent">ACCOUNT REQUIRED TO BUY CREDITS</span>
+          <span className="aw-eyebrow accent">ACCOUNT REQUIRED TO CONTINUE</span>
           <h2 className="aw-modal-title" style={{ marginTop: '16px', fontSize: '34px' }}>
             SAVE YOUR SCANS.
             <br />
@@ -89,15 +89,16 @@ export function AuthGate() {
             <Icon.shield />
             <span>
               We store your account, credit balance and payment receipts — never your photos.{' '}
-              <span
+              <button
+                type="button"
                 className="lk"
                 onClick={() => {
                   closeScene();
-                  navigate('/storage');
+                  navigate('/settings');
                 }}
               >
                 How your data is stored
-              </span>
+              </button>
             </span>
           </div>
         </div>
@@ -209,9 +210,9 @@ export function Checkout() {
                   <Icon.card />
                 </span>
                 <span>Visa ···· 4242</span>
-                <span className="chg" onClick={() => setEmbedded(true)}>
+                <button type="button" className="chg" onClick={() => setEmbedded(true)}>
                   Change
-                </span>
+                </button>
               </div>
               <button className="aw-btn primary block" style={{ marginTop: 'auto' }} onClick={pay}>
                 <Icon.lock /> Pay {p.price}
@@ -417,7 +418,7 @@ export function MissingResult() {
         </div>
         <h2 className="aw-modal-title">IT'S GONE</h2>
         <p className="aw-modal-sub">
-          Result <b style={{ color: 'var(--ink)' }}>{missingId ?? 'FA-2B6T'}</b> was saved on this device, but the
+          Result <b style={{ color: 'var(--ink)' }}>{missingId ?? 'this scan'}</b> was saved on this device, but the
           local copy is no longer here. Clearing your browser, private mode, or switching devices removes locally
           stored results.
         </p>
@@ -447,16 +448,16 @@ export function MissingResult() {
             className="aw-btn block"
             onClick={() => {
               closeScene();
-              navigate('/results');
+              navigate('/vault');
             }}
           >
-            Back to results
+            Back to vault
           </button>
           <button
             className="aw-btn block"
             onClick={() => {
               closeScene();
-              navigate('/storage');
+              navigate('/settings');
             }}
           >
             Why?

@@ -183,8 +183,11 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
   const onBuy = () => navigate('/credits');
 
   const onOpen = (r: GenerationResult) => {
-    if (openResult(r.receipt.generationId)) navigate('/result');
-    else flash('That result is no longer on this device.');
+    if (openResult(r.receipt.generationId)) {
+      // Open on the first card (01 Face), not whatever tab was last viewed.
+      localStorage.setItem('fitaura.tab', 'face');
+      navigate('/result#face');
+    } else flash('That result is no longer on this device.');
   };
 
   const act = (kind: 'open' | 'download' | 'studio' | 'rename' | 'delete', r: GenerationResult) => {

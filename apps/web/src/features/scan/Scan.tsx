@@ -4,6 +4,7 @@ import { Icon } from '../../lib/icons';
 import { CardImage } from '../../components/cards';
 import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
+import { useMediaQuery } from '../../lib/useMediaQuery';
 import '../../design/scanner.css';
 
 interface Stage {
@@ -113,6 +114,7 @@ export function Scan() {
 
   const reduced =
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const mobile = useMediaQuery('(max-width: 760px)');
 
   const [phase, setPhase] = useState<'scanning' | 'done'>('scanning');
   const [progress, setProgress] = useState(0);
@@ -194,7 +196,7 @@ export function Scan() {
 
   return (
     <div className="scan-page">
-      <div className={'sa' + (reduced ? ' rm' : '')} data-mobile="false" data-stage={dataStage} data-phase={phase}>
+      <div className={'sa' + (reduced ? ' rm' : '')} data-mobile={mobile ? 'true' : 'false'} data-stage={dataStage} data-phase={phase}>
         <div className="sa-pad">
         <div className="sa-head">
           <div className="brand">

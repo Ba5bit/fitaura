@@ -17,14 +17,31 @@ import '../../design/landing.css';
 
 const HERO = MOCK_GENERATIONS[DEFAULT_VERDICT];
 
+const NAV_LINKS = [
+  { href: '#how', label: 'How it works' },
+  { href: '#outputs', label: 'The verdict' },
+  { href: '#examples', label: 'Examples' },
+  { href: '#credits', label: 'Credits' },
+];
+
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 20);
     h();
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
   }, []);
+  // Close the mobile menu on Escape.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
   return (
     <nav className={'ln-nav' + (scrolled ? ' scrolled' : '')}>
       <div className="ln-brand">
@@ -32,20 +49,38 @@ function Nav() {
         <span className="wm">FITAURA</span>
       </div>
       <div className="ln-nav-links">
-        <a href="#how">How it works</a>
-        <a href="#outputs">The verdict</a>
-        <a href="#examples">Examples</a>
-        <a href="#credits">Credits</a>
+        {NAV_LINKS.map((l) => (
+          <a key={l.href} href={l.href}>
+            {l.label}
+          </a>
+        ))}
       </div>
       <div className="ln-nav-cta">
         <AccountEntry />
         <Link className="ln-btn primary" to="/vault">
           Get your verdict
         </Link>
-        <button className="ln-burger" aria-label="Menu">
-          <Icon.menu />
+        <button
+          className="ln-burger"
+          aria-label="Menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((x) => !x)}
+        >
+          {menuOpen ? <Icon.x /> : <Icon.menu />}
         </button>
       </div>
+      {menuOpen && (
+        <div className="ln-mobilemenu">
+          {NAV_LINKS.map((l) => (
+            <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)}>
+              {l.label}
+            </a>
+          ))}
+          <Link className="ln-btn primary block" to="/vault" onClick={() => setMenuOpen(false)}>
+            Get your verdict
+          </Link>
+        </div>
+      )}
     </nav>
   );
 }

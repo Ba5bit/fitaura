@@ -73,12 +73,16 @@ export function Result() {
   });
   const [receiptPreset, setReceiptPreset] = useState<string | null>('tr');
 
-  // Offscreen full-scale render hosts used purely for WYSIWYG export.
+  // Offscreen full-scale render hosts used purely for WYSIWYG export. Mounted
+  // only while an export is in flight (see `withExportHost`) so the Result page
+  // doesn't carry three extra full card trees at all times.
   const exportRefs = {
     face: useRef<HTMLDivElement>(null),
     outfit: useRef<HTMLDivElement>(null),
     receipt: useRef<HTMLDivElement>(null),
   };
+  const exportHostRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
 
   const ping = useCallback((msg: string) => {
     setToast(msg);
@@ -197,15 +201,41 @@ export function Result() {
     setTimeout(() => setSavedFlash(false), 1600);
   };
 
-  const exportKind = async (k: Kind) => {
+  const captureKind = async (k: Kind) => {
     const el = exportRefs[k].current;
     if (!el) return null;
     return renderCardBlob({ el, kind: k, verdict: result.verdict });
   };
 
+  // Mount the offscreen export hosts, wait for them to paint + their images to
+  // decode, run the capture(s), then unmount. Avoids keeping the hosts mounted
+  // on the Result page when no export is happening.
+  const withExportHost = async <T,>(fn: () => Promise<T>): Promise<T> => {
+    setExporting(true);
+    try {
+      await new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())));
+      const host = exportHostRef.current;
+      if (host) {
+        const imgs = Array.from(host.querySelectorAll('img'));
+        await Promise.all(
+          imgs.map((im) =>
+            im.complete
+              ? Promise.resolve()
+              : new Promise<void>((r) => {
+                  im.onload = im.onerror = () => r();
+                }),
+          ),
+        );
+      }
+      return await fn();
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const download = async () => {
     try {
-      const out = await exportKind(kind);
+      const out = await withExportHost(() => captureKind(kind));
       if (!out) return;
       downloadResult(out);
       ping(`Saved ${tabDef.name.toLowerCase()} card to device`);
@@ -216,7 +246,7 @@ export function Result() {
   };
   const share = async () => {
     try {
-      const out = await exportKind(kind);
+      const out = await withExportHost(() => captureKind(kind));
       if (!out) return;
       const res = await shareResult(out);
       if (res === 'shared') ping('Shared');
@@ -231,10 +261,12 @@ export function Result() {
   const exportAll = async () => {
     ping('Exporting all 3 cards…');
     try {
-      for (const k of ['face', 'outfit', 'receipt'] as const) {
-        const out = await exportKind(k);
-        if (out) downloadResult(out);
-      }
+      await withExportHost(async () => {
+        for (const k of ['face', 'outfit', 'receipt'] as const) {
+          const out = await captureKind(k);
+          if (out) downloadResult(out);
+        }
+      });
       flashSaved();
       ping('Saved all 3 cards to device');
     } catch {
@@ -580,8 +612,10 @@ export function Result() {
         {toast}
       </div>
 
-      {/* OFFSCREEN EXPORT HOSTS — full-scale, WYSIWYG capture targets */}
-      <div className="rs-exporthost" aria-hidden="true">
+      {/* OFFSCREEN EXPORT HOSTS — full-scale, WYSIWYG capture targets. Mounted
+          only during an export (see withExportHost) to keep the page light. */}
+      {exporting && (
+      <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         <div className="rs-export-card" ref={exportRefs.face}>
           <FaceCard content={faceContent} stickerOn={false} run={false} />
           {stickerOn && (
@@ -609,6 +643,7 @@ export function Result() {
           <StaticStamp preset={receiptPreset} />
         </div>
       </div>
+      )}
     </div>
   );
 }
