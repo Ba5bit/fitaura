@@ -16,6 +16,7 @@ export const inputIssueSchema = z.enum([
   'outfit_obscured', 'outfit_blurry', 'outfit_low_light',
   'different_people_suspected', 'unsupported_content', 'other',
 ]);
+export type InputIssue = z.infer<typeof inputIssueSchema>;
 
 const candidates = z.array(z.string().max(80)).max(8);
 

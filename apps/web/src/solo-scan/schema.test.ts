@@ -1,7 +1,6 @@
 // apps/web/src/solo-scan/schema.test.ts
 import { describe, expect, it } from 'vitest';
-import { soloScanSchema } from '@fitaura/shared';
-import { sampleAIOutput } from '@fitaura/shared';
+import { soloScanSchema, sampleAIOutput } from '@fitaura/shared';
 
 describe('soloScanSchema', () => {
   it('accepts a well-formed solo_scan_v1 object', () => {
