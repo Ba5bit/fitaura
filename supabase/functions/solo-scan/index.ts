@@ -1,5 +1,4 @@
 // supabase/functions/solo-scan/index.ts
-// deno-lint-ignore-file no-explicit-any
 import { soloScanSchema } from 'shared/solo-scan/schema.ts';
 import { assembleResult } from 'shared/solo-scan/assemble.ts';
 import { SOLO_SCAN_PROMPT_VERSION, SOLO_SCAN_SCHEMA_VERSION } from 'shared/solo-scan/constants.ts';
@@ -35,8 +34,11 @@ Deno.serve(async (req) => {
     return json({ ok: false, kind: 'error', message: 'bad_request' }, 400);
   }
   const { scanId, face, outfit } = body ?? {};
+  // ~20 MB decoded is Gemini's inline-data ceiling; base64 inflates ~4/3.
+  const MAX_B64 = 27_000_000;
   const okImg = (i: InlineImage | undefined) =>
-    i && typeof i.data === 'string' && /^image\/(jpeg|png|webp)$/.test(i.mimeType ?? '');
+    i && typeof i.data === 'string' && i.data.length > 0 && i.data.length <= MAX_B64
+    && /^image\/(jpeg|png|webp)$/.test(i.mimeType ?? '');
   if (!scanId || !okImg(face) || !okImg(outfit)) {
     return json({ ok: false, kind: 'error', message: 'invalid_images' }, 400);
   }
@@ -54,6 +56,7 @@ Deno.serve(async (req) => {
 
     if (!ai.inputQuality.usable) {
       console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: 'unusable_input', latency_ms: Date.now() - started }));
+      // 200, not an error status: the client branches on `kind`, not the HTTP code.
       return json({
         ok: false,
         kind: 'retake',
@@ -83,7 +86,7 @@ Deno.serve(async (req) => {
 
     return json({ ok: true, result });
   } catch (e) {
-    console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: (e as Error).message, latency_ms: Date.now() - started }));
+    console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: e instanceof Error ? e.message : String(e), latency_ms: Date.now() - started }));
     return json({ ok: false, kind: 'error', message: 'generation_failed' }, 502);
   }
 });
