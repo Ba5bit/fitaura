@@ -38,4 +38,16 @@ describe('runSoloScan', () => {
     const out = await runSoloScan('data:image/webp;base64,A', 'data:image/webp;base64,B');
     expect(out.kind).toBe('error');
   });
+
+  it('maps an application error response', async () => {
+    invoke.mockResolvedValue({ data: { ok: false, kind: 'error', message: 'schema_invalid' }, error: null });
+    const out = await runSoloScan('data:image/webp;base64,A', 'data:image/webp;base64,B');
+    expect(out).toEqual({ kind: 'error', message: 'schema_invalid' });
+  });
+
+  it('returns bad_image for a non-data-URL input (no network call)', async () => {
+    const out = await runSoloScan('https://x.com/photo.png', 'data:image/webp;base64,B');
+    expect(out).toEqual({ kind: 'error', message: 'bad_image' });
+    expect(invoke).not.toHaveBeenCalled();
+  });
 });
