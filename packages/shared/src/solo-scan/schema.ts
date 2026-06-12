@@ -1,0 +1,94 @@
+// packages/shared/src/solo-scan/schema.ts
+import { z } from 'zod';
+import { SOLO_SCAN_SCHEMA_VERSION } from './constants';
+
+/** One bounded rubric rating (rules doc §5): 1–5 or null when not assessable. */
+export const rubricRatingSchema = z.object({
+  rating: z.number().int().min(1).max(5).nullable(),
+  confidence: z.number().min(0).max(1),
+  evidence: z.string().max(400),
+});
+export type RubricRating = z.infer<typeof rubricRatingSchema>;
+
+export const inputIssueSchema = z.enum([
+  'face_missing', 'multiple_faces', 'face_too_small', 'face_obscured',
+  'face_blurry', 'face_low_light', 'outfit_missing', 'outfit_too_cropped',
+  'outfit_obscured', 'outfit_blurry', 'outfit_low_light',
+  'different_people_suspected', 'unsupported_content', 'other',
+]);
+
+const candidates = z.array(z.string().max(80)).max(8);
+
+export const soloScanSchema = z
+  .object({
+    schemaVersion: z.literal(SOLO_SCAN_SCHEMA_VERSION),
+    inputQuality: z.object({
+      usable: z.boolean(),
+      faceUsable: z.boolean(),
+      outfitUsable: z.boolean(),
+      samePersonLikely: z.boolean().nullable(),
+      issues: z.array(inputIssueSchema).max(14),
+      retakeInstruction: z.string().max(300).nullable(),
+    }),
+    faceAnalysis: z.object({
+      photoPresentation: rubricRatingSchema,
+      faceHarmony: rubricRatingSchema,
+      jawPresence: rubricRatingSchema,
+      haircutMatch: rubricRatingSchema,
+      groomingCoherence: rubricRatingSchema,
+      visualPresence: rubricRatingSchema,
+      mainCharacterEnergy: rubricRatingSchema,
+    }),
+    outfitAnalysis: z.object({
+      fit: rubricRatingSchema,
+      silhouette: rubricRatingSchema,
+      proportions: rubricRatingSchema,
+      colorCoherence: rubricRatingSchema,
+      physiqueMatch: rubricRatingSchema,
+      layering: rubricRatingSchema,
+      accessories: rubricRatingSchema,
+      stylingIntent: rubricRatingSchema,
+      overallCohesion: rubricRatingSchema,
+    }),
+    faceCopy: z.object({
+      strongestPoint: z.string().max(200),
+      improvement: z.string().max(200),
+      summary: z.string().max(200),
+    }),
+    outfitCopy: z.object({
+      works: z.string().max(200),
+      hurts: z.string().max(200),
+      verdict: z.string().max(200),
+    }),
+    contentSelection: z.object({
+      faceArchetypeCandidates: candidates,
+      outfitCaptionCandidates: candidates,
+      stickerCandidates: candidates,
+      contentTags: candidates,
+    }),
+    receiptContent: z.object({
+      metricCandidates: candidates,
+      punchlineCandidates: candidates,
+    }),
+  })
+  .superRefine((val, ctx) => {
+    if (!val.inputQuality.usable && val.inputQuality.retakeInstruction === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['inputQuality', 'retakeInstruction'],
+        message: 'retakeInstruction is required when usable is false',
+      });
+    }
+  });
+
+export type SoloScanAIOutput = z.infer<typeof soloScanSchema>;
+
+/** Face/outfit rubric category keys, reused by scoring + assembly. */
+export const FACE_KEYS = [
+  'photoPresentation', 'faceHarmony', 'jawPresence', 'haircutMatch',
+  'groomingCoherence', 'visualPresence', 'mainCharacterEnergy',
+] as const;
+export const OUTFIT_KEYS = [
+  'fit', 'silhouette', 'proportions', 'colorCoherence', 'physiqueMatch',
+  'layering', 'accessories', 'stylingIntent', 'overallCohesion',
+] as const;
