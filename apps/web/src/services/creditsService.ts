@@ -37,3 +37,13 @@ export function hasUsedFreeScan(): boolean {
 export function markFreeScanUsed(): void {
   localStorage.setItem(FREE_SCAN_KEY, '1');
 }
+
+/** Refund one credit (used when a scan fails after spending). Returns new balance. */
+export async function refundCredit(userId: string): Promise<number> {
+  return grantCredits(userId, 1);
+}
+
+/** Restore the guest free-scan eligibility (used to refund a failed free scan). */
+export function clearFreeScanUsed(): void {
+  localStorage.removeItem(FREE_SCAN_KEY);
+}
