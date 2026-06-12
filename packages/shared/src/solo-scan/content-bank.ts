@@ -4,7 +4,11 @@ import type { DatingVerdict } from '../verdict';
 /** First candidate that exists in `bank`, else the fallback id's entry. */
 function pick<T>(candidates: string[] | undefined, bank: Record<string, T>, fallbackId: string): T {
   const id = (candidates ?? []).find((c) => c in bank) ?? fallbackId;
-  return bank[id] ?? bank[fallbackId];
+  const result = bank[id] ?? bank[fallbackId];
+  // Fail loud if a per-verdict default is ever misconfigured, rather than
+  // letting `undefined` surface as a blank card downstream.
+  if (result === undefined) throw new Error(`[content-bank] fallback "${fallbackId}" not found in bank`);
+  return result;
 }
 
 /* --- Face archetype → card verdict line + face sticker id (real STICKER_BANK.face ids) --- */

@@ -13,7 +13,7 @@ describe('content bank', () => {
 
   it('falls back to the per-verdict default on an invalid candidate', () => {
     const a = pickFaceArchetype(['face_archetype.nonsense'], 'red_flag');
-    expect(a.line[0]).toBe('RED FLAG');
+    expect(a.line).toEqual(['RED FLAG', 'WITH GOOD ANGLES']);
   });
 
   it('outfit caption resolves to a real outfit sticker', () => {
