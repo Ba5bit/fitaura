@@ -28,7 +28,7 @@
   --gold:#ffcf66;
 
   /* dynamic — driven by tweaks/state */
-  --accent: var(--cyan);
+  --accent: var(--icy);          /* main brand accent (icy periwinkle, not cyan) */
   --accent-ink:#06070a;        /* readable text on accent fills */
   --verdict: var(--red);       /* current verdict color */
   --verdict-ink:#fff;
@@ -42,7 +42,7 @@
 html,body { margin:0; height:100%; }
 body {
   background:
-    radial-gradient(1200px 800px at 18% -10%, rgba(84,230,240,0.10), transparent 60%),
+    radial-gradient(1200px 800px at 18% -10%, color-mix(in oklab, var(--accent) 11%, transparent), transparent 60%),
     radial-gradient(1000px 700px at 92% 8%, color-mix(in oklab, var(--verdict) 16%, transparent), transparent 58%),
     radial-gradient(900px 900px at 50% 120%, rgba(131,180,255,0.07), transparent 60%),
     linear-gradient(180deg,var(--bg-1),var(--bg-0));

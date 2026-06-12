@@ -19,7 +19,7 @@ export interface ExportArgs {
   el: HTMLElement;
   kind: 'face' | 'outfit' | 'receipt';
   verdict: DatingVerdict;
-  /** Accent hex driving the poster glow (defaults to cyan). */
+  /** Accent hex driving the poster glow (defaults to the brand accent, icy blue). */
   accentHex?: string;
 }
 
@@ -108,7 +108,7 @@ async function buildFontEmbedCSS(): Promise<string> {
 
 /** Render the given card element to a 9:16 PNG blob. */
 export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
-  const { el, kind, verdict, accentHex = '#54e6f0' } = args;
+  const { el, kind, verdict, accentHex = '#83b4ff' } = args;
   await ensureFonts();
   const verdictHex = VERDICT_HEX[verdict] ?? '#ff3b49';
   const base = { w: 1080, h: 1920 };
