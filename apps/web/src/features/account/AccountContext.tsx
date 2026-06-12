@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { useNavigate } from 'react-router-dom';
 import { CREDIT_PACKS } from '@fitaura/shared';
 import { authSignIn, authSignOut, authSignUp, getCurrentSession, onAuthChange } from '../../services/authService';
-import { getBalance, grantCredits, hasUsedFreeScan, markFreeScanUsed, spendCredit } from '../../services/creditsService';
+import { clearFreeScanUsed, getBalance, grantCredits, hasUsedFreeScan, markFreeScanUsed, refundCredit, spendCredit } from '../../services/creditsService';
 
 export interface AccountUser {
   email: string;
@@ -49,6 +49,8 @@ interface AccountContextValue {
   canScan: boolean;
   /** Spend for one scan: guest → mark free used; signed-in → spend a credit. Returns ok. */
   spendForScan: () => Promise<boolean>;
+  /** Give back what spendForScan took, when a scan ultimately fails. */
+  refundScan: () => Promise<void>;
 
   scene: Scene;
   authStatus: AuthStatus;
@@ -231,6 +233,21 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     return res.ok;
   }, [signedIn, freeScanAvailable, userId]);
 
+  const refundScan = useCallback<AccountContextValue['refundScan']>(async () => {
+    if (!signedIn) {
+      // Only restore the free scan if it was actually spent — keeps refundScan
+      // idempotent so a spurious call can't grant a scan that was never charged.
+      if (!freeScanAvailable) {
+        clearFreeScanUsed();
+        setFreeScanAvailable(true);
+      }
+      return;
+    }
+    if (!userId) return; // narrows userId to string for refundCredit (signedIn = !!userId)
+    const next = await refundCredit(userId);
+    setCredits(next);
+  }, [signedIn, freeScanAvailable, userId]);
+
   const startCheckout = useCallback(
     (packId?: string) => {
       if (packId) setPack(packId);
@@ -269,6 +286,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       freeScanAvailable,
       canScan,
       spendForScan,
+      refundScan,
       scene,
       authStatus,
       authError,
@@ -291,7 +309,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       openMissing,
     }),
     [
-      signedIn, user, credits, freeScanAvailable, canScan, spendForScan, scene, authStatus, authError,
+      signedIn, user, credits, freeScanAvailable, canScan, spendForScan, refundScan, scene, authStatus, authError,
       pack, lastPurchaseCredits, missingId, toast, flash, closeScene, openAuth, signUp, logIn,
       requestLogout, confirmLogout, openPaywall, startCheckout, pay, failPayment, openMissing,
     ],

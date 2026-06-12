@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "zod": "npm:zod@^3.23.8",
+    "shared/": "../../../packages/shared/src/"
+  }
+}

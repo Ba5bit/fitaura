@@ -1,10 +1,8 @@
 import { createContext, useCallback, useContext, useMemo, useRef, type ReactNode } from 'react';
 import {
-  DATING_VERDICTS,
-  type DatingVerdict,
   type FullGenerationResult,
 } from '@fitaura/shared';
-import { MOCK_GENERATIONS } from '../data/mockGenerations';
+import { runSoloScan, type SoloScanOutcome } from '../services/soloScanService';
 import { useLocalStorage } from './useLocalStorage';
 
 /** A baked, cropped photo ready to drop into a card (data URL, on-device). */
@@ -37,7 +35,14 @@ const INITIAL: PersistedState = {
   history: [],
 };
 
-type RunOutcome = { ok: true; result: GenerationResult } | { ok: false; reason: 'missing_photos' };
+/** The retake fields, derived from the service outcome so the two can't drift. */
+export type RetakeInfo = Omit<Extract<SoloScanOutcome, { kind: 'retake' }>, 'kind'>;
+
+type RunOutcome =
+  | { ok: true; result: GenerationResult }
+  | { ok: false; reason: 'missing_photos' }
+  | { ok: false; reason: 'retake'; retake: RetakeInfo }
+  | { ok: false; reason: 'error'; message: string };
 
 interface GenerationContextValue {
   face: UploadedPhoto | null;
@@ -48,8 +53,8 @@ interface GenerationContextValue {
   history: GenerationResult[];
   setFace: (photo: UploadedPhoto | null) => void;
   setOutfit: (photo: UploadedPhoto | null) => void;
-  /** Builds the result from the uploaded photos. Credit gating happens in AccountContext. */
-  runGeneration: (verdict?: DatingVerdict) => RunOutcome;
+  /** Runs the AI generation from the uploaded photos. Credit gating happens in AccountContext. */
+  runGeneration: () => Promise<RunOutcome>;
   /** Clears the current photos to begin a fresh scan (keeps result/history). */
   startNewScan: () => void;
   /** Make a stored history result the current one. Returns false if missing. */
@@ -61,10 +66,6 @@ interface GenerationContextValue {
 }
 
 const GenerationContext = createContext<GenerationContextValue | null>(null);
-
-function pickVerdict(): DatingVerdict {
-  return DATING_VERDICTS[Math.floor(Math.random() * DATING_VERDICTS.length)];
-}
 
 export function GenerationProvider({ children }: { children: ReactNode }) {
   const [rawState, setState] = useLocalStorage<PersistedState>('fitaura.state', INITIAL);
@@ -78,9 +79,9 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     history: rawState.history ?? [],
   };
 
-  // Mirror of the latest state so runGeneration can decide its outcome purely,
-  // without relying on side-effects inside a setState updater (which React
-  // StrictMode intentionally double-invokes).
+  // Mirror of the latest state so runGeneration can read current state without a
+  // stale closure. IMPORTANT: after any await, merge via a functional setState
+  // updater (read `prev`) — state may have changed while the scan was in flight.
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -95,33 +96,42 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
 
   const bothPhotosReady = !!state.face && !!state.outfit;
 
-  const runGeneration = useCallback<GenerationContextValue['runGeneration']>(
-    (verdict) => {
-      const s = stateRef.current;
-      if (!s.face || !s.outfit) return { ok: false, reason: 'missing_photos' };
+  const runGeneration = useCallback<GenerationContextValue['runGeneration']>(async () => {
+    const s = stateRef.current;
+    if (!s.face || !s.outfit) return { ok: false, reason: 'missing_photos' };
 
-      const chosen = verdict ?? pickVerdict();
-      const base = MOCK_GENERATIONS[chosen];
-      const now = new Date().toISOString();
-      const result: GenerationResult = {
-        ...base,
-        producedAt: now,
-        face: { ...base.face, card: { ...base.face.card, imageUrl: s.face.url } },
-        outfit: { ...base.outfit, card: { ...base.outfit.card, imageUrl: s.outfit.url } },
-        receipt: { ...base.receipt, generatedAt: now },
-      };
+    const outcome = await runSoloScan(s.face.url, s.outfit.url);
+    if (outcome.kind === 'retake') {
+      return { ok: false, reason: 'retake', retake: { faceUsable: outcome.faceUsable, outfitUsable: outcome.outfitUsable, instruction: outcome.instruction } };
+    }
+    if (outcome.kind === 'error') {
+      return { ok: false, reason: 'error', message: outcome.message };
+    }
 
-      const history = [result, ...s.history.filter((h) => h.receipt.generationId !== result.receipt.generationId)].slice(
+    const now = new Date().toISOString();
+    const base = outcome.result;
+    // Use the photos that were actually scanned (captured before the await) for the
+    // card images — not whatever may have been swapped in while the scan was running.
+    const result: GenerationResult = {
+      ...base,
+      producedAt: now,
+      face: { ...base.face, card: { ...base.face.card, imageUrl: s.face.url } },
+      outfit: { ...base.outfit, card: { ...base.outfit.card, imageUrl: s.outfit.url } },
+      receipt: { ...base.receipt, generatedAt: now },
+    };
+
+    // Merge into whatever state is current AFTER the await (functional updater) so a
+    // face/outfit/history change made during the scan isn't clobbered by a stale snapshot.
+    setState((prev) => ({
+      ...prev,
+      result,
+      history: [result, ...prev.history.filter((h) => h.receipt.generationId !== result.receipt.generationId)].slice(
         0,
         HISTORY_CAP,
-      );
-      const next: PersistedState = { ...s, result, history };
-      stateRef.current = next;
-      setState(next);
-      return { ok: true, result };
-    },
-    [setState],
-  );
+      ),
+    }));
+    return { ok: true, result };
+  }, [setState]);
 
   const startNewScan = useCallback(
     () => setState((s) => ({ ...s, face: null, outfit: null })),
