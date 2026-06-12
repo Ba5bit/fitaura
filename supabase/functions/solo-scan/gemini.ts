@@ -1,10 +1,12 @@
 // supabase/functions/solo-scan/gemini.ts
-import type { SoloScanAIOutput } from 'shared/solo-scan/schema.ts';
+import { FACE_KEYS, OUTFIT_KEYS, inputIssueSchema } from 'shared/solo-scan/schema.ts';
 
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
+/** Fail a stalled request fast so the one retry still fits the platform budget. */
+const REQUEST_TIMEOUT_MS = 30_000;
 
 /** OpenAPI-subset response schema for Gemini structured output (rules doc §20). */
-const rubric = () => ({
+const RUBRIC_SHAPE = {
   type: 'OBJECT',
   properties: {
     rating: { type: 'INTEGER', nullable: true },
@@ -12,15 +14,19 @@ const rubric = () => ({
     evidence: { type: 'STRING' },
   },
   required: ['rating', 'confidence', 'evidence'],
-});
-const faceKeys = ['photoPresentation', 'faceHarmony', 'jawPresence', 'haircutMatch', 'groomingCoherence', 'visualPresence', 'mainCharacterEnergy'];
-const outfitKeys = ['fit', 'silhouette', 'proportions', 'colorCoherence', 'physiqueMatch', 'layering', 'accessories', 'stylingIntent', 'overallCohesion'];
-const objOf = (keys: string[]) => ({
+};
+const STR_LIST = { type: 'ARRAY', items: { type: 'STRING' } };
+// Constrain `issues` to the same closed enum Zod validates, so a stray free-text
+// value from the model can't fail safeParse and sink an otherwise-valid scan.
+const ISSUES_LIST = { type: 'ARRAY', items: { type: 'STRING', enum: [...inputIssueSchema.options] } };
+
+// Build the per-category rubric objects from the canonical key lists (single
+// source of truth — adding a rubric dimension in schema.ts flows through here).
+const objOf = (keys: readonly string[]) => ({
   type: 'OBJECT',
-  properties: Object.fromEntries(keys.map((k) => [k, rubric()])),
-  required: keys,
+  properties: Object.fromEntries(keys.map((k) => [k, RUBRIC_SHAPE])),
+  required: [...keys],
 });
-const strList = () => ({ type: 'ARRAY', items: { type: 'STRING' } });
 
 const RESPONSE_SCHEMA = {
   type: 'OBJECT',
@@ -33,17 +39,17 @@ const RESPONSE_SCHEMA = {
         faceUsable: { type: 'BOOLEAN' },
         outfitUsable: { type: 'BOOLEAN' },
         samePersonLikely: { type: 'BOOLEAN', nullable: true },
-        issues: strList(),
+        issues: ISSUES_LIST,
         retakeInstruction: { type: 'STRING', nullable: true },
       },
       required: ['usable', 'faceUsable', 'outfitUsable', 'samePersonLikely', 'issues', 'retakeInstruction'],
     },
-    faceAnalysis: objOf(faceKeys),
-    outfitAnalysis: objOf(outfitKeys),
+    faceAnalysis: objOf(FACE_KEYS),
+    outfitAnalysis: objOf(OUTFIT_KEYS),
     faceCopy: { type: 'OBJECT', properties: { strongestPoint: { type: 'STRING' }, improvement: { type: 'STRING' }, summary: { type: 'STRING' } }, required: ['strongestPoint', 'improvement', 'summary'] },
     outfitCopy: { type: 'OBJECT', properties: { works: { type: 'STRING' }, hurts: { type: 'STRING' }, verdict: { type: 'STRING' } }, required: ['works', 'hurts', 'verdict'] },
-    contentSelection: { type: 'OBJECT', properties: { faceArchetypeCandidates: strList(), outfitCaptionCandidates: strList(), stickerCandidates: strList(), contentTags: strList() }, required: ['faceArchetypeCandidates', 'outfitCaptionCandidates', 'stickerCandidates', 'contentTags'] },
-    receiptContent: { type: 'OBJECT', properties: { metricCandidates: strList(), punchlineCandidates: strList() }, required: ['metricCandidates', 'punchlineCandidates'] },
+    contentSelection: { type: 'OBJECT', properties: { faceArchetypeCandidates: STR_LIST, outfitCaptionCandidates: STR_LIST, stickerCandidates: STR_LIST, contentTags: STR_LIST }, required: ['faceArchetypeCandidates', 'outfitCaptionCandidates', 'stickerCandidates', 'contentTags'] },
+    receiptContent: { type: 'OBJECT', properties: { metricCandidates: STR_LIST, punchlineCandidates: STR_LIST }, required: ['metricCandidates', 'punchlineCandidates'] },
   },
   required: ['schemaVersion', 'inputQuality', 'faceAnalysis', 'outfitAnalysis', 'faceCopy', 'outfitCopy', 'contentSelection', 'receiptContent'],
 };
@@ -79,6 +85,18 @@ interface GeminiOpts {
   outfit: InlineImage;
 }
 
+/** Error carrying a `transient` flag so the caller's one-retry policy is type-safe. */
+class GeminiError extends Error {
+  transient: boolean;
+  detail: string;
+  constructor(message: string, transient: boolean, detail = '') {
+    super(message);
+    this.name = 'GeminiError';
+    this.transient = transient;
+    this.detail = detail;
+  }
+}
+
 function buildBody(face: InlineImage, outfit: InlineImage) {
   return {
     systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
@@ -105,29 +123,35 @@ function buildBody(face: InlineImage, outfit: InlineImage) {
 
 async function once(opts: GeminiOpts): Promise<GeminiCallResult> {
   const url = `${ENDPOINT}/${opts.model}:generateContent`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-goog-api-key': opts.apiKey },
-    body: JSON.stringify(buildBody(opts.face, opts.outfit)),
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': opts.apiKey },
+      body: JSON.stringify(buildBody(opts.face, opts.outfit)),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  } catch (e) {
+    // Network failure or the 30s timeout — both worth one retry.
+    throw new GeminiError('gemini_network_error', true, (e as Error).message);
+  }
   if (!res.ok) {
     const body = await res.text();
-    const err = new Error(`gemini_http_${res.status}`);
-    // Mark transient statuses so the caller can retry once.
-    (err as { transient?: boolean }).transient = res.status === 429 || res.status >= 500;
-    (err as { detail?: string }).detail = body.slice(0, 300);
-    throw err;
+    throw new GeminiError(`gemini_http_${res.status}`, res.status === 429 || res.status >= 500, body.slice(0, 300));
   }
   const json = await res.json();
   const text: string | undefined = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) {
-    const err = new Error('gemini_empty_response');
-    (err as { transient?: boolean }).transient = true;
-    throw err;
+  if (!text) throw new GeminiError('gemini_empty_response', true);
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text);
+  } catch {
+    // Truncated/malformed model output — a temporary glitch, so retry once (rules doc §22).
+    throw new GeminiError('gemini_invalid_json', true);
   }
   const u = json?.usageMetadata ?? {};
   return {
-    raw: JSON.parse(text) as unknown,
+    raw,
     usage: { input: u.promptTokenCount ?? 0, output: u.candidatesTokenCount ?? 0, total: u.totalTokenCount ?? 0 },
   };
 }
@@ -137,12 +161,10 @@ export async function callGemini(opts: GeminiOpts): Promise<GeminiCallResult> {
   try {
     return await once(opts);
   } catch (e) {
-    if ((e as { transient?: boolean }).transient) {
+    if (e instanceof GeminiError && e.transient) {
       await new Promise((r) => setTimeout(r, 500 + Math.random() * 1000));
       return once(opts);
     }
     throw e;
   }
 }
-
-export type { SoloScanAIOutput };
