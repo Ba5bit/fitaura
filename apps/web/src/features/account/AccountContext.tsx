@@ -177,12 +177,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         setAuthError(res.error);
         return false;
       }
-      // New account starts at 3 credits (DB default via signup trigger).
-      setCredits(await getBalance(res.user.id));
-      finishAuth(res.user.id, res.user.email);
+      // Registration and login are deliberately two steps. Email confirmation is
+      // off, so Supabase auto-creates a session on signup — discard it so the
+      // user logs in explicitly next (the AuthGate switches to the Log in tab).
+      // The profile (3 credits) was already created by the DB signup trigger.
+      await authSignOut();
+      setAuthStatus('idle');
       return true;
     },
-    [finishAuth],
+    [],
   );
 
   const logIn = useCallback<AccountContextValue['logIn']>(

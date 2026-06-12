@@ -209,6 +209,12 @@
   font-size: 13px;
   line-height: 1.4;
 }
+.aw-formnotice {
+  margin: 10px 0 0;
+  color: var(--lime, #7CFF9B);
+  font-size: 13px;
+  line-height: 1.4;
+}
 
 /* ============================ RESPONSIVE ============================ */
 @media (max-width: 880px) {

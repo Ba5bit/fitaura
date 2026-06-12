@@ -14,13 +14,30 @@ export function AuthGate() {
   const [mode, setMode] = useState<'signup' | 'login'>('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // Shown after a successful sign-up, prompting the user to log in.
+  const [notice, setNotice] = useState<string | null>(null);
   const isSignup = mode === 'signup';
   const pending = authStatus === 'pending';
 
-  const submit = () => {
+  const switchMode = (m: 'signup' | 'login') => {
+    setMode(m);
+    setNotice(null);
+  };
+
+  const submit = async () => {
     if (pending) return;
-    if (isSignup) void signUp(email.trim(), password);
-    else void logIn(email.trim(), password);
+    if (isSignup) {
+      const ok = await signUp(email.trim(), password);
+      if (ok) {
+        // Registration succeeds but does NOT log you in — switch to the Log in
+        // tab and ask for the password again.
+        setMode('login');
+        setPassword('');
+        setNotice("You're registered. Now log in with your email and password.");
+      }
+    } else {
+      void logIn(email.trim(), password);
+    }
   };
 
   return (
@@ -67,10 +84,10 @@ export function AuthGate() {
 
         <div className="aw-auth-right">
           <div className="aw-seg" role="tablist">
-            <button role="tab" aria-selected={isSignup} onClick={() => setMode('signup')}>
+            <button role="tab" aria-selected={isSignup} onClick={() => switchMode('signup')}>
               Sign up
             </button>
-            <button role="tab" aria-selected={!isSignup} onClick={() => setMode('login')}>
+            <button role="tab" aria-selected={!isSignup} onClick={() => switchMode('login')}>
               Log in
             </button>
           </div>
@@ -82,6 +99,11 @@ export function AuthGate() {
             value={password}
             onChange={setPassword}
           />
+          {notice && !authError && (
+            <p className="aw-formnotice" role="status">
+              {notice}
+            </p>
+          )}
           {authError && (
             <p className="aw-formerror" role="alert">
               {authError}
