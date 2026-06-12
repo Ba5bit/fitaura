@@ -20,7 +20,8 @@ export function AccountEntry() {
         <span className="gem">
           <Icon.gem />
         </span>
-        <b>{credits}</b> credits
+        <b>{credits}</b>
+        <span className="credit-word"> credits</span>
       </button>
     );
   } else if (freeScanAvailable) {
@@ -38,7 +39,8 @@ export function AccountEntry() {
         <span className="gem">
           <Icon.gem />
         </span>
-        <b>0</b> credits
+        <b>0</b>
+        <span className="credit-word"> credits</span>
       </button>
     );
   }

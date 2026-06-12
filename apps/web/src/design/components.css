@@ -237,3 +237,10 @@ button.ln-pack:focus-visible .ln-pack-cta {
   white-space: nowrap;
   border: 0;
 }
+
+/* Mobile: credit chips show just the number (hide the "credits" word and the
+   "· 1 / scan" suffix) to save horizontal space on small screens. */
+@media (max-width: 760px) {
+  .credit-word { display: none; }
+  .vlt-credit .x { display: none; }
+}

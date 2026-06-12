@@ -213,7 +213,8 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
       <span className="gem">
         <Icon.gem />
       </span>
-      <b>{credits}</b> credits <span className="x">· 1 / scan</span>
+      <b>{credits}</b>
+      <span className="credit-word"> credits</span> <span className="x">· 1 / scan</span>
     </span>
   ) : (
     <span className="vlt-credit free">
