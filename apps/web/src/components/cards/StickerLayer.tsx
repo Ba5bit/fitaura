@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState, type PointerEvent, type KeyboardEvent, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type PointerEvent, type KeyboardEvent, type CSSProperties } from 'react';
 import type { StickerTone } from '@fitaura/shared';
 import {
   CARD_GEOM,
@@ -40,6 +40,14 @@ export function StickerLayer({ kind, sticker, pos, setPos, editing, hidden }: St
   const [snapAnim, setSnapAnim] = useState(false);
   const [live, setLive] = useState(false);
   const placing = editing || live;
+
+  // When pinned edit mode ends (e.g. "Done" / Esc), clear any lingering `live`
+  // state so the safe-zone + exclusion overlay always disappears. A drag while
+  // editing sets `live` true, but endDrag only clears it when not editing — so
+  // without this the red zones would stay on screen after pressing Done.
+  useEffect(() => {
+    if (!editing) setLive(false);
+  }, [editing]);
 
   // Measured half-extents (normalized), accounting for the rendered (rotated) box.
   const halfExt = useCallback(() => {
