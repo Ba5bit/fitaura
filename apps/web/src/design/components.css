@@ -238,9 +238,9 @@ button.ln-pack:focus-visible .ln-pack-cta {
   border: 0;
 }
 
-/* Mobile: credit chips show just the number (hide the "credits" word and the
-   "· 1 / scan" suffix) to save horizontal space on small screens. */
+/* Mobile: the nav-header balance chip (AccountChrome) shows just the number,
+   hiding the "credits" word to save space in the cramped top bar. Only the
+   header — the vault/upload credit displays keep their full label. */
 @media (max-width: 760px) {
   .credit-word { display: none; }
-  .vlt-credit .x { display: none; }
 }

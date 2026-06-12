@@ -66,8 +66,7 @@ export function Upload() {
             ) : (
               <span className="status-chip credits">
                 <Icon.credit />
-                <b>{credits}</b>
-                <span className="credit-word">&nbsp;credits</span>
+                <b>{credits}</b>&nbsp;credits
               </span>
             )}
           </div>
