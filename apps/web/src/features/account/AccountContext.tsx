@@ -235,14 +235,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   const refundScan = useCallback<AccountContextValue['refundScan']>(async () => {
     if (!signedIn) {
-      clearFreeScanUsed();
-      setFreeScanAvailable(true);
+      // Only restore the free scan if it was actually spent — keeps refundScan
+      // idempotent so a spurious call can't grant a scan that was never charged.
+      if (!freeScanAvailable) {
+        clearFreeScanUsed();
+        setFreeScanAvailable(true);
+      }
       return;
     }
-    if (!userId) return;
+    if (!userId) return; // narrows userId to string for refundCredit (signedIn = !!userId)
     const next = await refundCredit(userId);
     setCredits(next);
-  }, [signedIn, userId]);
+  }, [signedIn, freeScanAvailable, userId]);
 
   const startCheckout = useCallback(
     (packId?: string) => {
