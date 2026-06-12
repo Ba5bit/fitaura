@@ -94,7 +94,7 @@ function Hero() {
             UPLOAD YOUR FACE AND OUTFIT. GET YOUR FULL <span className="hl">VERDICT.</span>
           </h1>
           <p className="ln-hero-sub">
-            Two photos in. A Face Card, an Outfit Check and a Dating Receipt out — built to post.
+            Two photos in. A Face Card, an Outfit Check and a Dating Receipt out. All built to post.
           </p>
           <div className="ln-hero-actions">
             <Link className="ln-btn primary lg" to="/vault">
@@ -140,7 +140,7 @@ function Artifacts() {
   const [ref, seen] = useInView<HTMLElement>();
   const arts = [
     { n: '01', name: 'Face Card', desc: "Your selfie, an aura read and one verdict you'll want to repost." },
-    { n: '02', name: 'Outfit Check', desc: 'How the fit actually lands on your build — silhouette, proportions, score.' },
+    { n: '02', name: 'Outfit Check', desc: 'How the fit lands on your build: silhouette, proportions, score.' },
     { n: '03', name: 'Dating Receipt', desc: 'The final cheque. One verdict: green flag, normie, or red flag.' },
   ];
   return (
@@ -194,7 +194,7 @@ function Artifacts() {
 function How() {
   const steps = [
     { n: 'STEP 01', ic: <Icon.upload />, h: 'Upload two photos', p: "A selfie and a full outfit shot. Crop and reframe until it's right." },
-    { n: 'STEP 02', ic: <Icon.scan />, h: 'Run the scan', p: 'We read your face, aura and fit — then cross-reference the two.' },
+    { n: 'STEP 02', ic: <Icon.scan />, h: 'Run the scan', p: 'We read your face, aura and fit, then score how they play together.' },
     { n: 'STEP 03', ic: <Icon.receipt />, h: 'Get the verdict', p: 'Three finished cards land at once, ready to screenshot and post.' },
   ];
   return (
@@ -256,8 +256,8 @@ function Bundle() {
             <span className="hl">3 CARDS</span>
           </div>
           <p className="one-sub">
-            No piecemeal unlocks, no upsell mid-result. One credit runs the complete face, outfit and
-            dating verdict in a single pass.
+            No piecemeal unlocks, no upsell mid-result. One credit runs the full face, outfit and
+            dating verdict, all at once.
           </p>
           <div className="ln-hero-actions" style={{ marginTop: '26px' }}>
             <Link className="ln-btn primary" to="/vault">
@@ -340,10 +340,10 @@ function Privacy() {
         <div>
           <h3>We don't keep your source photos.</h3>
           <p>
-            Your face and outfit photos are used to build your verdict and are{' '}
-            <b style={{ color: 'var(--ink)' }}>not permanently stored on our servers</b>. Finished
-            cards, receipts and history live on your own device — so the moment you close the tab, the
-            originals are gone from us.
+            We use your face and outfit photos to build your verdict, then drop them. They're{' '}
+            <b style={{ color: 'var(--ink)' }}>never permanently stored on our servers</b>. Your finished
+            cards, receipts and history live on your own device, so once you close the tab we no longer
+            have the originals.
           </p>
           <div className="ln-privacy-points">
             <span className="pp">Source photos not server-stored</span>
