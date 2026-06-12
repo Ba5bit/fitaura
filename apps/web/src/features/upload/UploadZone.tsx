@@ -4,35 +4,25 @@ import { ZOOM_MIN, ZOOM_MAX, clampView, imgStyle, bakeCrop, type View, type Fram
 
 export type ZoneKind = 'face' | 'outfit';
 type Status = 'empty' | 'uploading' | 'ready' | 'error';
-type ErrorType = 'invalid' | 'oversized' | 'toosmall';
+type ErrorType = 'invalid';
 
 const ACCEPT_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 const ACCEPT_LABEL = ['JPG', 'PNG', 'WEBP', 'HEIC'];
-const MAX_BYTES = 20 * 1024 * 1024;
 
 interface CropSpec {
   frame: Frame;
   ratioLabel: string;
   out: { w: number; h: number };
-  minSide?: number;
-  minW?: number;
-  minH?: number;
 }
+// Any image size is accepted — the crop is always re-baked to `out`, so the
+// original dimensions/file size don't affect what gets scanned.
 const CROP: Record<ZoneKind, CropSpec> = {
-  face: { frame: { w: 220, h: 220 }, ratioLabel: '1:1', out: { w: 640, h: 640 }, minSide: 600 },
-  outfit: { frame: { w: 230, h: 306 }, ratioLabel: '3:4', out: { w: 900, h: 1200 }, minW: 600, minH: 800 },
+  face: { frame: { w: 220, h: 220 }, ratioLabel: '1:1', out: { w: 640, h: 640 } },
+  outfit: { frame: { w: 230, h: 306 }, ratioLabel: '3:4', out: { w: 900, h: 1200 } },
 };
 
 const ERR: Record<ErrorType, { title: string; msg: (k: ZoneKind) => string }> = {
   invalid: { title: 'Unsupported file', msg: () => "We can read JPG, PNG, WEBP or HEIC. That file isn't an image we support." },
-  oversized: { title: 'File too large', msg: () => 'That photo is over 20 MB. Export a smaller version and try again.' },
-  toosmall: {
-    title: 'Image too small',
-    msg: (k) =>
-      k === 'face'
-        ? 'Too small to read clearly — use a photo at least 600 px wide.'
-        : 'Too small — use a photo at least 600 × 800 px.',
-  },
 };
 
 /** Clearly-a-placeholder sample generator (not a fake photo). Ported from design. */
@@ -158,11 +148,6 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
       setErrorType('invalid');
       return;
     }
-    if (file.size > MAX_BYTES) {
-      setStatus('error');
-      setErrorType('oversized');
-      return;
-    }
     const url = URL.createObjectURL(file);
     let im: HTMLImageElement;
     try {
@@ -175,14 +160,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
     }
     const w = im.naturalWidth;
     const h = im.naturalHeight;
-    const tooSmall = kind === 'face' ? Math.min(w, h) < (spec.minSide ?? 0) : w < (spec.minW ?? 0) || h < (spec.minH ?? 0);
-    if (tooSmall) {
-      setStatus('error');
-      setErrorType('toosmall');
-      URL.revokeObjectURL(url);
-      return;
-    }
-    objUrlRef.current = url; // passed validation — track for later revocation
+    objUrlRef.current = url; // decoded OK — track for later revocation
     runProgress(() => {
       const v = clampView({ zoom: 1, x: 0, y: 0 }, { w, h }, frame);
       imgElRef.current = im;
@@ -394,7 +372,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
                 </span>
               ))}
               <span className="sep">·</span>
-              <span>up to 20 MB</span>
+              <span>any size</span>
             </div>
             <ul className="zone-tips">
               {(kind === 'face'
