@@ -150,8 +150,8 @@ function CreateTile({ onScan }: { onScan: () => void }) {
 /** Solo Scan mode content — the live MVP mode. */
 export function SoloMode({ mode }: { mode: ScanMode }) {
   const navigate = useNavigate();
-  const { credits, canAffordScan, history, startNewScan, openResult, removeResult, renameResult } = useGeneration();
-  const { signedIn, flash } = useAccount();
+  const { history, startNewScan, openResult, removeResult, renameResult } = useGeneration();
+  const { signedIn, flash, credits, canScan } = useAccount();
   const [filter, setFilter] = useState<'all' | DatingVerdict>('all');
   const [menu, setMenu] = useState<string | null>(null);
 
@@ -247,7 +247,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
         </div>
         <div className="rhs">
           {creditChip}
-          {canAffordScan ? (
+          {canScan ? (
             <button className="vlt-btn primary lg" onClick={onScan}>
               <Icon.scan /> Generate verdict
             </button>
@@ -290,7 +290,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
           </div>
 
           <div className="vlt-grid">
-            <CreateTile onScan={canAffordScan ? onScan : onBuy} />
+            <CreateTile onScan={canScan ? onScan : onBuy} />
             {shown.map((r) => (
               <SoloCard
                 key={r.receipt.generationId}

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CREDIT_PACKS, type CreditPack } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
-import { useGeneration } from '../../state/generation';
 import { useAccount } from './AccountContext';
 import { WebModal, WebDialogBody, WebField } from './WebModal';
 
@@ -312,8 +311,7 @@ export function Processing() {
 
 /* ============================ SUCCESS ============================ */
 export function PaySuccess() {
-  const { pack, closeScene } = useAccount();
-  const { credits } = useGeneration();
+  const { pack, closeScene, credits } = useAccount();
   const navigate = useNavigate();
   const p = packById(pack);
   return (

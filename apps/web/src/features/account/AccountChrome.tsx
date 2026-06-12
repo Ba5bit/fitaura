@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
-import { useGeneration } from '../../state/generation';
 import { useAccount } from './AccountContext';
 import { ProfileMenu } from './ProfileMenu';
 
@@ -12,8 +11,7 @@ import { ProfileMenu } from './ProfileMenu';
  */
 export function AccountEntry() {
   const navigate = useNavigate();
-  const { signedIn, openAuth } = useAccount();
-  const { credits, isFree } = useGeneration();
+  const { signedIn, openAuth, credits, freeScanAvailable } = useAccount();
 
   let chip;
   if (signedIn) {
@@ -25,7 +23,7 @@ export function AccountEntry() {
         <b>{credits}</b> credits
       </button>
     );
-  } else if (isFree) {
+  } else if (freeScanAvailable) {
     chip = (
       <button className="aw-chip free" onClick={() => navigate('/vault')}>
         <span className="gem">

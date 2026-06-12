@@ -31,8 +31,8 @@ function ScrollToTop() {
 
 export function App() {
   return (
-    <GenerationProvider>
-      <AccountProvider>
+    <AccountProvider>
+      <GenerationProvider>
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<Landing />} />
@@ -49,7 +49,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <AccountOverlays />
-      </AccountProvider>
-    </GenerationProvider>
+      </GenerationProvider>
+    </AccountProvider>
   );
 }

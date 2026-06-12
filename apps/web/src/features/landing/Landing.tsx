@@ -9,7 +9,6 @@ import {
 import { FaceCard, OutfitCard, Receipt } from '../../components/cards';
 import { Icon } from '../../lib/icons';
 import { useInView } from '../../lib/useInView';
-import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
 import { AccountEntry } from '../account/AccountChrome';
 import { MOCK_GENERATIONS, DEFAULT_VERDICT } from '../../data/mockGenerations';
@@ -272,8 +271,7 @@ function Bundle() {
 }
 
 function Credits() {
-  const { credits } = useGeneration();
-  const { startCheckout } = useAccount();
+  const { credits, startCheckout } = useAccount();
 
   // Selecting a pack opens the real checkout funnel (account gate → confirm →
   // processing → success grants credits). The funnel is the single monetization

@@ -107,7 +107,7 @@ function Rail({ idx }: { idx: number }) {
 export function Scan() {
   const navigate = useNavigate();
   const { face, outfit, bothPhotosReady, runGeneration } = useGeneration();
-  const { signedIn, openAuth } = useAccount();
+  const { signedIn, openAuth, canScan, spendForScan, openPaywall } = useAccount();
   // Set when a guest hit "reveal" — once they sign in, the effect below finishes
   // the reveal. The verdict is only generated after authentication.
   const [pendingReveal, setPendingReveal] = useState(false);
@@ -156,38 +156,46 @@ export function Scan() {
     return () => clearInterval(id);
   }, [phase]);
 
-  const doReveal = useCallback(() => {
+  const doReveal = useCallback(async () => {
+    // Spend first (guest → consume the free scan; signed-in → spend 1 credit).
+    // If there's nothing to spend, fall back to the paywall instead of revealing.
+    const ok = await spendForScan();
+    if (!ok) {
+      openPaywall();
+      return;
+    }
     const outcome = runGeneration();
     if (outcome.ok) {
       // A freshly completed scan always opens on the first card (01 Face),
       // not whatever tab was last viewed. Reset the persisted/hash tab state.
       localStorage.setItem('fitaura.tab', 'face');
       navigate('/result#face');
-    } else if (outcome.reason === 'no_credits') {
-      navigate('/#credits');
     } else {
       navigate('/scan');
     }
-  }, [runGeneration, navigate]);
+  }, [spendForScan, openPaywall, runGeneration, navigate]);
 
-  // Guests must log in or register before the verdict is revealed. Open the auth
-  // modal (returning here on success) instead of revealing straight away.
+  // Reveal policy: a guest's first scan is free (reveals straight away); once it's
+  // used, a guest is sent to sign-in (returning here on success), and a signed-in
+  // user with no credits hits the paywall.
   const onReveal = useCallback(() => {
-    if (signedIn) {
-      doReveal();
-    } else {
+    if (canScan) {
+      void doReveal();
+    } else if (!signedIn) {
       setPendingReveal(true);
       openAuth('/scan/run');
+    } else {
+      openPaywall();
     }
-  }, [signedIn, doReveal, openAuth]);
+  }, [canScan, signedIn, doReveal, openAuth, openPaywall]);
 
-  // Once a pending guest signs in, finish the reveal (generates + opens result).
+  // Once a pending guest signs in (and now has credits), finish the reveal.
   useEffect(() => {
-    if (pendingReveal && signedIn) {
+    if (pendingReveal && canScan) {
       setPendingReveal(false);
-      doReveal();
+      void doReveal();
     }
-  }, [pendingReveal, signedIn, doReveal]);
+  }, [pendingReveal, canScan, doReveal]);
 
   const micro = stage.micro[microIdx % stage.micro.length];
   const faceSrc = face?.url ?? null;
@@ -263,7 +271,7 @@ export function Scan() {
             </h2>
             <p className="sub">Three cards and one dating receipt — fresh off the press.</p>
             <button className="go" onClick={onReveal}>
-              {signedIn ? 'Reveal my verdict' : 'Log in to reveal your verdict'} <Icon.arrow />
+              {canScan ? 'Reveal my verdict' : 'Log in to reveal your verdict'} <Icon.arrow />
             </button>
           </div>
         )}

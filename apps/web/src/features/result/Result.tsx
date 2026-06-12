@@ -21,6 +21,7 @@ import { receiptDateTime } from '../../lib/format';
 import { renderCardBlob, downloadResult, shareResult } from '../../lib/exportCard';
 import { CARD_GEOM, RECEIPT_PRESETS, type Point } from './stickerGeometry';
 import { useGeneration } from '../../state/generation';
+import { useAccount } from '../account/AccountContext';
 import { ProfileMenu } from '../account/ProfileMenu';
 import { useLocalStorage } from '../../state/useLocalStorage';
 import '../../design/result-shell.css';
@@ -40,7 +41,8 @@ function slugToTab(slug: string): number | null {
 
 export function Result() {
   const navigate = useNavigate();
-  const { result, credits, startNewScan } = useGeneration();
+  const { result, startNewScan } = useGeneration();
+  const { credits } = useAccount();
 
   // No result yet → back to the start.
   useEffect(() => {

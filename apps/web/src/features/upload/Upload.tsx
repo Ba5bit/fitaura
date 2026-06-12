@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { useGeneration } from '../../state/generation';
+import { useAccount } from '../account/AccountContext';
 import { useMediaQuery } from '../../lib/useMediaQuery';
 import { UploadZone } from './UploadZone';
 import '../../design/upload.css';
@@ -13,7 +14,8 @@ import '../../design/upload.css';
  */
 export function Upload() {
   const navigate = useNavigate();
-  const { face, outfit, setFace, setOutfit, isFree, credits, canAffordScan } = useGeneration();
+  const { face, outfit, setFace, setOutfit } = useGeneration();
+  const { freeScanAvailable, credits, canScan } = useAccount();
   const mobile = useMediaQuery('(max-width: 760px)');
   const [attempted, setAttempted] = useState(false);
 
@@ -56,7 +58,7 @@ export function Upload() {
                 <Icon.back style={{ width: 16, height: 16 }} /> Vault
               </Link>
             </div>
-            {isFree ? (
+            {freeScanAvailable ? (
               <span className="status-chip free">
                 <span className="d" />
                 First scan free
@@ -115,9 +117,9 @@ export function Upload() {
             )}
 
             <div className="cta-block">
-              {canAffordScan ? (
+              {canScan ? (
                 <button className={'cta ' + (bothReady ? 'go' : 'disabled')} onClick={onGenerate}>
-                  <Icon.bolt /> {isFree ? 'Scan my aura — free' : 'Scan my aura'}
+                  <Icon.bolt /> {freeScanAvailable ? 'Scan my aura — free' : 'Scan my aura'}
                 </button>
               ) : (
                 // Out of free scans + no credits — make the action explicit instead
@@ -127,11 +129,11 @@ export function Upload() {
                 </button>
               )}
               <div className="cta-meta">
-                {isFree ? (
+                {freeScanAvailable ? (
                   <span className="free">
                     <Icon.spark /> First generation is on us
                   </span>
-                ) : canAffordScan ? (
+                ) : canScan ? (
                   <span className="cost">
                     <Icon.credit /> Costs 1 credit · {Math.max(0, credits - 1)} left after
                   </span>
@@ -142,10 +144,10 @@ export function Upload() {
                 )}
                 <span>~20 sec</span>
               </div>
-              {canAffordScan && !bothReady && !attempted && (
+              {canScan && !bothReady && !attempted && (
                 <div className="cta-hint">Add both photos to unlock your scan.</div>
               )}
-              {!canAffordScan && (
+              {!canScan && (
                 <div className="cta-hint block">
                   You've used your free verdict. <Link to="/#credits">Grab a credit pack</Link> to keep scanning.
                 </div>

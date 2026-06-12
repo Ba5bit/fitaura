@@ -1,6 +1,5 @@
 import { CREDIT_PACKS } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
-import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
 import { VaultNav } from './VaultNav';
 import { SubHead } from './SubHead';
@@ -16,8 +15,7 @@ const UNLOCKS = [
 
 /** Pricing & credits — credit-pack selector wired to the real checkout flow. */
 export function Pricing() {
-  const { credits } = useGeneration();
-  const { pack, setPack, startCheckout, flash } = useAccount();
+  const { credits, pack, setPack, startCheckout, flash } = useAccount();
   const zero = credits === 0;
   const selected = CREDIT_PACKS.find((p) => p.id === pack) ?? CREDIT_PACKS[0];
 
