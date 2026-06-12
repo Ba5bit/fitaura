@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useMemo, useRef, type ReactNode
 import {
   type FullGenerationResult,
 } from '@fitaura/shared';
-import { runSoloScan } from '../services/soloScanService';
+import { runSoloScan, type SoloScanOutcome } from '../services/soloScanService';
 import { useLocalStorage } from './useLocalStorage';
 
 /** A baked, cropped photo ready to drop into a card (data URL, on-device). */
@@ -35,11 +35,8 @@ const INITIAL: PersistedState = {
   history: [],
 };
 
-export interface RetakeInfo {
-  faceUsable: boolean;
-  outfitUsable: boolean;
-  instruction: string;
-}
+/** The retake fields, derived from the service outcome so the two can't drift. */
+export type RetakeInfo = Omit<Extract<SoloScanOutcome, { kind: 'retake' }>, 'kind'>;
 
 type RunOutcome =
   | { ok: true; result: GenerationResult }
@@ -82,9 +79,9 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     history: rawState.history ?? [],
   };
 
-  // Mirror of the latest state so runGeneration can decide its outcome purely,
-  // without relying on side-effects inside a setState updater (which React
-  // StrictMode intentionally double-invokes).
+  // Mirror of the latest state so runGeneration can read current state without a
+  // stale closure. IMPORTANT: after any await, merge via a functional setState
+  // updater (read `prev`) — state may have changed while the scan was in flight.
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -113,6 +110,8 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
 
     const now = new Date().toISOString();
     const base = outcome.result;
+    // Use the photos that were actually scanned (captured before the await) for the
+    // card images — not whatever may have been swapped in while the scan was running.
     const result: GenerationResult = {
       ...base,
       producedAt: now,
@@ -121,13 +120,16 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
       receipt: { ...base.receipt, generatedAt: now },
     };
 
-    const history = [result, ...s.history.filter((h) => h.receipt.generationId !== result.receipt.generationId)].slice(
-      0,
-      HISTORY_CAP,
-    );
-    const next: PersistedState = { ...s, result, history };
-    stateRef.current = next;
-    setState(next);
+    // Merge into whatever state is current AFTER the await (functional updater) so a
+    // face/outfit/history change made during the scan isn't clobbered by a stale snapshot.
+    setState((prev) => ({
+      ...prev,
+      result,
+      history: [result, ...prev.history.filter((h) => h.receipt.generationId !== result.receipt.generationId)].slice(
+        0,
+        HISTORY_CAP,
+      ),
+    }));
     return { ok: true, result };
   }, [setState]);
 
