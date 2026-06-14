@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { CREDIT_PACKS, VERDICT_COLOR_VAR } from '@fitaura/shared';
 import { FaceCard, OutfitCard, Receipt } from '../../components/cards';
@@ -20,19 +20,9 @@ const HERO = MOCK_GENERATIONS[DEFAULT_VERDICT];
  */
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
-  // Auto-hide: slide the nav up when scrolling down, reveal it when scrolling up.
-  const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const lastY = useRef(0);
   useEffect(() => {
-    const h = () => {
-      const y = window.scrollY;
-      setScrolled(y > 20);
-      if (y < 80) setHidden(false);
-      else if (y > lastY.current + 5) setHidden(true);
-      else if (y < lastY.current - 5) setHidden(false);
-      lastY.current = y;
-    };
+    const h = () => setScrolled(window.scrollY > 20);
     h();
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
@@ -47,7 +37,7 @@ function Nav() {
     return () => window.removeEventListener('keydown', onKey);
   }, [menuOpen]);
   return (
-    <nav className={'ln-nav v2' + (scrolled ? ' scrolled' : '') + (hidden && !menuOpen ? ' hidden' : '')}>
+    <nav className={'ln-nav v2' + (scrolled ? ' scrolled' : '')}>
       <a className="ln-brand" href="#top" aria-label="FITAURA — home">
         <span className="dot" />
         <span className="wm">FITAURA</span>
@@ -592,6 +582,21 @@ function MobileBar() {
 }
 
 export function Landing() {
+  // Smooth-scroll the in-page anchor jumps (section rail, hero, footer) instead
+  // of teleporting. Scoped to the landing via the <html> scroll-behavior while
+  // this page is mounted; skipped when the user prefers reduced motion.
+  useEffect(() => {
+    const prefersReduced =
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+      document.documentElement.dataset.reduceMotion === 'true';
+    if (prefersReduced) return;
+    const root = document.documentElement;
+    root.style.scrollBehavior = 'smooth';
+    return () => {
+      root.style.scrollBehavior = '';
+    };
+  }, []);
+
   return (
     <div className="ln">
       <Nav />

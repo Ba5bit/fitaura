@@ -24,7 +24,9 @@ import './design/vault.css';
 function ScrollToTop() {
   const { pathname } = useLocation();
   useLayoutEffect(() => {
-    window.scrollTo(0, 0);
+    // `instant` so a route change never animates, even when a page (the Landing)
+    // sets `scroll-behavior: smooth` on <html> for its in-page anchor jumps.
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
   }, [pathname]);
   return null;
 }
