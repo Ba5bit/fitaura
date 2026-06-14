@@ -42,20 +42,8 @@ export function Upload() {
                 <span className="dot" />
                 <span className="wm">Fitaura</span>
               </Link>
-              <Link
-                to="/vault"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 7,
-                  fontFamily: '"Hanken Grotesk"',
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: 'var(--ink-dim)',
-                  textDecoration: 'none',
-                }}
-              >
-                <Icon.back style={{ width: 16, height: 16 }} /> Vault
+              <Link to="/vault" className="vlt-back" style={{ textDecoration: 'none' }}>
+                <Icon.back /> Vault
               </Link>
             </div>
             {freeScanAvailable ? (
