@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { CREDIT_PACKS, type CreditPack } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
 import { useAccount } from './AccountContext';
@@ -11,6 +11,7 @@ const packById = (id: string): CreditPack => CREDIT_PACKS.find((p) => p.id === i
 export function AuthGate() {
   const { closeScene, signUp, logIn, authStatus, authError } = useAccount();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [mode, setMode] = useState<'signup' | 'login'>('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -126,7 +127,7 @@ export function AuthGate() {
                 className="lk"
                 onClick={() => {
                   closeScene();
-                  navigate('/settings');
+                  navigate('/settings', { state: { from: pathname } });
                 }}
               >
                 How your data is stored
