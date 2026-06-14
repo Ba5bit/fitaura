@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 
 import './design/fitaura.css';
 import './design/components.css';
@@ -15,6 +16,7 @@ createRoot(rootEl).render(
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ErrorBoundary>
         <App />
+        <Analytics />
       </ErrorBoundary>
     </BrowserRouter>
   </StrictMode>,
