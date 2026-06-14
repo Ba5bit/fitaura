@@ -180,6 +180,8 @@
 .aw-auth-right { padding: 36px 36px 34px; }
 
 .aw-seg { display: flex; gap: 6px; padding: 5px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--hair-soft); margin-top: 4px; }
+/* Keep the segmented tabs clear of the top-right close button in the two-column auth modal. */
+.aw-auth .aw-seg { margin-right: 46px; }
 .aw-seg button { flex: 1; font-family: "Hanken Grotesk"; font-weight: 700; font-size: 13.5px; padding: 10px; border-radius: 8px; border: 0; background: none; color: var(--ink-dim); cursor: pointer; transition: .16s; }
 .aw-seg button[aria-selected="true"] { background: var(--panel-2); color: var(--ink); box-shadow: 0 2px 8px -4px #000; }
 .aw-oauth { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
@@ -220,4 +222,6 @@
 @media (max-width: 880px) {
   .aw-checkout, .aw-auth { grid-template-columns: 1fr; }
   .aw-checkout-left, .aw-auth-left { border-right: 0; border-bottom: 1px solid var(--hair-soft); border-radius: 20px 20px 0 0; }
+  /* Stacked layout: the close button sits over the left panel, so the tabs can span full width again. */
+  .aw-auth .aw-seg { margin-right: 0; }
 }
