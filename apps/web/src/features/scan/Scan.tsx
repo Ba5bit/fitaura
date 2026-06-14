@@ -294,8 +294,7 @@ export function Scan() {
                 ? 'Reading the room…'
                 : canScan
                   ? 'Reveal my verdict'
-                  : 'Log in to reveal your verdict'}{' '}
-              {!revealing && <Icon.arrow />}
+                  : 'Log in to reveal your verdict'}
             </button>
             {scanError && (
               <div className="crop-note warn" style={{ marginTop: 16, maxWidth: 420 }}>

@@ -75,7 +75,7 @@ function Nav() {
             Credits
           </a>
           <Link className="ln-btn primary block" to="/vault" onClick={() => setMenuOpen(false)}>
-            Open the Vault <Icon.arrow />
+            Open the Vault
           </Link>
         </div>
       )}
@@ -98,7 +98,7 @@ function Hero() {
           </p>
           <div className="ln-hero-actions">
             <Link className="ln-btn primary lg" to="/vault">
-              Scan me — it's free <Icon.arrow />
+              Scan me — it's free
             </Link>
             <a className="ln-btn lg ghost" href="#modes">
               Explore the modes
@@ -261,7 +261,7 @@ function Bundle() {
           </p>
           <div className="ln-hero-actions" style={{ marginTop: '26px' }}>
             <Link className="ln-btn primary" to="/vault">
-              Run your first scan free <Icon.arrow />
+              Run your first scan free
             </Link>
           </div>
         </div>
@@ -312,7 +312,7 @@ function Credits() {
                 <span>credits</span>
               </div>
               <div className="price">{p.price}</div>
-              <span className="ln-pack-cta">Get {p.credits} credits →</span>
+              <span className="ln-pack-cta">Get {p.credits} credits</span>
             </button>
           ))}
         </div>
@@ -447,7 +447,7 @@ function Modes() {
                     </button>
                   ) : (
                     <Link className="lm-cta" to="/vault">
-                      Start a Solo Scan <Icon.arrow />
+                      Start a Solo Scan
                     </Link>
                   )}
                 </div>
@@ -517,7 +517,7 @@ function FinalCTA() {
       </p>
       <div className="ln-hero-actions">
         <Link className="ln-btn primary lg" to="/vault">
-          Get your verdict <Icon.arrow />
+          Get your verdict
         </Link>
       </div>
     </section>
@@ -575,7 +575,7 @@ function MobileBar() {
         <div className="l2">First scan free · 1 credit = 3 cards</div>
       </div>
       <Link className="ln-btn primary" to="/vault">
-        Scan me <Icon.arrow />
+        Scan me
       </Link>
     </div>
   );

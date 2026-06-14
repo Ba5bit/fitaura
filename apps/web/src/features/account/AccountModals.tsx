@@ -116,7 +116,7 @@ export function AuthGate() {
             onClick={submit}
             disabled={pending}
           >
-            {pending ? 'Working…' : isSignup ? 'Create account' : 'Log in'} <Icon.arrow />
+            {pending ? 'Working…' : isSignup ? 'Create account' : 'Log in'}
           </button>
           <div className="aw-finehelp">
             <Icon.shield />
