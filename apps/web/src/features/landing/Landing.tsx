@@ -12,13 +12,12 @@ import '../../design/landing.css';
 
 const HERO = MOCK_GENERATIONS[DEFAULT_VERDICT];
 
-const NAV_LINKS = [
-  { href: '#how', label: 'How it works' },
-  { href: '#outputs', label: 'The verdict' },
-  { href: '#examples', label: 'Examples' },
-  { href: '#credits', label: 'Credits' },
-];
-
+/**
+ * v2 header — mirrors the Vault's own nav (brand · Home / Vault pills · profile)
+ * so the public landing and the authenticated product read as one surface. The
+ * Vault pill is shown active; the old text links + "Get your verdict" button are
+ * gone (the Vault pill and the AccountEntry chip carry the primary action).
+ */
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -38,23 +37,23 @@ function Nav() {
     return () => window.removeEventListener('keydown', onKey);
   }, [menuOpen]);
   return (
-    <nav className={'ln-nav' + (scrolled ? ' scrolled' : '')}>
-      <div className="ln-brand">
+    <nav className={'ln-nav v2' + (scrolled ? ' scrolled' : '')}>
+      <a className="ln-brand" href="#top" aria-label="FITAURA — home">
         <span className="dot" />
         <span className="wm">FITAURA</span>
-      </div>
-      <div className="ln-nav-links">
-        {NAV_LINKS.map((l) => (
-          <a key={l.href} href={l.href}>
-            {l.label}
-          </a>
-        ))}
+      </a>
+      <div className="ln-navmid">
+        <a className="ln-navlink" href="#top">
+          <Icon.home />
+          <span>Home</span>
+        </a>
+        <Link className="ln-navlink vault" to="/vault" aria-current="page">
+          <Icon.grid />
+          <span>Vault</span>
+        </Link>
       </div>
       <div className="ln-nav-cta">
         <AccountEntry />
-        <Link className="ln-btn primary" to="/vault">
-          Get your verdict
-        </Link>
         <button
           className="ln-burger"
           aria-label="Menu"
@@ -66,13 +65,17 @@ function Nav() {
       </div>
       {menuOpen && (
         <div className="ln-mobilemenu">
-          {NAV_LINKS.map((l) => (
-            <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)}>
-              {l.label}
-            </a>
-          ))}
+          <a href="#top" onClick={() => setMenuOpen(false)}>
+            Home
+          </a>
+          <a href="#modes" onClick={() => setMenuOpen(false)}>
+            Scan modes
+          </a>
+          <a href="#credits" onClick={() => setMenuOpen(false)}>
+            Credits
+          </a>
           <Link className="ln-btn primary block" to="/vault" onClick={() => setMenuOpen(false)}>
-            Get your verdict
+            Open the Vault <Icon.arrow />
           </Link>
         </div>
       )}

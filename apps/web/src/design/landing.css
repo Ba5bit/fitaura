@@ -86,6 +86,18 @@ body { overflow-y: auto; }
 }
 .ln-nav-links a:hover { color: var(--ink); }
 .ln-nav-cta { display: flex; align-items: center; gap: 12px; }
+/* v2 header pills (mirror the Vault's Home / Vault nav) */
+.ln-brand { text-decoration: none; color: inherit; }
+.ln-navmid { display: flex; align-items: center; gap: 8px; }
+.ln-navlink { display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
+  font-family: "Hanken Grotesk"; font-weight: 600; font-size: 14px; color: var(--ink-dim);
+  padding: 9px 16px; border-radius: 999px; border: 1px solid transparent; transition: .18s; }
+.ln-navlink svg { width: 16px; height: 16px; }
+.ln-navlink:hover { color: var(--ink); background: color-mix(in oklab, var(--ink) 6%, transparent); }
+.ln-navlink.vault { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 18%, transparent), 0 0 22px -10px var(--accent); }
+.ln-navlink.vault:hover { background: color-mix(in oklab, var(--accent) 18%, transparent); }
 
 /* ============================ HERO ============================ */
 .ln-hero { position: relative; padding: clamp(40px, 7vw, 86px) 0 clamp(60px, 8vw, 110px); }
@@ -379,7 +391,7 @@ body { overflow-y: auto; }
 @media (max-width: 760px) {
   .ln-wrap { padding: 0 20px; }
   .ln-nav { padding: 14px 20px; }
-  .ln-nav-links { display: none; }
+  .ln-nav-links, .ln-navmid { display: none; }
   .ln-nav-cta .ln-btn { display: none; }
   .ln-burger { display: grid; }
   .ln-steps { grid-template-columns: 1fr; gap: 14px; }
