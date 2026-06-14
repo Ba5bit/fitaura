@@ -85,7 +85,6 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
   const [errorType, setErrorType] = useState<ErrorType | null>(null);
   const [src, setSrc] = useState<{ url: string; w: number; h: number; name: string } | null>(null);
   const [view, setView] = useState<View>({ zoom: 1, x: 0, y: 0 });
-  const [editing, setEditing] = useState(true);
   const [progress, setProgress] = useState(0);
   const [over, setOver] = useState(false);
 
@@ -94,7 +93,6 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
   const cropRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef(view);
   viewRef.current = view;
-  const savedView = useRef<View | null>(null);
   const fileInfo = useRef('');
   const cancelTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   // The current blob: object URL, so we can revoke it on replace/remove/unmount.
@@ -109,6 +107,17 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
   useEffect(() => {
     onReadyChange?.(status === 'ready');
   }, [status, onReadyChange]);
+
+  // Live crop: re-bake the committed image whenever the framing settles, so
+  // drag/zoom tweaks apply automatically — no "Looks good" confirm step. Debounced
+  // so a drag/pinch bakes once on release, not every frame.
+  useEffect(() => {
+    if (status !== 'ready' || !imgElRef.current) return;
+    const im = imgElRef.current;
+    const id = setTimeout(() => bakeAndConfirm(im, view), 200);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, status]);
 
   // Revoke any outstanding object URL when the zone unmounts.
   useEffect(() => () => revokeObjUrl(), []);
@@ -125,7 +134,6 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
     setSrc(null);
     imgElRef.current = null;
     setView({ zoom: 1, x: 0, y: 0 });
-    savedView.current = null;
     setProgress(0);
     onConfirm(null);
   }
@@ -167,10 +175,8 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
       setSrc({ url, w, h, name: fileInfo.current });
       setView(v);
       setStatus('ready');
-      setEditing(true);
-      // Register the photo immediately at its default crop — the scan is
-      // unlocked as soon as both photos are in. "Looks good" / Adjust then just
-      // refine the framing; they are not a hard gate.
+      // Register the photo immediately at its default crop — the scan is unlocked
+      // as soon as both photos are in. Drag/zoom tweaks then re-bake live.
       bakeAndConfirm(im, v);
     });
   }
@@ -208,7 +214,6 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
       setSrc({ ...s, name: fileInfo.current });
       setView(v);
       setStatus('ready');
-      setEditing(true);
       bakeAndConfirm(im, v);
     });
   }
@@ -251,7 +256,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
   const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => Math.hypot(a.x - b.x, a.y - b.y);
 
   function onPointerDown(e: PointerEvent) {
-    if (status !== 'ready' || !editing) return;
+    if (status !== 'ready') return;
     cropRef.current?.setPointerCapture(e.pointerId);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.current.size === 2) {
@@ -287,19 +292,6 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
   }
   function resetCrop() {
     if (src) setView(clampView({ zoom: 1, x: 0, y: 0 }, src, frame));
-  }
-  function confirmCrop() {
-    if (!imgElRef.current) return;
-    savedView.current = { ...view };
-    setEditing(false);
-    // Commit the adjusted framing.
-    bakeAndConfirm(imgElRef.current, view);
-  }
-  function adjustCrop() {
-    if (savedView.current) setView(savedView.current);
-    setEditing(true);
-    // Keep the photo registered while re-framing — reopening to adjust must
-    // not disable the scan. The committed crop only changes on "Looks good".
   }
 
   const label = kind === 'face' ? 'Face photo' : 'Outfit photo';
@@ -428,99 +420,68 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
 
       {status === 'ready' && src && (
         <div className="crop-wrap">
-          {editing ? (
-            <>
-              <div className="crop-stageline">
-                {kind === 'face' ? 'Center your face in the ring' : 'Fit your whole outfit in the frame'}
-              </div>
-              <div
-                ref={cropRef}
-                className={'crop ' + kind}
-                data-panning={pointers.current.size > 0}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
-              >
-                <img src={src.url} alt="" draggable={false} style={imgStyle(view, src, frame)} />
-                <div className="guide">
-                  <span className="label">{kind === 'face' ? 'Keep eyes inside' : 'Keep head & shoes inside'}</span>
-                </div>
-                <div className="grip">
-                  <span className="pill">
-                    {mobile ? <Icon.pinch /> : <Icon.move />}
-                    {mobile ? 'Pinch · drag' : 'Drag to reposition'}
-                  </span>
-                </div>
-              </div>
+          <div className="crop-stageline">
+            {kind === 'face' ? 'Center your face in the ring' : 'Fit your whole outfit in the frame'}
+          </div>
+          <div
+            ref={cropRef}
+            className={'crop ' + kind}
+            data-panning={pointers.current.size > 0}
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+          >
+            <img src={src.url} alt="" draggable={false} style={imgStyle(view, src, frame)} />
+            <div className="guide">
+              <span className="label">{kind === 'face' ? 'Keep eyes inside' : 'Keep head & shoes inside'}</span>
+            </div>
+            <div className="grip">
+              <span className="pill">
+                {mobile ? <Icon.pinch /> : <Icon.move />}
+                {mobile ? 'Pinch · drag' : 'Drag to reposition'}
+              </span>
+            </div>
+          </div>
 
-              <div className="zoom-row">
-                <button className="zbtn" onClick={() => nudgeZoom(-0.2)} aria-label="Zoom out">
-                  <Icon.minus />
-                </button>
-                <input
-                  type="range"
-                  min={ZOOM_MIN}
-                  max={ZOOM_MAX}
-                  step="0.01"
-                  value={view.zoom}
-                  style={{ ['--p']: `${((view.zoom - ZOOM_MIN) / (ZOOM_MAX - ZOOM_MIN)) * 100}%` } as CSSProperties}
-                  onChange={(e) => setZoom(parseFloat(e.target.value))}
-                />
-                <button className="zbtn" onClick={() => nudgeZoom(0.2)} aria-label="Zoom in">
-                  <Icon.plus />
-                </button>
-              </div>
+          <div className="zoom-row">
+            <button className="zbtn" onClick={() => nudgeZoom(-0.2)} aria-label="Zoom out">
+              <Icon.minus />
+            </button>
+            <input
+              type="range"
+              min={ZOOM_MIN}
+              max={ZOOM_MAX}
+              step="0.01"
+              value={view.zoom}
+              style={{ ['--p']: `${((view.zoom - ZOOM_MIN) / (ZOOM_MAX - ZOOM_MIN)) * 100}%` } as CSSProperties}
+              onChange={(e) => setZoom(parseFloat(e.target.value))}
+            />
+            <button className="zbtn" onClick={() => nudgeZoom(0.2)} aria-label="Zoom in">
+              <Icon.plus />
+            </button>
+          </div>
 
-              <div className="crop-note">
-                <Icon.info />
-                <span>
-                  {mobile ? 'Pinch to zoom, drag to reposition.' : 'Drag the photo or use zoom.'} The dashed guide is the
-                  safe area.
-                </span>
-              </div>
+          <div className="crop-note">
+            <Icon.info />
+            <span>
+              {mobile ? 'Pinch to zoom, drag to reposition.' : 'Drag the photo or use zoom.'} Your framing applies
+              automatically.
+            </span>
+          </div>
 
-              <div className="crop-ctrls">
-                <button className="cbtn" onClick={resetCrop}>
-                  <Icon.reset /> Reset
-                </button>
-                <button className="cbtn" onClick={() => inputRef.current?.click()}>
-                  <Icon.swap /> Replace
-                </button>
-                <button className="cbtn danger" onClick={reset}>
-                  <Icon.trash /> Remove
-                </button>
-              </div>
-              <button className="cta go" style={{ fontSize: 14, padding: '12px 18px' }} onClick={confirmCrop}>
-                <Icon.check /> Looks good
-              </button>
-              <input ref={inputRef} type="file" accept={ACCEPT_MIME.join(',')} hidden onChange={onPick} />
-            </>
-          ) : (
-            <>
-              <div className="crop-stageline">Saved framing</div>
-              <div className={'crop ' + kind} style={{ cursor: 'default' }}>
-                <img src={src.url} alt="" draggable={false} style={imgStyle(view, src, frame)} />
-                <div className="guide" style={{ opacity: 0.35 }} />
-              </div>
-              <div className="crop-note">
-                <Icon.check />
-                <span>Framing saved. Reopen any time — your crop is kept.</span>
-              </div>
-              <div className="crop-ctrls">
-                <button className="cbtn" onClick={adjustCrop}>
-                  <Icon.move /> Adjust
-                </button>
-                <button className="cbtn" onClick={() => inputRef.current?.click()}>
-                  <Icon.swap /> Replace
-                </button>
-                <button className="cbtn danger" onClick={reset}>
-                  <Icon.trash /> Remove
-                </button>
-              </div>
-              <input ref={inputRef} type="file" accept={ACCEPT_MIME.join(',')} hidden onChange={onPick} />
-            </>
-          )}
+          <div className="crop-ctrls">
+            <button className="cbtn" onClick={resetCrop}>
+              <Icon.reset /> Reset
+            </button>
+            <button className="cbtn" onClick={() => inputRef.current?.click()}>
+              <Icon.swap /> Replace
+            </button>
+            <button className="cbtn danger" onClick={reset}>
+              <Icon.trash /> Remove
+            </button>
+          </div>
+          <input ref={inputRef} type="file" accept={ACCEPT_MIME.join(',')} hidden onChange={onPick} />
         </div>
       )}
     </div>
