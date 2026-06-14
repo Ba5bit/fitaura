@@ -255,7 +255,13 @@ body { overflow-y: auto; }
 .cbtn.danger:hover { border-color: color-mix(in oklab, var(--red) 55%, var(--hair)); color: var(--red); }
 
 /* ============================ FOOTER / REVIEW + CTA ============================ */
-.ua-foot { margin-top: 22px; border-top: 1px solid var(--hair-soft); padding-top: 18px; }
+/* Fixed action bar pinned to the viewport bottom; the CTA stays reachable while
+   the (intentionally tall) cards scroll. .ua-pad reserves room via a measured
+   inline padding-bottom. */
+.ua-foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  border-top: 1px solid var(--hair-soft); background: color-mix(in oklab, var(--bg-0) 86%, transparent); backdrop-filter: blur(14px); }
+.ua-foot-inner { max-width: 880px; margin: 0 auto; padding: 14px 26px calc(16px + env(safe-area-inset-bottom, 0px)); }
+.ua[data-mobile="true"] .ua-foot-inner { padding-left: 16px; padding-right: 16px; }
 .review-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
 .rchip { display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 999px; font-family: "Space Mono", monospace;
   font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--hair); color: var(--ink-faint); background: rgba(255,255,255,0.02); }

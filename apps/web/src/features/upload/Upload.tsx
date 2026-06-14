@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { useGeneration } from '../../state/generation';
@@ -19,6 +19,20 @@ export function Upload() {
   const mobile = useMediaQuery('(max-width: 760px)');
   const [attempted, setAttempted] = useState(false);
 
+  // The action bar is fixed to the viewport bottom (always-reachable CTA while
+  // the tall cards scroll). Measure its height so the scroll content reserves
+  // exactly that much room — the bar grows/shrinks with the validation banner.
+  const footRef = useRef<HTMLDivElement>(null);
+  const [footH, setFootH] = useState(0);
+  useEffect(() => {
+    const el = footRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setFootH(el.offsetHeight));
+    ro.observe(el);
+    setFootH(el.offsetHeight);
+    return () => ro.disconnect();
+  }, []);
+
   const faceReady = !!face;
   const outfitReady = !!outfit;
   const bothReady = faceReady && outfitReady;
@@ -35,7 +49,7 @@ export function Upload() {
   return (
     <div className="ua-page">
       <div className="ua" data-mobile={mobile ? 'true' : 'false'}>
-        <div className="ua-pad">
+        <div className="ua-pad" style={{ paddingBottom: footH ? footH + 16 : undefined }}>
           <div className="ua-head">
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               <Link className="brand" to="/" aria-label="Fitaura home">
@@ -82,7 +96,8 @@ export function Upload() {
             />
           </div>
 
-          <div className="ua-foot">
+          <div className="ua-foot" ref={footRef}>
+            <div className="ua-foot-inner">
             <div className="review-row">
               <span className={'rchip ' + (faceReady ? 'done' : attempted && !faceReady ? 'miss' : '')}>
                 {faceReady ? <Icon.check /> : <Icon.face />} Face {faceReady ? 'ready' : 'needed'}
@@ -144,6 +159,7 @@ export function Upload() {
 
             <div className="ua-trust">
               <Icon.shield /> Photos are processed for your scan only · never permanently stored on our servers
+            </div>
             </div>
           </div>
         </div>

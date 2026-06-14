@@ -90,7 +90,7 @@ function Hero() {
         <div className="ln-hero-copy">
           <span className="ln-eyebrow">SOLO · FRIEND VS FRIEND · GLOW UP</span>
           <h1>
-            EVERY AURA HAS A <span className="hl">VERDICT.</span>
+            EVERY AURA HAS A <span className="hl">VERDICT</span>
           </h1>
           <p className="ln-hero-sub">
             Scan yourself, a friend, or your glow-up. FitAura reads the aura and hands back a verdict
