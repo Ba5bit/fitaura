@@ -60,11 +60,12 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
 .rs-newscan{
   display:inline-flex; align-items:center; gap:8px; cursor:pointer; white-space:nowrap;
   font-family:"Hanken Grotesk"; font-weight:700; font-size:13px;
-  padding:9px 15px; border-radius:11px; color:var(--accent-ink);
-  border:1px solid color-mix(in oklab,var(--accent) 60%,transparent);
-  background:var(--accent); box-shadow:0 8px 26px -12px var(--accent); transition:.2s;
+  padding:9px 15px; border-radius:11px; color:var(--accent);
+  border:1px solid color-mix(in oklab,var(--accent) 65%,transparent);
+  background:color-mix(in oklab,var(--accent) 16%,transparent);
+  box-shadow:0 0 0 1px color-mix(in oklab,var(--accent) 22%,transparent), 0 16px 40px -22px var(--accent); transition:.2s;
 }
-.rs-newscan:hover{ filter:brightness(1.06); transform:translateY(-1px); }
+.rs-newscan:hover{ background:color-mix(in oklab,var(--accent) 22%,transparent); transform:translateY(-1px); }
 .rs-newscan svg{ width:15px;height:15px; }
 
 /* ============================ NAV ============================ */
