@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
+import { CreditChip } from '../account/AccountChrome';
 import { ProfileMenu } from '../account/ProfileMenu';
 
 /**
@@ -29,6 +30,7 @@ export function VaultNav() {
         </button>
       </div>
       <div className="vlt-navright">
+        <CreditChip />
         <ProfileMenu avatarClassName="vlt-avatar" />
       </div>
     </nav>

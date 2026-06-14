@@ -405,10 +405,13 @@
 @media (max-width: 620px) {
   /* Group the icon-only Home/Vault links next to the profile avatar instead of
      stranding them in the centre (the nav is space-between by default). */
-  .vlt-nav { gap: 10px; }
-  .vlt-navmid { margin-left: auto; }
+  /* Tighten the bar so the credit chip + avatar fit alongside Home/Vault. */
+  .vlt-nav { gap: 8px; padding-left: 14px; padding-right: 14px; }
+  .vlt-brand .wm { letter-spacing: 0.2em; font-size: 14px; }
+  .vlt-navmid { margin-left: auto; gap: 4px; }
   .vlt-navmid .vlt-navlink span { display: none; }
   .vlt-navlink { padding: 9px 11px; }
+  .vlt-navright { gap: 8px; }
   .vlt-gen { flex-direction: column; align-items: stretch; }
   .vlt-gen .rhs { align-items: stretch; }
   .vlt-packs { grid-template-columns: 1fr; }
