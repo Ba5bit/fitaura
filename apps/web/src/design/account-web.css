@@ -27,13 +27,13 @@
 .aw-chip.zero .gem { color: var(--ink-faint); }
 
 .aw-avatar {
-  width: 40px; height: 40px; border-radius: 50%; flex: none; cursor: pointer;
-  display: grid; place-items: center; font-family: "Hanken Grotesk"; font-weight: 800; font-size: 15px; color: var(--accent-ink);
+  width: 42px; height: 42px; border-radius: 50%; flex: none; cursor: pointer; padding: 0;
+  display: grid; place-items: center; font-family: "Hanken Grotesk"; font-weight: 800; font-size: 16px; color: var(--accent-ink);
   background: var(--chrome); border: 1px solid rgba(255,255,255,.5); box-shadow: 0 6px 18px -8px #000; transition: .18s;
 }
 .aw-avatar.guest { background: var(--panel-2); color: var(--ink-dim); border-color: var(--hair); }
 .aw-avatar.guest svg { width: 20px; height: 20px; }
-.aw-avatar:hover { transform: translateY(-1px); }
+.aw-avatar:hover, .aw-avatar[aria-expanded="true"] { transform: translateY(-1px); box-shadow: 0 8px 22px -8px #000, 0 0 0 3px color-mix(in oklab, var(--accent) 30%, transparent); }
 
 /* ============================ BUTTONS ============================ */
 .aw-btn {

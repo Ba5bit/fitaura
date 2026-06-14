@@ -71,14 +71,14 @@ body { overflow-y: auto; }
 .ln-nav {
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 40px; gap: 20px;
+  padding: 16px clamp(20px, 4vw, 52px); gap: 24px;
   background: color-mix(in oklab, var(--bg-0) 72%, transparent);
   backdrop-filter: blur(14px); border-bottom: 1px solid transparent; transition: .25s;
 }
 .ln-nav.scrolled { border-bottom-color: var(--hair-soft); background: color-mix(in oklab, var(--bg-0) 88%, transparent); }
 .ln-brand { display: flex; align-items: center; gap: 11px; }
 .ln-brand .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 3px #fff inset; }
-.ln-brand .wm { font-family: "Hanken Grotesk"; font-weight: 800; letter-spacing: 0.42em; font-size: 15px; text-transform: uppercase; padding-left: 2px; }
+.ln-brand .wm { font-family: "Hanken Grotesk"; font-weight: 800; letter-spacing: 0.42em; font-size: 15px; text-transform: uppercase; padding-left: 2px; color: var(--ink); }
 .ln-nav-links { display: flex; align-items: center; gap: 30px; }
 .ln-nav-links a {
   font-family: "Hanken Grotesk"; font-weight: 600; font-size: 14px; color: var(--ink-dim);
@@ -88,15 +88,15 @@ body { overflow-y: auto; }
 .ln-nav-cta { display: flex; align-items: center; gap: 12px; }
 /* v2 header pills (mirror the Vault's Home / Vault nav) */
 .ln-brand { text-decoration: none; color: inherit; }
-.ln-navmid { display: flex; align-items: center; gap: 8px; }
+.ln-navmid { display: flex; align-items: center; gap: 6px; }
 .ln-navlink { display: inline-flex; align-items: center; gap: 8px; text-decoration: none;
-  font-family: "Hanken Grotesk"; font-weight: 600; font-size: 14px; color: var(--ink-dim);
-  padding: 9px 16px; border-radius: 999px; border: 1px solid transparent; transition: .18s; }
-.ln-navlink svg { width: 16px; height: 16px; }
-.ln-navlink:hover { color: var(--ink); background: color-mix(in oklab, var(--ink) 6%, transparent); }
-.ln-navlink.vault { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 45%, transparent);
+  font-family: "Hanken Grotesk"; font-weight: 600; font-size: 13.5px; color: var(--ink-dim);
+  padding: 9px 15px; border-radius: 999px; border: 1px solid transparent; transition: .16s; }
+.ln-navlink svg { width: 15px; height: 15px; }
+.ln-navlink:hover { color: var(--ink); background: var(--panel); }
+.ln-navlink.active { color: var(--accent); border-color: color-mix(in oklab, var(--accent) 45%, transparent);
   background: color-mix(in oklab, var(--accent) 9%, transparent); }
-.ln-navlink.vault:hover { background: color-mix(in oklab, var(--accent) 14%, transparent); }
+.ln-navlink.active:hover { background: color-mix(in oklab, var(--accent) 14%, transparent); }
 
 /* ============================ HERO ============================ */
 .ln-hero { position: relative; padding: clamp(40px, 7vw, 86px) 0 clamp(60px, 8vw, 110px); }

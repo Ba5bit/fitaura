@@ -43,11 +43,11 @@ function Nav() {
         <span className="wm">FITAURA</span>
       </a>
       <div className="ln-navmid">
-        <a className="ln-navlink" href="#top">
+        <a className="ln-navlink active" href="#top" aria-current="page">
           <Icon.home />
           <span>Home</span>
         </a>
-        <Link className="ln-navlink vault" to="/vault" aria-current="page">
+        <Link className="ln-navlink" to="/vault">
           <Icon.grid />
           <span>Vault</span>
         </Link>
