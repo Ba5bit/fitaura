@@ -1,16 +1,12 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  CREDIT_PACKS,
-  VERDICT_COLOR_VAR,
-  VERDICT_LABEL,
-  type DatingVerdict,
-} from '@fitaura/shared';
+import { CREDIT_PACKS, VERDICT_COLOR_VAR } from '@fitaura/shared';
 import { FaceCard, OutfitCard, Receipt } from '../../components/cards';
 import { Icon } from '../../lib/icons';
 import { useInView } from '../../lib/useInView';
 import { useAccount } from '../account/AccountContext';
 import { AccountEntry } from '../account/AccountChrome';
+import { SCAN_MODES, type ScanModeId } from '../vault/modes';
 import { MOCK_GENERATIONS, DEFAULT_VERDICT } from '../../data/mockGenerations';
 import '../../design/landing.css';
 
@@ -89,19 +85,20 @@ function Hero() {
     <header className="ln-hero ln-wrap" id="top">
       <div className="ln-hero-grid">
         <div className="ln-hero-copy">
-          <span className="ln-eyebrow">FACE · OUTFIT · DATING RECEIPT</span>
+          <span className="ln-eyebrow">SOLO · FRIEND VS FRIEND · GLOW UP</span>
           <h1>
-            UPLOAD YOUR FACE AND OUTFIT. GET YOUR FULL <span className="hl">VERDICT.</span>
+            EVERY AURA HAS A <span className="hl">VERDICT.</span>
           </h1>
           <p className="ln-hero-sub">
-            Two photos in. A Face Card, an Outfit Check and a Dating Receipt out. All built to post.
+            Scan yourself, a friend, or your glow-up. FitAura reads the aura and hands back a verdict
+            built to post.
           </p>
           <div className="ln-hero-actions">
             <Link className="ln-btn primary lg" to="/vault">
               Scan me — it's free <Icon.arrow />
             </Link>
-            <a className="ln-btn lg ghost" href="#examples">
-              See examples
+            <a className="ln-btn lg ghost" href="#modes">
+              Explore the modes
             </a>
           </div>
           <div className="ln-hero-trust">
@@ -356,40 +353,150 @@ function Privacy() {
   );
 }
 
-function Examples() {
-  const [ref, seen] = useInView<HTMLElement>();
-  const order: { key: DatingVerdict; line: string }[] = [
-    { key: 'green_flag', line: 'When the fit and the face both cooperate.' },
-    { key: 'normie', line: 'Clean, harmless, quietly buffering.' },
-    { key: 'red_flag', line: 'High aura, questionable everything else.' },
-  ];
+/** Lightweight per-mode preview mock shown at the top of each mode card. */
+function ModePreview({ id }: { id: ScanModeId }) {
+  if (id === 'solo') {
+    return (
+      <div className="lm-pv tiles">
+        {['Face', 'Outfit', 'Receipt'].map((t) => (
+          <span className="lm-pv-tile" key={t}>
+            <span className="box" />
+            <span className="lbl">{t}</span>
+          </span>
+        ))}
+      </div>
+    );
+  }
+  if (id === 'friend') {
+    return (
+      <div className="lm-pv vs">
+        <span className="box" />
+        <span className="x">VS</span>
+        <span className="box" />
+      </div>
+    );
+  }
   return (
-    <section className="ln-section alt" id="examples" ref={ref}>
+    <div className="lm-pv ba">
+      <div className="row">
+        <span className="k">Before</span>
+        <span className="bar" style={{ width: '60%' }} />
+      </div>
+      <div className="row">
+        <span className="k">After</span>
+        <span className="bar" style={{ width: '88%' }} />
+      </div>
+    </div>
+  );
+}
+
+function Modes() {
+  return (
+    <section className="ln-section alt" id="modes">
       <div className="ln-wrap">
-        <span className="ln-eyebrow">SAMPLE RECEIPTS</span>
-        <h2 className="ln-h2">
-          Three outcomes. <span className="hl">One of them is you.</span>
-        </h2>
-        <div className="ln-examples-row">
-          {order.map((o) => {
-            const gen = MOCK_GENERATIONS[o.key];
+        <div className="ln-modes-head">
+          <div>
+            <span className="ln-eyebrow">THREE WAYS TO SCAN</span>
+            <h2 className="ln-h2">
+              More ways to test your <span className="hl">aura.</span>
+            </h2>
+          </div>
+          <p className="ln-lead">
+            Solo Scan is live today. Friend vs Friend and Glow Up are next — same Vault, brand-new
+            verdicts. We'll ping you the moment they drop.
+          </p>
+        </div>
+        <div className="ln-modes">
+          {SCAN_MODES.map((m) => {
+            const locked = m.status === 'locked';
+            const ModeIcon = Icon[m.icon];
             return (
-              <div className="ln-example" key={o.key}>
-                <div className="ln-example-stage" style={{ ['--verdict']: VERDICT_COLOR_VAR[o.key] } as CSSProperties}>
-                  <Receipt content={gen.receipt} paper="neon" sealOn={seen || true} />
+              <article className={'ln-mode' + (locked ? ' locked' : '')} key={m.id}>
+                <div className="lm-preview">
+                  <ModePreview id={m.id} />
+                  {locked && (
+                    <span className="lm-lock">
+                      <Icon.lock /> LOCKED
+                    </span>
+                  )}
                 </div>
-                <div className="ln-example-cap">
-                  <div className="vd" style={{ color: VERDICT_COLOR_VAR[o.key] }}>
-                    {VERDICT_LABEL[o.key]}
+                <div className="lm-body">
+                  <div className="lm-row">
+                    <span className="lm-ic">
+                      <ModeIcon />
+                    </span>
+                    <span className={'lm-status ' + (locked ? 'soon' : 'live')}>
+                      {locked ? 'Coming soon' : 'Available now'}
+                    </span>
                   </div>
-                  <div className="ln">{o.line}</div>
+                  <h3 className="lm-name">{m.name}</h3>
+                  <p className="lm-blurb">{m.blurb}</p>
+                  <div className="lm-chips">
+                    {m.outputs.map((o) => (
+                      <span className="lm-chip" key={o}>
+                        {o}
+                      </span>
+                    ))}
+                  </div>
+                  {locked ? (
+                    <button className="lm-cta locked" type="button" disabled>
+                      <Icon.lock /> Coming soon
+                    </button>
+                  ) : (
+                    <Link className="lm-cta" to="/vault">
+                      Start a Solo Scan <Icon.arrow />
+                    </Link>
+                  )}
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
       </div>
     </section>
+  );
+}
+
+/** Section list the rail tracks; ordered by page position. */
+const RAIL = [
+  { id: 'outputs', n: 1, label: 'The verdict' },
+  { id: 'how', n: 2, label: 'How it works' },
+  { id: 'modes', n: 3, label: 'Scan modes' },
+  { id: 'credits', n: 4, label: 'Credits' },
+];
+
+/** Fixed left scroll-spy rail (desktop ≥1320px; hidden below via CSS). */
+function SectionRail() {
+  const [active, setActive] = useState('outputs');
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) if (e.isIntersecting) setActive(e.target.id);
+      },
+      // Thin center band so the active section is the one crossing mid-viewport.
+      { rootMargin: '-45% 0px -45% 0px', threshold: 0 },
+    );
+    const els = RAIL.map((r) => document.getElementById(r.id)).filter(Boolean) as Element[];
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <nav className="ln-rail" aria-label="Section navigation">
+      <ul>
+        {RAIL.map((r) => (
+          <li key={r.id}>
+            <a
+              href={'#' + r.id}
+              className={'ln-rail-dot' + (active === r.id ? ' active' : '')}
+              aria-current={active === r.id ? 'true' : undefined}
+            >
+              <span className="n">{r.n}</span>
+              <span className="lbl">{r.label}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
   );
 }
 
@@ -434,7 +541,7 @@ function Footer() {
               <h4>Product</h4>
               <a href="#how">How it works</a>
               <a href="#outputs">The verdict</a>
-              <a href="#examples">Examples</a>
+              <a href="#modes">Scan modes</a>
               <a href="#credits">Credits</a>
             </div>
             <div className="ln-footer-col">
@@ -475,14 +582,15 @@ export function Landing() {
   return (
     <div className="ln">
       <Nav />
+      <SectionRail />
       <Hero />
       <hr className="ln-hr ln-wrap" />
       <Artifacts />
       <How />
+      <Modes />
       <Bundle />
       <Credits />
       <Privacy />
-      <Examples />
       <FinalCTA />
       <Footer />
       <MobileBar />
