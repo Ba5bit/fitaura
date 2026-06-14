@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { CREDIT_PACKS, VERDICT_COLOR_VAR } from '@fitaura/shared';
 import { FaceCard, OutfitCard, Receipt } from '../../components/cards';
@@ -20,9 +20,19 @@ const HERO = MOCK_GENERATIONS[DEFAULT_VERDICT];
  */
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  // Auto-hide: slide the nav up when scrolling down, reveal it when scrolling up.
+  const [hidden, setHidden] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const lastY = useRef(0);
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 20);
+    const h = () => {
+      const y = window.scrollY;
+      setScrolled(y > 20);
+      if (y < 80) setHidden(false);
+      else if (y > lastY.current + 5) setHidden(true);
+      else if (y < lastY.current - 5) setHidden(false);
+      lastY.current = y;
+    };
     h();
     window.addEventListener('scroll', h, { passive: true });
     return () => window.removeEventListener('scroll', h);
@@ -37,7 +47,7 @@ function Nav() {
     return () => window.removeEventListener('keydown', onKey);
   }, [menuOpen]);
   return (
-    <nav className={'ln-nav v2' + (scrolled ? ' scrolled' : '')}>
+    <nav className={'ln-nav v2' + (scrolled ? ' scrolled' : '') + (hidden && !menuOpen ? ' hidden' : '')}>
       <a className="ln-brand" href="#top" aria-label="FITAURA — home">
         <span className="dot" />
         <span className="wm">FITAURA</span>

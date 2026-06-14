@@ -73,9 +73,19 @@ body { overflow-y: auto; }
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px clamp(20px, 4vw, 52px); gap: 24px;
   background: color-mix(in oklab, var(--bg-0) 72%, transparent);
-  backdrop-filter: blur(14px); border-bottom: 1px solid transparent; transition: .25s;
+  backdrop-filter: blur(14px); border-bottom: 1px solid transparent; will-change: transform;
+  transition: transform .34s cubic-bezier(.22, 1, .36, 1), background .25s, border-color .25s;
 }
 .ln-nav.scrolled { border-bottom-color: var(--hair-soft); background: color-mix(in oklab, var(--bg-0) 88%, transparent); }
+/* Auto-hide on scroll-down; slides back in on scroll-up. */
+.ln-nav.hidden { transform: translateY(-100%); }
+/* Keep the nav put for reduced-motion users (OS setting or in-app toggle). */
+@media (prefers-reduced-motion: reduce) {
+  .ln-nav { transition: background .25s, border-color .25s; }
+  .ln-nav.hidden { transform: none; }
+}
+[data-reduce-motion="true"] .ln-nav { transition: background .25s, border-color .25s; }
+[data-reduce-motion="true"] .ln-nav.hidden { transform: none; }
 .ln-brand { display: flex; align-items: center; gap: 11px; }
 .ln-brand .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 3px #fff inset; }
 .ln-brand .wm { font-family: "Hanken Grotesk"; font-weight: 800; letter-spacing: 0.42em; font-size: 15px; text-transform: uppercase; padding-left: 2px; color: var(--ink); }
