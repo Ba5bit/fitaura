@@ -47,9 +47,9 @@ export function AuthGate() {
         <div className="aw-auth-left">
           <span className="aw-eyebrow accent">ACCOUNT REQUIRED TO CONTINUE</span>
           <h2 className="aw-modal-title" style={{ marginTop: '16px', fontSize: '34px' }}>
-            SAVE YOUR SCANS.
+            SAVE YOUR SCANS
             <br />
-            KEEP GOING.
+            KEEP GOING
           </h2>
           <p className="aw-modal-sub">
             Your first verdict was free and stayed on this device. An account lets you buy credits and run more, on

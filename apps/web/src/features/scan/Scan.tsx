@@ -348,7 +348,7 @@ export function Scan() {
                   ✶ Scan hiccup ✶
                 </span>
                 <h2>
-                  Let's try <span className="hl">again.</span>
+                  Let's try <span className="hl">again</span>
                 </h2>
                 <div className="crop-note warn" style={{ marginTop: 16, maxWidth: 420 }}>
                   <Icon.alert />
@@ -368,7 +368,7 @@ export function Scan() {
               <>
                 <span className="stamp">✶ Verdict printed ✶</span>
                 <h2>
-                  Your verdict is <span className="hl">in.</span>
+                  Your verdict is <span className="hl">in</span>
                 </h2>
                 <p className="sub">
                   {signedIn

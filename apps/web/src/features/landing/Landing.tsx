@@ -152,9 +152,9 @@ function Artifacts() {
         <div>
           <span className="ln-eyebrow">ONE SCAN, THREE ARTIFACTS</span>
           <h2 className="ln-h2">
-            Distinct cards.
+            Distinct cards
             <br />
-            <span className="hl">One verdict.</span>
+            <span className="hl">One verdict</span>
           </h2>
         </div>
         <div className="ln-bundle-note">
@@ -216,7 +216,7 @@ function Analysis() {
         <div>
           <span className="ln-eyebrow">MORE THAN A SCORE</span>
           <h2 className="ln-h2">
-            The full <span className="hl">breakdown.</span>
+            The full <span className="hl">breakdown</span>
           </h2>
         </div>
         <p className="ln-lead">
@@ -291,7 +291,7 @@ function How() {
       <div className="ln-wrap">
         <span className="ln-eyebrow">HOW IT WORKS</span>
         <h2 className="ln-h2">
-          From two photos to <span className="hl">posted</span> in under a minute.
+          From two photos to <span className="hl">posted</span> in under a minute
         </h2>
         <div className="ln-steps">
           {steps.map((s) => (
@@ -323,7 +323,7 @@ function Credits() {
           <div>
             <span className="ln-eyebrow">CREDITS, NOT SUBSCRIPTIONS</span>
             <h2 className="ln-h2">
-              First scan's <span className="hl">on us.</span>
+              First scan's <span className="hl">on us</span>
             </h2>
             <p className="ln-lead">
               Your first verdict is free. After that, top up with credits whenever you want another.
@@ -369,14 +369,14 @@ function Privacy() {
         BUILT TO BE SHARED, NOT STORED
       </span>
       <h2 className="ln-h2" style={{ textAlign: 'center' }}>
-        Your photos stay <span className="hl">yours.</span>
+        Your photos stay <span className="hl">yours</span>
       </h2>
       <div className="ln-privacy-card">
         <div className="ic">
           <Icon.shield />
         </div>
         <div>
-          <h3>We don't keep your source photos.</h3>
+          <h3>We don't keep your source photos</h3>
           <p>
             We use your face and outfit photos to build your verdict, then drop them. They're{' '}
             <b style={{ color: 'var(--ink)' }}>never permanently stored on our servers</b>. Your finished
@@ -447,7 +447,7 @@ function Modes() {
           <div>
             <span className="ln-eyebrow">THREE WAYS TO SCAN</span>
             <h2 className="ln-h2">
-              More ways to test your <span className="hl">aura.</span>
+              More ways to test your <span className="hl">aura</span>
             </h2>
           </div>
           <p className="ln-lead">
@@ -558,7 +558,7 @@ function FinalCTA() {
           YOUR TURN
         </span>
         <h2>
-          UPLOAD. SCAN. <span className="hl">GET POSTED.</span>
+          UPLOAD SCAN <span className="hl">GET POSTED</span>
         </h2>
         <p>
           Two photos, one credit, three cards your group chat won't let go of. First one's free.
