@@ -67,6 +67,14 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
     setHydrated(false);
+    // Reset in-memory state immediately so stateRef is consistent with the
+    // new accountKey during the IndexedDB load window. Without this, any write
+    // that fires before the await resolves would use the new key but the old
+    // account's face/outfit/history, corrupting the wrong namespace.
+    setFaceState(null);
+    setOutfitState(null);
+    setHistory([]);
+    setCurrentId(null);
     void (async () => {
       try {
         await migrateLegacyLocalStorage(Date.now());
@@ -117,7 +125,13 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     const s = stateRef.current;
     if (!s.face || !s.outfit) return { ok: false, reason: 'missing_photos' };
 
-    const outcome = await runSoloScan(s.face.url, s.outfit.url);
+    // Capture the account identity and photos BEFORE the long await so that an
+    // account switch during the scan cannot cause us to persist under the wrong key.
+    const startedKey = s.accountKey;
+    const startedFace = s.face;
+    const startedOutfit = s.outfit;
+
+    const outcome = await runSoloScan(startedFace.url, startedOutfit.url);
     if (outcome.kind === 'retake') {
       return { ok: false, reason: 'retake', retake: { faceUsable: outcome.faceUsable, outfitUsable: outcome.outfitUsable, instruction: outcome.instruction } };
     }
@@ -127,20 +141,25 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
 
     const now = new Date().toISOString();
     const base = outcome.result;
-    // Use the photos actually scanned (captured before the await) for card images.
-    const cur = stateRef.current;
+    // Use the pre-await photos for card imageUrls — never the post-await snapshot.
     const result: GenerationResult = {
       ...base,
       producedAt: now,
-      face: { ...base.face, card: { ...base.face.card, imageUrl: cur.face?.url ?? null } },
-      outfit: { ...base.outfit, card: { ...base.outfit.card, imageUrl: cur.outfit?.url ?? null } },
+      face: { ...base.face, card: { ...base.face.card, imageUrl: startedFace.url } },
+      outfit: { ...base.outfit, card: { ...base.outfit.card, imageUrl: startedOutfit.url } },
       receipt: { ...base.receipt, generatedAt: now },
     };
 
-    await putResult(cur.accountKey, result);
-    void putSession(cur.accountKey, { accountKey: cur.accountKey, face: cur.face, outfit: cur.outfit, currentResultId: result.receipt.generationId });
-    setHistory((prev) => trimToCap([result, ...prev.filter((h) => h.receipt.generationId !== result.receipt.generationId)]));
-    setCurrentId(result.receipt.generationId);
+    await putResult(startedKey, result);
+    void putSession(startedKey, { accountKey: startedKey, face: startedFace, outfit: startedOutfit, currentResultId: result.receipt.generationId });
+
+    // Only update the live React state if the provider is still on the account
+    // that started this generation. If the user switched mid-scan the result is
+    // safely persisted in IndexedDB and will appear on next load of that account.
+    if (stateRef.current.accountKey === startedKey) {
+      setHistory((prev) => trimToCap([result, ...prev.filter((h) => h.receipt.generationId !== result.receipt.generationId)]));
+      setCurrentId(result.receipt.generationId);
+    }
     return { ok: true, result };
   }, []);
 

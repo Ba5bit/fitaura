@@ -162,6 +162,8 @@ export async function putResult(accountKey: string, result: GenerationResult): P
   tx.objectStore(RESULTS).put({ id: resultId(accountKey, result.receipt.generationId), accountKey, result });
   await txDone(tx);
   // Enforce the safety cap (separate tx so the read above has committed).
+  // NOTE: this read-after-write check assumes a single serialized writer (the UI
+  // serializes generations via the UX flow), so it is not concurrency-safe by design.
   const all = await getResults(d, accountKey);
   if (all.length > SAFETY_CAP) {
     const keep = new Set(trimToCap(all).map((r) => r.receipt.generationId));

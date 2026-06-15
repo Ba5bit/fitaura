@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   loadAccount, putResult, deleteResult, renameResultDb, putSession,
   pruneExpired, moveAccountData, migrateLegacyLocalStorage, resetDbForTests,
+  SAFETY_CAP,
   type GenerationResult,
 } from './generationDb';
 
@@ -72,5 +73,25 @@ describe('generationDb (IndexedDB)', () => {
     expect(g.session.face).toEqual({ url: 'f' });
     expect(g.session.currentResultId).toBe('leg');
     expect(localStorage.getItem('fitaura.state')).toBeNull(); // removed
+  });
+
+  it('enforces SAFETY_CAP: inserting more than 100 results keeps only the newest 100', async () => {
+    // Produce 102 results with strictly increasing producedAt, all within 14 days,
+    // so expiry doesn't interfere. Result i is dated NOW - (102 - i) minutes ago,
+    // meaning result 0 is oldest and result 101 is newest.
+    const total = SAFETY_CAP + 2; // 102
+    for (let i = 0; i < total; i++) {
+      const producedAt = new Date(NOW - (total - i) * 60_000).toISOString();
+      await putResult('cap-test', res(`r${i}`, producedAt));
+    }
+    const loaded = await loadAccount('cap-test', NOW);
+    // Only SAFETY_CAP results should survive.
+    expect(loaded.results.length).toBe(SAFETY_CAP);
+    // The two oldest (r0 and r1) must have been dropped.
+    const ids = new Set(loaded.results.map((r) => r.receipt.generationId));
+    expect(ids.has('r0')).toBe(false);
+    expect(ids.has('r1')).toBe(false);
+    // The newest result must still be present.
+    expect(ids.has(`r${total - 1}`)).toBe(true);
   });
 });
