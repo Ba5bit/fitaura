@@ -171,8 +171,9 @@ body { overflow-y: auto; }
    specificity (.rs-analysis) is required because result-shell.css loads last. */
 @media (min-width: 980px) {
   .ln-an-panel.rs-analysis { max-width: none; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-  .ln-an-panel.single { display: block; max-width: 640px; }
 }
+/* Receipt tab: the real receipt card sits in the right column. */
+.ln-an-receipt { align-items: flex-start; }
 
 /* ============================ HOW IT WORKS ============================ */
 .ln-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 56px; }

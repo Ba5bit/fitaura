@@ -239,34 +239,40 @@ function Analysis() {
         ))}
       </div>
       <div
-        className={'ln-an-panel rs-analysis' + (tab === 'receipt' ? ' single' : '')}
+        className="ln-an-panel rs-analysis"
         style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
       >
         {tab === 'face' && <FaceAnalysisBlock face={HERO.face} verdict={DEFAULT_VERDICT} run={seen} />}
         {tab === 'outfit' && <OutfitAnalysisBlock outfit={HERO.outfit} run={seen} />}
         {tab === 'receipt' && (
-          <section className="rs-block hero rs-summary">
-            <div className="rs-eyebrow">FINAL SUMMARY</div>
-            <div className="rs-scorehead">
-              <div>
-                <div className="rs-scorenum">
-                  {HERO.receipt.datingScore}
-                  <span className="u">/10</span>
+          <>
+            <section className="rs-block hero rs-summary">
+              <div className="rs-eyebrow">FINAL SUMMARY</div>
+              <div className="rs-scorehead">
+                <div>
+                  <div className="rs-scorenum">
+                    {HERO.receipt.datingScore}
+                    <span className="u">/10</span>
+                  </div>
+                  <div className="rs-scorelbl">DATING SCORE</div>
                 </div>
-                <div className="rs-scorelbl">DATING SCORE</div>
+                <div className="rs-verdictbadge">
+                  <span className="vstamp">{VERDICT_LABEL[HERO.receipt.datingVerdict]}</span>
+                </div>
               </div>
-              <div className="rs-verdictbadge">
-                <span className="vstamp">{VERDICT_LABEL[HERO.receipt.datingVerdict]}</span>
+              <p className="rs-read">
+                <span className="hl">{HERO.receipt.finalPunchline}.</span> {HERO.receipt.summary}
+              </p>
+              <div className="rs-summary-foot">
+                <Icon.lock width={13} height={13} />
+                Photos never stored on our servers · result lives on this device
               </div>
+            </section>
+            {/* The actual receipt card, filling the right column. */}
+            <div className="ln-art-stage ln-an-receipt">
+              <Receipt content={HERO.receipt} paper="neon" />
             </div>
-            <p className="rs-read">
-              <span className="hl">{HERO.receipt.finalPunchline}.</span> {HERO.receipt.summary}
-            </p>
-            <div className="rs-summary-foot">
-              <Icon.lock width={13} height={13} />
-              Photos never stored on our servers · result lives on this device
-            </div>
-          </section>
+          </>
         )}
       </div>
     </section>

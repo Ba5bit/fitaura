@@ -55,6 +55,14 @@ because `result-shell.css` (which sets `.rs-analysis { display:flex }`) loads
 after `landing.css`. Mobile still stacks (flex column). Verified all three tabs
 at 1320 + 393.
 
+## Addendum 2 — Receipt tab shows the real receipt card
+
+The Receipt tab was a single summary block, so its right half was empty. Added
+the actual `Receipt` card (neon paper, same as the hero/Artifacts) in the right
+column, reusing `.ln-art-stage` for sizing (scale 0.7, top-aligned via
+`.ln-an-receipt`). Dropped the `.single` modifier so the Receipt tab now uses
+the same 2-col grid as Face/Outfit. Stacks below the summary on mobile.
+
 ## Files
 
 - `apps/web/src/features/landing/Landing.tsx`
