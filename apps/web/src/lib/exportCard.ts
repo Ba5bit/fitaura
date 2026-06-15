@@ -30,6 +30,49 @@ export interface ExportResult {
   bytes: number;
 }
 
+/** True on Safari/WebKit (incl. iOS Chrome, which is WebKit under the hood). */
+function isWebKit(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+  // iOS browsers are all WebKit regardless of the brand in the UA.
+  const isIOS = /iP(ad|hone|od)/.test(ua) || (/Mac/.test(ua) && navigator.maxTouchPoints > 1);
+  return isSafari || isIOS;
+}
+
+/**
+ * Force every `<img>` inside `node` to fully DECODE (not merely "load") before
+ * we hand the subtree to html-to-image.
+ *
+ * Why this matters on Safari: html-to-image rasterizes by serializing the DOM
+ * into an `<svg><foreignObject>` and loading that SVG into an `Image`. WebKit
+ * fires the SVG image's `onload` *before* the inner `<img>` elements have been
+ * decoded, so the very first capture(s) come out with blank image slots — the
+ * classic "Face Card exports with an empty circle" symptom. `img.complete` /
+ * `onload` only tells us the bytes arrived, not that the bitmap is paint-ready;
+ * `img.decode()` is the one that actually guarantees a decoded frame. Chromium
+ * already decodes eagerly, so this is a no-op there (and safely ignored if a
+ * decode rejects, e.g. on an already-broken image).
+ */
+async function decodeAllImages(node: HTMLElement): Promise<void> {
+  const imgs = Array.from(node.querySelectorAll('img'));
+  await Promise.all(
+    imgs.map(async (img) => {
+      try {
+        // Wait for the bytes first (decode() throws if the src isn't set yet).
+        if (!img.complete) {
+          await new Promise<void>((res) => {
+            img.onload = img.onerror = () => res();
+          });
+        }
+        if (typeof img.decode === 'function') await img.decode();
+      } catch {
+        /* broken/decadable image — let the capture handle the empty slot */
+      }
+    }),
+  );
+}
+
 async function ensureFonts() {
   try {
     await Promise.all([
@@ -189,20 +232,39 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
   } catch {
     fontEmbedCSS = undefined;
   }
+  // Make sure every embedded photo is fully DECODED before capture — WebKit
+  // otherwise serializes the card before the images are paint-ready and exports
+  // blank image slots (see decodeAllImages). The user photos are same-origin
+  // canvas data: URLs, so there's no CORS taint to worry about here.
+  await decodeAllImages(el);
+
   // Drop backdrop-filters for the snapshot (html-to-image can't render them) and
   // restore the live DOM right after, even if capture throws.
   const restoreGlass = neutralizeGlass(el);
+  const captureOpts = {
+    pixelRatio: 3,
+    width: el.offsetWidth,
+    height: el.offsetHeight,
+    fontEmbedCSS,
+    skipFonts: fontEmbedCSS === undefined,
+    // Force a fresh decode of every resource each pass — without cache-busting,
+    // Safari can re-serve a still-undecoded image from its cache and re-drop it.
+    cacheBust: true,
+    filter: (n: HTMLElement) =>
+      !(n instanceof Element && (n.classList.contains('st-overlay') || n.classList.contains('st-edithint'))),
+  };
   let cardCanvas: HTMLCanvasElement;
   try {
-    cardCanvas = await toCanvas(el, {
-      pixelRatio: 3,
-      width: el.offsetWidth,
-      height: el.offsetHeight,
-      fontEmbedCSS,
-      skipFonts: fontEmbedCSS === undefined,
-      filter: (n) =>
-        !(n instanceof Element && (n.classList.contains('st-overlay') || n.classList.contains('st-edithint'))),
-    });
+    // Safari "warms up" foreignObject-embedded images across repeated
+    // serializations: the first pass (or two) can still render the photo blank
+    // even after decode(), but a subsequent pass reliably includes it. So on
+    // WebKit we capture a few times and keep only the last result. Chromium gets
+    // it right on the first pass, so we don't pay the cost there.
+    const passes = isWebKit() ? 3 : 1;
+    cardCanvas = await toCanvas(el, captureOpts);
+    for (let i = 1; i < passes; i += 1) {
+      cardCanvas = await toCanvas(el, captureOpts);
+    }
   } finally {
     restoreGlass();
   }
