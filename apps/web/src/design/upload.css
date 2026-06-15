@@ -293,6 +293,9 @@ body { overflow-y: auto; }
 .cta-meta svg { width: 13px; height: 13px; flex: none; }
 .cta-hint { font-family: "Hanken Grotesk"; font-size: 12px; color: var(--ink-faint); text-align: center; }
 .cta-hint.block { color: var(--gold); }
+.cta-hint a { color: var(--accent); font-weight: 600; text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent) 45%, transparent); text-underline-offset: 3px; transition: .15s; }
+.cta-hint a:hover { text-decoration-color: var(--accent); }
 
 /* tiny reassurance line */
 .ua-trust { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; font-family: "Space Mono", monospace;
