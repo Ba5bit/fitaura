@@ -93,9 +93,9 @@
 .aw-modal.lg { max-width: 860px; }
 @keyframes awpop { from { transform: translateY(14px) scale(.985); } to { transform: none; } }
 .aw-modal-pad { padding: 34px 36px 32px; }
-.aw-modal-close { position: absolute; top: 16px; right: 16px; z-index: 4; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--hair); background: var(--panel); color: var(--ink-dim); cursor: pointer; transition: .16s; }
+.aw-modal-close { position: absolute; top: 14px; right: 14px; z-index: 4; width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; border: 1px solid var(--hair); background: var(--panel); color: var(--ink-dim); cursor: pointer; transition: .16s; }
 .aw-modal-close:hover { color: var(--ink); border-color: var(--hair); }
-.aw-modal-close svg { width: 16px; height: 16px; }
+.aw-modal-close svg { width: 14px; height: 14px; }
 .aw-modal-title { font-family: "Anton", sans-serif; font-weight: 400; font-size: 30px; line-height: 0.98; text-transform: uppercase; color: #fff; margin: 14px 0 0; letter-spacing: 0.01em; }
 .aw-modal-sub { font-family: "Hanken Grotesk"; font-size: 14.5px; line-height: 1.55; color: var(--ink-dim); margin: 12px 0 0; text-wrap: pretty; }
 
@@ -180,8 +180,6 @@
 .aw-auth-right { padding: 36px 36px 34px; }
 
 .aw-seg { display: flex; gap: 6px; padding: 5px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--hair-soft); margin-top: 4px; }
-/* Keep the segmented tabs clear of the top-right close button in the two-column auth modal. */
-.aw-auth .aw-seg { margin-right: 46px; }
 .aw-seg button { flex: 1; font-family: "Hanken Grotesk"; font-weight: 700; font-size: 13.5px; padding: 10px; border-radius: 8px; border: 0; background: none; color: var(--ink-dim); cursor: pointer; transition: .16s; }
 .aw-seg button[aria-selected="true"] { background: var(--panel-2); color: var(--ink); box-shadow: 0 2px 8px -4px #000; }
 .aw-oauth { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
@@ -222,6 +220,4 @@
 @media (max-width: 880px) {
   .aw-checkout, .aw-auth { grid-template-columns: 1fr; }
   .aw-checkout-left, .aw-auth-left { border-right: 0; border-bottom: 1px solid var(--hair-soft); border-radius: 20px 20px 0 0; }
-  /* Stacked layout: the close button sits over the left panel, so the tabs can span full width again. */
-  .aw-auth .aw-seg { margin-right: 0; }
 }
