@@ -1,12 +1,46 @@
 // packages/shared/src/solo-scan/scoring.ts
 import type { DatingVerdict } from '../verdict.ts';
-import type { SoloScanAIOutput } from './schema.ts';
+import type { SoloScanAIOutput, Presentation, RubricRating } from './schema.ts';
 import { FACE_KEYS, OUTFIT_KEYS } from './schema.ts';
 
 /** Each category rating is already a 0–100 score (rules doc §17, v2). Clamp for safety;
  * null stays null (category not assessable). */
 export function scoreFromRating(rating: number | null): number | null {
   return rating == null ? null : Math.max(0, Math.min(100, rating));
+}
+
+/** Femme score bias: ×(1+FEMME_SCORE_BIAS) when confidently femme. Tunable 0.05–0.10. */
+export const FEMME_SCORE_BIAS = 0.07;
+export const FEMME_CONFIDENCE_MIN = 0.60;
+/** Recognized-icon score bias: ×(1+ICON_SCORE_BIAS) when confidently recognized. */
+export const ICON_SCORE_BIAS = 0.15;
+export const ICON_CONFIDENCE_MIN = 0.60;
+/** Only surface the recognized icon's name in copy at/above this confidence. */
+export const ICON_NAME_CONFIDENCE_MIN = 0.85;
+
+/** Combined multiplicative score bias from gender + icon recognition (rules doc §, v3).
+ * 1.0 when neither gate is met. */
+export function biasFactor(p: Presentation): number {
+  const femme = p.gender === 'femme' && p.genderConfidence >= FEMME_CONFIDENCE_MIN ? 1 + FEMME_SCORE_BIAS : 1;
+  const icon = p.recognizedIcon != null && p.recognizedConfidence >= ICON_CONFIDENCE_MIN ? 1 + ICON_SCORE_BIAS : 1;
+  return femme * icon;
+}
+
+/** Apply a bias factor to a single rating, clamped 0..100. null stays null. */
+export function biasedRating(rating: number | null, factor: number): number | null {
+  return rating == null ? null : Math.max(0, Math.min(100, Math.round(rating * factor)));
+}
+
+/** Return a copy of the AI output with every face/outfit rating biased.
+ * `expressionStrength` and copy are untouched. Returns the input unchanged when factor === 1. */
+export function applyScoreBias(ai: SoloScanAIOutput, factor: number): SoloScanAIOutput {
+  if (factor === 1) return ai;
+  const biasCat = <T extends Record<string, RubricRating>>(o: T): T => {
+    const out = {} as Record<string, RubricRating>;
+    for (const k of Object.keys(o)) out[k] = { ...o[k], rating: biasedRating(o[k].rating, factor) };
+    return out as T;
+  };
+  return { ...ai, faceAnalysis: biasCat(ai.faceAnalysis), outfitAnalysis: biasCat(ai.outfitAnalysis) };
 }
 
 export interface Weighted {
