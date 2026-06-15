@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { CREDIT_PACKS, VERDICT_COLOR_VAR, VERDICT_LABEL } from '@fitaura/shared';
+import { useGeneration } from '../../state/generation';
 import { FaceCard, OutfitCard, Receipt } from '../../components/cards';
 import { FaceAnalysisBlock, OutfitAnalysisBlock } from '../../components/analysis';
 import { Icon } from '../../lib/icons';
@@ -431,6 +432,14 @@ function ModePreview({ id }: { id: ScanModeId }) {
 }
 
 function Modes() {
+  const navigate = useNavigate();
+  const { startNewScan } = useGeneration();
+  // Mirror the Vault's Solo flow: clear any stale photos, then go to the upload
+  // (scan) page directly rather than back through the Vault.
+  const startSolo = () => {
+    startNewScan();
+    navigate('/scan');
+  };
   return (
     <section className="ln-section alt" id="modes">
       <div className="ln-wrap">
@@ -483,9 +492,9 @@ function Modes() {
                       <Icon.lock /> Coming soon
                     </button>
                   ) : (
-                    <Link className="lm-cta" to="/vault">
+                    <button className="lm-cta" type="button" onClick={startSolo}>
                       Start a Solo Scan
-                    </Link>
+                    </button>
                   )}
                 </div>
               </article>
