@@ -1,7 +1,7 @@
 // packages/shared/src/solo-scan/scoring.ts
-import type { DatingVerdict } from '../verdict';
-import type { SoloScanAIOutput } from './schema';
-import { FACE_KEYS, OUTFIT_KEYS } from './schema';
+import type { DatingVerdict } from '../verdict.ts';
+import type { SoloScanAIOutput } from './schema.ts';
+import { FACE_KEYS, OUTFIT_KEYS } from './schema.ts';
 
 /** Each category rating is already a 0–100 score (rules doc §17, v2). Clamp for safety;
  * null stays null (category not assessable). */

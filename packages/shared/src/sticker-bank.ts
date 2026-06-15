@@ -1,4 +1,4 @@
-import type { StickerData, StickerTone } from './result';
+import type { StickerData, StickerTone } from './result.ts';
 
 /** A sticker preset before it is bound to a card (no `hidden`/`id` state). */
 export interface StickerPreset {

@@ -1,4 +1,4 @@
-import type { DatingVerdict } from './verdict';
+import type { DatingVerdict } from './verdict.ts';
 
 /**
  * Fitaura result model.

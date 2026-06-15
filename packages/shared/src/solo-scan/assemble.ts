@@ -1,14 +1,14 @@
 // packages/shared/src/solo-scan/assemble.ts
 import type {
   FullGenerationResult, ScoreItem, FaceTrait, SupportingStat, ReceiptRow,
-} from '../result';
-import { STICKER_BANK, stickerFromPreset } from '../sticker-bank';
-import { VERDICT_LABEL } from '../verdict';
-import type { SoloScanAIOutput, RubricRating } from './schema';
+} from '../result.ts';
+import { STICKER_BANK, stickerFromPreset } from '../sticker-bank.ts';
+import { VERDICT_LABEL } from '../verdict.ts';
+import type { SoloScanAIOutput, RubricRating } from './schema.ts';
 import {
   scoreFromRating, faceScore, outfitScore, auraIndex, displayScore, percent, pickVerdict,
-} from './scoring';
-import { pickFaceArchetype, pickOutfitCaption, pickPunchline, scoreBand } from './content-bank';
+} from './scoring.ts';
+import { pickFaceArchetype, pickOutfitCaption, pickPunchline, scoreBand } from './content-bank.ts';
 
 /** Display value for a rubric category that is null (not assessable). */
 const UNSCORED_DISPLAY = 50;

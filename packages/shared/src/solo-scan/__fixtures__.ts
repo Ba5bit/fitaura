@@ -1,5 +1,5 @@
 // packages/shared/src/solo-scan/__fixtures__.ts
-import type { SoloScanAIOutput } from './schema';
+import type { SoloScanAIOutput } from './schema.ts';
 
 const r = (rating: number | null, confidence = 0.8, evidence = 'Visible in the image.') =>
   ({ rating, confidence, evidence });

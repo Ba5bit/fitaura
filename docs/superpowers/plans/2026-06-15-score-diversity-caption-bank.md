@@ -383,14 +383,14 @@ const PUNCHLINE_BANK: Record<string, PunchlineEntry> = {
   'punchline.certified_lover_boy': { text: 'CERTIFIED LOVER BOY', band: 'high' },
   'punchline.rizz_god': { text: 'RIZZ GOD CONFIRMED', band: 'high' },
   'punchline.aura_farmer': { text: 'CERTIFIED AURA FARMER', band: 'high' },
-  'punchline.clean_npc_potential': { text: 'CLEAN NPC WITH POTENTIAL', band: 'mid' },
+  'punchline.clean_npc_potential': { text: 'NPC WITH POTENTIAL', band: 'mid' },
   'punchline.honorable_mention': { text: 'HONORABLE MENTION', band: 'mid' },
-  'punchline.high_aura_low_stability': { text: 'RED FLAG WITH GOOD ANGLES', band: 'low' },
+  'punchline.high_aura_low_stability': { text: 'RED FLAG ON REMISSION', band: 'low' },
   'punchline.delusional_lover_boy': { text: 'DELUSIONAL LOVER BOY', band: 'low' },
   'punchline.negative_aura': { text: 'NEGATIVE AURA DETECTED', band: 'poor' },
-  'punchline.ai_slop': { text: 'CERTIFIED AI SLOP', band: 'poor' },
+  'punchline.ai_slop': { text: 'DOCUMENTED AI SLOP', band: 'poor' },
   'punchline.aura_debt': { text: 'IN AURA DEBT', band: 'dire' },
-  'punchline.canon_chopped': { text: 'CANON EVENT: CHOPPED', band: 'dire' },
+  'punchline.canon_chopped': { text: 'CANON EVENT', band: 'dire' },
 };
 const PUNCHLINE_BY_BAND = groupByBand(PUNCHLINE_BANK);
 export function pickPunchline(candidates: string[] | undefined, band: ScoreBand, scanId: string): string {

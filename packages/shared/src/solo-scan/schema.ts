@@ -1,6 +1,6 @@
 // packages/shared/src/solo-scan/schema.ts
 import { z } from 'zod';
-import { SOLO_SCAN_SCHEMA_VERSION } from './constants';
+import { SOLO_SCAN_SCHEMA_VERSION } from './constants.ts';
 
 /** One bounded rubric rating (rules doc §5, v2): a 0–100 score, or null when not assessable. */
 export const rubricRatingSchema = z.object({

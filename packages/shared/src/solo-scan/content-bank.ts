@@ -1,5 +1,5 @@
 // packages/shared/src/solo-scan/content-bank.ts
-import { hashSeed } from './scoring';
+import { hashSeed } from './scoring.ts';
 
 /** Six display bands derived from the Aura Index, finer than the 3 dating verdicts. */
 export type ScoreBand = 'elite' | 'high' | 'mid' | 'low' | 'poor' | 'dire';
