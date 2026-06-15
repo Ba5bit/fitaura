@@ -1,7 +1,8 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { CREDIT_PACKS, VERDICT_COLOR_VAR } from '@fitaura/shared';
+import { CREDIT_PACKS, VERDICT_COLOR_VAR, VERDICT_LABEL } from '@fitaura/shared';
 import { FaceCard, OutfitCard, Receipt } from '../../components/cards';
+import { FaceAnalysisBlock, OutfitAnalysisBlock } from '../../components/analysis';
 import { Icon } from '../../lib/icons';
 import { useInView } from '../../lib/useInView';
 import { useAccount } from '../account/AccountContext';
@@ -9,6 +10,7 @@ import { AccountEntry } from '../account/AccountChrome';
 import { SCAN_MODES, type ScanModeId } from '../vault/modes';
 import { MOCK_GENERATIONS, DEFAULT_VERDICT } from '../../data/mockGenerations';
 import '../../design/landing.css';
+import '../../design/result-shell.css';
 
 const HERO = MOCK_GENERATIONS[DEFAULT_VERDICT];
 
@@ -186,6 +188,86 @@ function Artifacts() {
           <div className="ln-art-name">{arts[2].name}</div>
           <p className="ln-art-desc">{arts[2].desc}</p>
         </div>
+      </div>
+    </section>
+  );
+}
+
+const ANALYSIS_TABS = [
+  { id: 'face', n: '01', name: 'Face' },
+  { id: 'outfit', n: '02', name: 'Outfit' },
+  { id: 'receipt', n: '03', name: 'Receipt' },
+] as const;
+type AnalysisTabId = (typeof ANALYSIS_TABS)[number]['id'];
+
+/**
+ * Full-analysis showcase — reuses the result page's in-app breakdown blocks
+ * (FaceAnalysisBlock / OutfitAnalysisBlock + a trimmed receipt summary) driven
+ * by the same HERO mock data. Click-only tabs; conditional render remounts the
+ * active block so its score animations replay on each switch (and on scroll-in).
+ */
+function Analysis() {
+  const [ref, seen] = useInView<HTMLElement>();
+  const [tab, setTab] = useState<AnalysisTabId>('face');
+  return (
+    <section className="ln-section ln-wrap" id="analysis" ref={ref}>
+      <div className="ln-artifacts-head">
+        <div>
+          <span className="ln-eyebrow">MORE THAN A SCORE</span>
+          <h2 className="ln-h2">
+            The full <span className="hl">breakdown.</span>
+          </h2>
+        </div>
+        <p className="ln-lead">
+          Every verdict ships with the in-app read behind it — aura, fit and dating score, broken
+          down category by category. Here's the real thing, not a mockup.
+        </p>
+      </div>
+      <div className="ln-an-tabs" role="tablist">
+        {ANALYSIS_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            role="tab"
+            aria-selected={tab === t.id}
+            className={'ln-an-tab' + (tab === t.id ? ' active' : '')}
+            onClick={() => setTab(t.id)}
+          >
+            <span className="n">{t.n}</span>
+            {t.name}
+          </button>
+        ))}
+      </div>
+      <div
+        className="ln-an-panel rs-analysis"
+        style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
+      >
+        {tab === 'face' && <FaceAnalysisBlock face={HERO.face} verdict={DEFAULT_VERDICT} run={seen} />}
+        {tab === 'outfit' && <OutfitAnalysisBlock outfit={HERO.outfit} run={seen} />}
+        {tab === 'receipt' && (
+          <section className="rs-block hero rs-summary">
+            <div className="rs-eyebrow">FINAL SUMMARY</div>
+            <div className="rs-scorehead">
+              <div>
+                <div className="rs-scorenum">
+                  {HERO.receipt.datingScore}
+                  <span className="u">/10</span>
+                </div>
+                <div className="rs-scorelbl">DATING SCORE</div>
+              </div>
+              <div className="rs-verdictbadge">
+                <span className="vstamp">{VERDICT_LABEL[HERO.receipt.datingVerdict]}</span>
+              </div>
+            </div>
+            <p className="rs-read">
+              <span className="hl">{HERO.receipt.finalPunchline}.</span> {HERO.receipt.summary}
+            </p>
+            <div className="rs-summary-foot">
+              <Icon.lock width={13} height={13} />
+              Photos never stored on our servers · result lives on this device
+            </div>
+          </section>
+        )}
       </div>
     </section>
   );
@@ -411,15 +493,16 @@ function Modes() {
 
 /** Section list the rail tracks; ordered by page position. */
 const RAIL = [
-  { id: 'outputs', n: 1, label: 'The verdict' },
-  { id: 'how', n: 2, label: 'How it works' },
-  { id: 'modes', n: 3, label: 'Scan modes' },
-  { id: 'credits', n: 4, label: 'Credits' },
+  { id: 'how', n: 1, label: 'How it works' },
+  { id: 'analysis', n: 2, label: 'Full analysis' },
+  { id: 'outputs', n: 3, label: 'The cards' },
+  { id: 'modes', n: 4, label: 'Scan modes' },
+  { id: 'credits', n: 5, label: 'Credits' },
 ];
 
 /** Fixed left scroll-spy rail (desktop ≥1320px; hidden below via CSS). */
 function SectionRail() {
-  const [active, setActive] = useState('outputs');
+  const [active, setActive] = useState('how');
   useEffect(() => {
     const obs = new IntersectionObserver(
       (entries) => {
@@ -494,7 +577,8 @@ function Footer() {
             <div className="ln-footer-col">
               <h4>Product</h4>
               <a href="#how">How it works</a>
-              <a href="#outputs">The verdict</a>
+              <a href="#analysis">Full analysis</a>
+              <a href="#outputs">The cards</a>
               <a href="#modes">Scan modes</a>
               <a href="#credits">Credits</a>
             </div>
@@ -554,8 +638,9 @@ export function Landing() {
       <SectionRail />
       <Hero />
       <hr className="ln-hr ln-wrap" />
-      <Artifacts />
       <How />
+      <Analysis />
+      <Artifacts />
       <Modes />
       <Credits />
       <Privacy />
