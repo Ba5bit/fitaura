@@ -3,14 +3,14 @@ import { describe, expect, it } from 'vitest';
 import { soloScanSchema, sampleAIOutput } from '@fitaura/shared';
 
 describe('soloScanSchema', () => {
-  it('accepts a well-formed solo_scan_v1 object', () => {
+  it('accepts a well-formed solo_scan_v2 object', () => {
     const parsed = soloScanSchema.safeParse(sampleAIOutput());
     expect(parsed.success).toBe(true);
   });
 
   it('rejects an out-of-range rating', () => {
     const bad = sampleAIOutput();
-    bad.faceAnalysis.jawPresence.rating = 7 as never;
+    bad.faceAnalysis.jawPresence.rating = 150 as never;
     expect(soloScanSchema.safeParse(bad).success).toBe(false);
   });
 

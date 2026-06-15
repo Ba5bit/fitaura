@@ -2,9 +2,9 @@
 import { z } from 'zod';
 import { SOLO_SCAN_SCHEMA_VERSION } from './constants';
 
-/** One bounded rubric rating (rules doc §5): 1–5 or null when not assessable. */
+/** One bounded rubric rating (rules doc §5, v2): a 0–100 score, or null when not assessable. */
 export const rubricRatingSchema = z.object({
-  rating: z.number().int().min(1).max(5).nullable(),
+  rating: z.number().int().min(0).max(100).nullable(),
   confidence: z.number().min(0).max(1),
   evidence: z.string().max(400),
 });
