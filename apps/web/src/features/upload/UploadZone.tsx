@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type PointerEvent, type CSSProperties } from 'react';
 import { Icon } from '../../lib/icons';
+import { WebcamCapture } from './WebcamCapture';
 import { ZOOM_MIN, ZOOM_MAX, clampView, imgStyle, bakeCrop, type View, type Frame } from './cropMath';
 // Same demo photos the landing's example Face/Outfit cards use, reused as the
 // "Use a sample" images so the sample reads as a real scan, not a placeholder.
@@ -51,6 +52,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
   const [view, setView] = useState<View>({ zoom: 1, x: 0, y: 0 });
   const [progress, setProgress] = useState(0);
   const [over, setOver] = useState(false);
+  const [capturing, setCapturing] = useState(false);
 
   const imgElRef = useRef<HTMLImageElement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -288,7 +290,14 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
         )}
       </div>
 
-      {status === 'empty' && (
+      {status === 'empty' && capturing && (
+        <WebcamCapture
+          onCapture={(file) => { setCapturing(false); ingest(file); }}
+          onCancel={() => setCapturing(false)}
+        />
+      )}
+
+      {status === 'empty' && !capturing && (
         <>
           <div
             className="zone-drop"
@@ -313,6 +322,18 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
             >
               Use a sample
             </button>
+            {kind === 'face' && !mobile && (
+              <button
+                type="button"
+                className="sample"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCapturing(true);
+                }}
+              >
+                Take photo
+              </button>
+            )}
           </div>
           {missing && (
             <div className="crop-note warn" style={{ marginTop: 12 }}>

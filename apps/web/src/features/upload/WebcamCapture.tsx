@@ -1,0 +1,66 @@
+import { useEffect, useRef, useState } from 'react';
+import { Icon } from '../../lib/icons';
+
+interface WebcamCaptureProps {
+  /** Called with a captured JPEG File (un-mirrored), then the capture view closes. */
+  onCapture: (file: File) => void;
+  onCancel: () => void;
+}
+
+/** Inline webcam capture for the face zone (desktop). Shows a mirrored live preview,
+ * captures the current frame to an un-mirrored JPEG File. Stops the stream on exit. */
+export function WebcamCapture({ onCapture, onCancel }: WebcamCaptureProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    navigator.mediaDevices?.getUserMedia({ video: { facingMode: 'user' }, audio: false })
+      .then((stream) => {
+        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = stream;
+        if (videoRef.current) { videoRef.current.srcObject = stream; void videoRef.current.play(); }
+      })
+      .catch(() => setErr('Camera unavailable. Use "browse files" instead.'));
+    return () => {
+      cancelled = true;
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+  }, []);
+
+  function capture() {
+    const v = videoRef.current;
+    if (!v || !v.videoWidth) return;
+    const c = document.createElement('canvas');
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(v, 0, 0, c.width, c.height); // un-mirrored (preview is CSS-mirrored only)
+    c.toBlob((blob) => {
+      if (!blob) return;
+      onCapture(new File([blob], 'webcam.jpg', { type: 'image/jpeg' }));
+    }, 'image/jpeg', 0.92);
+  }
+
+  if (err) {
+    return (
+      <div className="zone-err">
+        <span className="ic"><Icon.alert /></span>
+        <span className="title">No camera</span>
+        <span className="msg">{err}</span>
+        <button className="cbtn" onClick={onCancel} style={{ marginTop: 12 }}>Back</button>
+      </div>
+    );
+  }
+  return (
+    <div className="webcam-capture">
+      <video ref={videoRef} playsInline muted style={{ width: '100%', borderRadius: 14, transform: 'scaleX(-1)' }} />
+      <div className="crop-ctrls" style={{ marginTop: 12 }}>
+        <button className="cbtn" onClick={capture}><Icon.face /> Capture</button>
+        <button className="cbtn danger" onClick={onCancel}><Icon.x /> Cancel</button>
+      </div>
+    </div>
+  );
+}
