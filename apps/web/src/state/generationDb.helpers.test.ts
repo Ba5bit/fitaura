@@ -8,7 +8,7 @@ const DAY = 86_400_000;
 // Minimal GenerationResult stub — only the fields the helpers touch.
 const res = (id: string, producedAt: string, name?: string): GenerationResult =>
   ({ receipt: { generationId: id }, producedAt, name } as unknown as GenerationResult);
-const acct = (key: string, results: GenerationResult[], face = null, outfit = null, currentResultId: string | null = null): AccountData =>
+const acct = (key: string, results: GenerationResult[], face: { url: string } | null = null, outfit: { url: string } | null = null, currentResultId: string | null = null): AccountData =>
   ({ session: { accountKey: key, face, outfit, currentResultId }, results });
 
 describe('generationDb helpers', () => {
