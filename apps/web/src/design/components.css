@@ -93,12 +93,12 @@
 }
 @media (max-width: 720px) {
   .scan-page {
-    padding: 0;
+    padding: 12px;
   }
+  /* Keep the rounded external border on mobile (was full-bleed). */
   .scan-page .sa {
-    border: 0;
-    border-radius: 0;
-    min-height: 100vh;
+    border-radius: 20px;
+    min-height: calc(100vh - 24px);
   }
 }
 
