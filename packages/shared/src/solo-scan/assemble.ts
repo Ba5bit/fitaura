@@ -55,6 +55,9 @@ export function assembleResult(
   if (face == null || outfit == null) throw new Error('insufficient_signal');
 
   const aura = auraIndex(ai, face, outfit);
+  // `verdict` (jittered ±3, 3 dating bands) and `band` (hard thresholds, 6 caption
+  // bands) are intentionally decoupled scales off the same aura — near a boundary the
+  // card archetype/caption and the receipt's verdict tone can land on different sides.
   const verdict = pickVerdict(aura, scanId);
   const band = scoreBand(aura);
   const d = (s: number, key: string) => displayScore(s, scanId, key, promptVersion);

@@ -28,7 +28,9 @@ function groupByBand<T extends Banded>(bank: Record<string, T>): Record<ScoreBan
   return out;
 }
 
-/** The band's own pool, else the nearest non-empty band walking toward `mid`. */
+/** The band's own pool, else walk toward `mid` and continue past it to the far end
+ * until a non-empty band is found. A defensive fallback — every band is currently
+ * populated, so the first line always returns. */
 function poolFor(byBand: Record<ScoreBand, string[]>, band: ScoreBand): string[] {
   if (byBand[band].length) return byBand[band];
   const here = BAND_ORDER.indexOf(band);
