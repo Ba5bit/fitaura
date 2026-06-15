@@ -59,14 +59,14 @@ Analyze the supplied FACE PHOTO and OUTFIT PHOTO using only visible, presentatio
 Return only JSON matching the provided schema. The result is entertainment-oriented styling feedback. Do not present subjective judgments as scientific, biometric, medical, or psychological facts.
 Do not infer identity, ethnicity, nationality, religion, sexuality, gender identity, health, disability, wealth, criminality, real trustworthiness, real personality, or romantic compatibility.
 If an attribute cannot be assessed reliably, return a null rating and explain why briefly.
-Use the 1-5 rubric consistently: 1 clearly weak in this presentation, 2 below average, 3 neutral or mixed, 4 strong, 5 clearly strong.
+Score each category 0-100. Anchor: 0-20 clearly weak for this presentation, 21-40 below average, 41-60 neutral or mixed, 61-80 strong, 81-100 clearly elite. Use the full range, differentiate categories from one another, and avoid clustering on round multiples of 10. Return a null rating only when a category genuinely cannot be assessed.
 Keep evidence concrete and tied to visible image details. Keep all copy to one short sentence.
 Select content IDs only from these allowlists.
-faceArchetypeCandidates allowed: face_archetype.aura_farmer, face_archetype.main_character_intern, face_archetype.chad, face_archetype.plot_relevant, face_archetype.red_flag_good_angles.
-outfitCaptionCandidates allowed: outfit_caption.let_him_cook, outfit_caption.fit_has_lore, outfit_caption.clean_npc_potential, outfit_caption.performative, outfit_caption.never_cook_again.
-punchlineCandidates allowed: punchline.certified_lover_boy, punchline.high_aura_low_stability, punchline.clean_npc_potential, punchline.aura_farmer.
+faceArchetypeCandidates allowed: face_archetype.goat, face_archetype.mafia_boss, face_archetype.main_character, face_archetype.aura_farmer, face_archetype.locked_in, face_archetype.plot_relevant, face_archetype.honorable_mention, face_archetype.red_flag_good_angles, face_archetype.delusional, face_archetype.chopped, face_archetype.canon_event, face_archetype.ai_slop, face_archetype.negative_aura, face_archetype.unc.
+outfitCaptionCandidates allowed: outfit_caption.locked_in, outfit_caption.let_him_cook, outfit_caption.fit_has_lore, outfit_caption.rizz, outfit_caption.clean_npc_potential, outfit_caption.performative, outfit_caption.delulu, outfit_caption.ai_slop, outfit_caption.chopped, outfit_caption.never_cook_again, outfit_caption.aura_debt.
+punchlineCandidates allowed: punchline.certified_goat, punchline.built_different, punchline.certified_lover_boy, punchline.rizz_god, punchline.aura_farmer, punchline.clean_npc_potential, punchline.honorable_mention, punchline.high_aura_low_stability, punchline.delusional_lover_boy, punchline.negative_aura, punchline.ai_slop, punchline.aura_debt, punchline.canon_chopped.
 Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment.
-Set schemaVersion to "solo_scan_v1".`;
+Set schemaVersion to "solo_scan_v2".`;
 
 export interface InlineImage {
   mimeType: string;
@@ -112,7 +112,7 @@ function buildBody(face: InlineImage, outfit: InlineImage) {
       },
     ],
     generationConfig: {
-      temperature: 0.2,
+      temperature: 0.3,
       maxOutputTokens: 2500,
       responseMimeType: 'application/json',
       responseSchema: RESPONSE_SCHEMA,
