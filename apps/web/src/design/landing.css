@@ -403,9 +403,11 @@ body { overflow-y: auto; }
   .ln-section { padding-bottom: clamp(60px, 10vw, 110px); }
   /* keep room above the sticky bar */
   .ln-footer { padding-bottom: 110px; }
-  .ln-fan-card.left  { transform: translateX(-120px) rotate(-9deg) scale(0.78); }
-  .ln-fan-card.right { transform: translateX(120px) rotate(9deg) scale(0.78); }
-  .ln-fan-card.mid   { transform: scale(0.86); }
-  .ln-fan { height: 400px; }
+  /* Cards are 360x640 and centered in .ln-fan; the container must be tall enough
+     to hold the scaled mid card or it overflows into the next section. */
+  .ln-fan { height: 500px; margin-top: 8px; }
+  .ln-fan-card.mid   { transform: scale(0.76); }
+  .ln-fan-card.left  { transform: translateX(-100px) rotate(-9deg) scale(0.62); }
+  .ln-fan-card.right { transform: translateX(100px) rotate(9deg) scale(0.62); }
   .ln-hero h1 { font-size: clamp(40px, 13vw, 62px); }
 }
