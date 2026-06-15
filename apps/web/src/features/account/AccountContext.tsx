@@ -104,31 +104,51 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   // Hydrate the session on mount and subscribe to auth changes (sign-in/out
   // from any tab). The Supabase session — not localStorage — is the source of truth.
+  //
+  // IMPORTANT: this callback only sets identity — it MUST NOT await a Supabase
+  // call. onAuthStateChange runs while the auth lock is held; awaiting a query
+  // (e.g. getBalance) here deadlocks that lock, which in turn hangs signOut() and
+  // makes logout impossible. The balance is fetched in a separate effect below.
   useEffect(() => {
     let active = true;
-    const apply = async (uid: string | null, email: string | null | undefined, createdAt?: string) => {
+    const applyIdentity = (uid: string | null, email: string | null | undefined, createdAt?: string) => {
       if (!active) return;
       if (uid) {
         setUserId(uid);
         setUser(toAccountUser({ id: uid, email }, createdAt));
-        setCredits(await getBalance(uid));
       } else {
         setUserId(null);
         setUser(null);
-        setCredits(0);
       }
     };
     getCurrentSession().then((s) =>
-      apply(s?.user.id ?? null, s?.user.email, s?.user.created_at),
+      applyIdentity(s?.user.id ?? null, s?.user.email, s?.user.created_at),
     );
     const unsub = onAuthChange((s) =>
-      apply(s?.user.id ?? null, s?.user.email, s?.user.created_at),
+      applyIdentity(s?.user.id ?? null, s?.user.email, s?.user.created_at),
     );
     return () => {
       active = false;
       unsub();
     };
   }, []);
+
+  // Load the server credit balance whenever the signed-in user changes. Kept out
+  // of the onAuthChange callback (see above) so the Supabase query runs after the
+  // auth lock is released rather than deadlocking it.
+  useEffect(() => {
+    if (!userId) {
+      setCredits(0);
+      return;
+    }
+    let active = true;
+    getBalance(userId).then((b) => {
+      if (active) setCredits(b);
+    });
+    return () => {
+      active = false;
+    };
+  }, [userId]);
 
   const flash = useCallback((msg: string) => {
     setToast(msg);
@@ -200,7 +220,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         setAuthError(res.error);
         return false;
       }
-      setCredits(await getBalance(res.user.id));
+      // Balance loads via the userId effect once finishAuth sets the user.
       finishAuth(res.user.id, res.user.email);
       return true;
     },
@@ -209,11 +229,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
 
   const requestLogout = useCallback(() => setScene('logout'), []);
   const confirmLogout = useCallback(async () => {
-    await authSignOut();
+    // Close the dialog immediately, then sign out. We clear local state and
+    // navigate regardless of the network call's outcome so a slow/failed
+    // signOut can never leave the user stuck "logged in".
+    setScene(null);
+    try {
+      await authSignOut();
+    } catch {
+      // Already logging out locally — ignore revoke errors (offline, expired token).
+    }
     setUserId(null);
     setUser(null);
     setCredits(0);
-    setScene(null);
     flash('Logged out — results stay on this device.');
     navigate('/');
   }, [flash, navigate]);
