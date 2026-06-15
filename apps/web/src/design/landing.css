@@ -416,4 +416,7 @@ body { overflow-y: auto; }
   .ln-fan-card.left  { transform: translateX(-100px) rotate(-9deg) scale(0.62); }
   .ln-fan-card.right { transform: translateX(100px) rotate(9deg) scale(0.62); }
   .ln-hero h1 { font-size: clamp(40px, 13vw, 62px); }
+  /* Full-width, stacked hero CTAs on mobile. */
+  .ln-hero .ln-hero-actions { flex-direction: column; align-items: stretch; }
+  .ln-hero .ln-hero-actions .ln-btn { width: 100%; }
 }
