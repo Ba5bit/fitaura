@@ -549,7 +549,7 @@ function FinalCTA() {
           YOUR TURN
         </span>
         <h2>
-          UPLOAD. SCAN. <span className="hl">GET POSTED.</span>
+          UPLOAD - SCAN <span className="hl">GET POSTED</span>
         </h2>
         <p>
           Two photos, one credit, three cards your group chat will not let go of. The first one's free.
