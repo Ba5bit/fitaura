@@ -85,39 +85,49 @@ export function AuthGate() {
 
         <div className="aw-auth-right">
           <div className="aw-seg" role="tablist">
-            <button role="tab" aria-selected={isSignup} onClick={() => switchMode('signup')}>
+            <button type="button" role="tab" aria-selected={isSignup} onClick={() => switchMode('signup')}>
               Sign up
             </button>
-            <button role="tab" aria-selected={!isSignup} onClick={() => switchMode('login')}>
+            <button type="button" role="tab" aria-selected={!isSignup} onClick={() => switchMode('login')}>
               Log in
             </button>
           </div>
-          <WebField label="Email" type="email" placeholder="you@email.com" value={email} onChange={setEmail} />
-          <WebField
-            label="Password"
-            type="password"
-            placeholder={isSignup ? 'Create a password' : 'Your password'}
-            value={password}
-            onChange={setPassword}
-          />
-          {notice && !authError && (
-            <p className="aw-formnotice" role="status">
-              {notice}
-            </p>
-          )}
-          {authError && (
-            <p className="aw-formerror" role="alert">
-              {authError}
-            </p>
-          )}
-          <button
-            className="aw-btn primary block"
-            style={{ marginTop: '18px' }}
-            onClick={submit}
-            disabled={pending}
+          {/* A real form so Enter submits from either field. display:contents keeps
+              the layout identical to the previous flat stack. */}
+          <form
+            style={{ display: 'contents' }}
+            onSubmit={(e) => {
+              e.preventDefault();
+              void submit();
+            }}
           >
-            {pending ? 'Working…' : isSignup ? 'Create account' : 'Log in'}
-          </button>
+            <WebField label="Email" type="email" placeholder="you@email.com" value={email} onChange={setEmail} />
+            <WebField
+              label="Password"
+              type="password"
+              placeholder={isSignup ? 'Create a password' : 'Your password'}
+              value={password}
+              onChange={setPassword}
+            />
+            {notice && !authError && (
+              <p className="aw-formnotice" role="status">
+                {notice}
+              </p>
+            )}
+            {authError && (
+              <p className="aw-formerror" role="alert">
+                {authError}
+              </p>
+            )}
+            <button
+              type="submit"
+              className="aw-btn primary block"
+              style={{ marginTop: '18px' }}
+              disabled={pending}
+            >
+              {pending ? 'Working…' : isSignup ? 'Create account' : 'Log in'}
+            </button>
+          </form>
           <div className="aw-finehelp">
             <Icon.shield />
             <span>
