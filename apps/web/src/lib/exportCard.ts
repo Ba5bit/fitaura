@@ -1,11 +1,17 @@
-import { toCanvas } from 'html-to-image';
+import { snapdom } from '@zumer/snapdom';
 import { type DatingVerdict } from '@fitaura/shared';
 
 /**
  * Card export — rasterizes the actual on-screen card (WYSIWYG) and centers it on
- * a branded 9:16 (1080×1920) poster, then downloads or shares it. Ported from the
- * Card Studio's `renderAssetBlob`, simplified for in-app use (fonts are already
- * loaded, so we just await `document.fonts.ready`).
+ * a branded 9:16 (1080×1920) poster, then downloads or shares it.
+ *
+ * Rasterized with snapdom. We used to use html-to-image, but its SVG
+ * `<foreignObject>` pipeline renders advanced CSS wrong on Safari/WebKit:
+ * `<img>` photos came out blank, frosted-glass badges turned into black boxes,
+ * glows/box-shadows became stray circles, and gradient score bars miscoloured.
+ * snapdom reproduces backdrop-filter, shadows and gradients faithfully across
+ * Chrome and Safari, so the old glass-neutralizing / font-inlining / multi-pass
+ * workarounds are gone — we just capture and composite onto the poster.
  */
 
 const VERDICT_HEX: Record<DatingVerdict, string> = {
@@ -30,49 +36,6 @@ export interface ExportResult {
   bytes: number;
 }
 
-/** True on Safari/WebKit (incl. iOS Chrome, which is WebKit under the hood). */
-function isWebKit(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  const ua = navigator.userAgent;
-  const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
-  // iOS browsers are all WebKit regardless of the brand in the UA.
-  const isIOS = /iP(ad|hone|od)/.test(ua) || (/Mac/.test(ua) && navigator.maxTouchPoints > 1);
-  return isSafari || isIOS;
-}
-
-/**
- * Force every `<img>` inside `node` to fully DECODE (not merely "load") before
- * we hand the subtree to html-to-image.
- *
- * Why this matters on Safari: html-to-image rasterizes by serializing the DOM
- * into an `<svg><foreignObject>` and loading that SVG into an `Image`. WebKit
- * fires the SVG image's `onload` *before* the inner `<img>` elements have been
- * decoded, so the very first capture(s) come out with blank image slots — the
- * classic "Face Card exports with an empty circle" symptom. `img.complete` /
- * `onload` only tells us the bytes arrived, not that the bitmap is paint-ready;
- * `img.decode()` is the one that actually guarantees a decoded frame. Chromium
- * already decodes eagerly, so this is a no-op there (and safely ignored if a
- * decode rejects, e.g. on an already-broken image).
- */
-async function decodeAllImages(node: HTMLElement): Promise<void> {
-  const imgs = Array.from(node.querySelectorAll('img'));
-  await Promise.all(
-    imgs.map(async (img) => {
-      try {
-        // Wait for the bytes first (decode() throws if the src isn't set yet).
-        if (!img.complete) {
-          await new Promise<void>((res) => {
-            img.onload = img.onerror = () => res();
-          });
-        }
-        if (typeof img.decode === 'function') await img.decode();
-      } catch {
-        /* broken/decadable image — let the capture handle the empty slot */
-      }
-    }),
-  );
-}
-
 async function ensureFonts() {
   try {
     await Promise.all([
@@ -86,116 +49,31 @@ async function ensureFonts() {
   }
 }
 
-/**
- * Build a self-contained `@font-face` stylesheet for the export snapshot.
- *
- * html-to-image rasterizes the card through an SVG `<foreignObject>`, which
- * renders in an isolated context with no access to the document's loaded fonts.
- * We can't let the library inline them itself because they live in a
- * cross-origin Google Fonts `<link>` (reading its `cssRules` throws a
- * SecurityError). So we fetch that stylesheet ourselves — Google serves both
- * the CSS API and gstatic woff2 files with permissive CORS — and rewrite every
- * `url(...)` into a base64 data URI. The result is passed via `fontEmbedCSS`
- * so the snapshot carries the actual font data and renders Anton/Hanken
- * Grotesk/Space Mono exactly as on screen. Cached after the first build.
- */
-let fontEmbedCSSPromise: Promise<string> | null = null;
-
-function getFontStylesheetHref(): string | null {
-  const links = Array.from(
-    document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]'),
+/** Force every `<img>` in the subtree to fully decode before capture. */
+async function decodeAllImages(node: HTMLElement): Promise<void> {
+  const imgs = Array.from(node.querySelectorAll('img'));
+  await Promise.all(
+    imgs.map(async (img) => {
+      try {
+        if (!img.complete) {
+          await new Promise<void>((res) => {
+            img.onload = img.onerror = () => res();
+          });
+        }
+        if (typeof img.decode === 'function') await img.decode();
+      } catch {
+        /* broken image — capture will show its placeholder */
+      }
+    }),
   );
-  const google = links.find((l) => l.href.includes('fonts.googleapis.com'));
-  return google?.href ?? null;
-}
-
-async function fetchAsDataURI(url: string): Promise<string> {
-  const resp = await fetch(url, { mode: 'cors' });
-  if (!resp.ok) throw new Error(`Font fetch failed: ${url} (${resp.status})`);
-  const buf = await resp.arrayBuffer();
-  const bytes = new Uint8Array(buf);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
-  const type = resp.headers.get('content-type') || 'font/woff2';
-  return `data:${type};base64,${btoa(binary)}`;
-}
-
-async function buildFontEmbedCSS(): Promise<string> {
-  if (fontEmbedCSSPromise) return fontEmbedCSSPromise;
-  fontEmbedCSSPromise = (async () => {
-    const href = getFontStylesheetHref();
-    if (!href) throw new Error('Google Fonts stylesheet not found');
-    const cssResp = await fetch(href, { mode: 'cors' });
-    if (!cssResp.ok) throw new Error(`Font CSS fetch failed (${cssResp.status})`);
-    let css = await cssResp.text();
-
-    // Collect every distinct font URL, inline it once, and substitute.
-    const urls = new Set<string>();
-    const urlRe = /url\((['"]?)(https?:\/\/[^'")]+)\1\)/g;
-    for (let m = urlRe.exec(css); m; m = urlRe.exec(css)) urls.add(m[2]);
-
-    const replacements = await Promise.all(
-      Array.from(urls).map(async (u) => [u, await fetchAsDataURI(u)] as const),
-    );
-    for (const [original, dataUri] of replacements) {
-      css = css.split(original).join(dataUri);
-    }
-    return css;
-  })();
-  // On failure, clear the cache so a later attempt can retry.
-  fontEmbedCSSPromise.catch(() => {
-    fontEmbedCSSPromise = null;
-  });
-  return fontEmbedCSSPromise;
-}
-
-/**
- * Raise a translucent background colour to near-opaque. Frosted-glass elements
- * lean on `backdrop-filter` for contrast; once that blur is dropped for export
- * (see below), the thin background must carry the contrast on its own.
- */
-export function solidify(bg: string): string {
-  const m = /rgba?\(([^)]+)\)/.exec(bg);
-  if (!m) return bg;
-  const [r, g, b, a] = m[1].split(',').map((s) => s.trim());
-  const alpha = a != null ? parseFloat(a) : 1;
-  if (Number.isNaN(alpha) || alpha >= 0.85) return bg;
-  return `rgba(${r}, ${g}, ${b}, ${Math.max(alpha, 0.9).toFixed(2)})`;
-}
-
-/**
- * html-to-image rasterizes through an SVG `<foreignObject>`, which cannot render
- * `backdrop-filter` — so frosted-glass elements (e.g. the card's score badge)
- * come out as a grey blob on download. For the snapshot only, drop the blur and
- * make each glass element's background near-opaque; returns a fn that restores
- * the live DOM afterwards.
- */
-function neutralizeGlass(root: HTMLElement): () => void {
-  const nodes: HTMLElement[] = [root, ...Array.from(root.querySelectorAll<HTMLElement>('*'))];
-  const restores: Array<() => void> = [];
-  for (const n of nodes) {
-    const cs = getComputedStyle(n);
-    const bf = cs.backdropFilter || cs.getPropertyValue('-webkit-backdrop-filter');
-    if (!bf || bf === 'none') continue;
-    const prevBackdrop = n.style.backdropFilter;
-    const prevWebkit = n.style.getPropertyValue('-webkit-backdrop-filter');
-    const prevBg = n.style.background;
-    n.style.backdropFilter = 'none';
-    n.style.setProperty('-webkit-backdrop-filter', 'none');
-    n.style.background = solidify(cs.backgroundColor);
-    restores.push(() => {
-      n.style.backdropFilter = prevBackdrop;
-      n.style.setProperty('-webkit-backdrop-filter', prevWebkit);
-      n.style.background = prevBg;
-    });
-  }
-  return () => restores.forEach((r) => r());
 }
 
 /** Render the given card element to a 9:16 PNG blob. */
 export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
   const { el, kind, verdict, accentHex = '#83b4ff' } = args;
   await ensureFonts();
+  await decodeAllImages(el);
+
   const verdictHex = VERDICT_HEX[verdict] ?? '#ff3b49';
   const base = { w: 1080, h: 1920 };
 
@@ -221,53 +99,16 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, base.w, base.h);
 
-  // Capture the card node 1:1, dropping edit-only overlays from the snapshot.
-  // We pass our own `fontEmbedCSS` (Google's woff2 inlined as data URIs) so the
-  // off-document SVG snapshot renders Anton/Hanken Grotesk/Space Mono exactly as
-  // on screen. If embedding fails (e.g. offline), fall back to `skipFonts` so an
-  // image is still produced rather than throwing.
-  let fontEmbedCSS: string | undefined;
-  try {
-    fontEmbedCSS = await buildFontEmbedCSS();
-  } catch {
-    fontEmbedCSS = undefined;
-  }
-  // Make sure every embedded photo is fully DECODED before capture — WebKit
-  // otherwise serializes the card before the images are paint-ready and exports
-  // blank image slots (see decodeAllImages). The user photos are same-origin
-  // canvas data: URLs, so there's no CORS taint to worry about here.
-  await decodeAllImages(el);
-
-  // Drop backdrop-filters for the snapshot (html-to-image can't render them) and
-  // restore the live DOM right after, even if capture throws.
-  const restoreGlass = neutralizeGlass(el);
-  const captureOpts = {
-    pixelRatio: 3,
-    width: el.offsetWidth,
-    height: el.offsetHeight,
-    fontEmbedCSS,
-    skipFonts: fontEmbedCSS === undefined,
-    // Force a fresh decode of every resource each pass — without cache-busting,
-    // Safari can re-serve a still-undecoded image from its cache and re-drop it.
-    cacheBust: true,
-    filter: (n: HTMLElement) =>
-      !(n instanceof Element && (n.classList.contains('st-overlay') || n.classList.contains('st-edithint'))),
-  };
-  let cardCanvas: HTMLCanvasElement;
-  try {
-    // Safari "warms up" foreignObject-embedded images across repeated
-    // serializations: the first pass (or two) can still render the photo blank
-    // even after decode(), but a subsequent pass reliably includes it. So on
-    // WebKit we capture a few times and keep only the last result. Chromium gets
-    // it right on the first pass, so we don't pay the cost there.
-    const passes = isWebKit() ? 3 : 1;
-    cardCanvas = await toCanvas(el, captureOpts);
-    for (let i = 1; i < passes; i += 1) {
-      cardCanvas = await toCanvas(el, captureOpts);
-    }
-  } finally {
-    restoreGlass();
-  }
+  // Rasterize the card 1:1 with snapdom. Transparent background so the card's
+  // rounded corners reveal the poster glow behind it. Edit-only overlays are
+  // dropped from the snapshot.
+  const cardCanvas = await snapdom.toCanvas(el, {
+    scale: 3,
+    embedFonts: true,
+    backgroundColor: 'transparent',
+    exclude: ['.st-overlay', '.st-edithint'],
+    excludeMode: 'remove',
+  });
 
   // Center the card with a small uniform margin + a soft shadow.
   const margin = base.h * 0.04;
