@@ -8,6 +8,7 @@ import {
   type Point,
   type StickerKind,
 } from '../../features/result/stickerGeometry';
+import { createDoubleTap } from '../../lib/tapGesture';
 
 export interface EditableSticker {
   label: string;
@@ -23,6 +24,8 @@ interface StickerLayerProps {
   /** Pinned edit mode — keeps the safe-zone overlay + selection visible. */
   editing: boolean;
   hidden: boolean;
+  /** Double-tap / double-click the sticker to advance to the next preset. */
+  onCycle?: () => void;
 }
 
 /**
@@ -30,10 +33,15 @@ interface StickerLayerProps {
  * overlay and snap guides. Ported from the Card Studio's `StickerLayer` and
  * embedded directly in the Verdict card so repositioning happens in-place.
  */
-export function StickerLayer({ kind, sticker, pos, setPos, editing, hidden }: StickerLayerProps) {
+export function StickerLayer({ kind, sticker, pos, setPos, editing, hidden, onCycle }: StickerLayerProps) {
   const spec = CARD_GEOM[kind];
   const layerRef = useRef<HTMLDivElement>(null);
   const stickRef = useRef<HTMLDivElement>(null);
+  // Keep a ref to the latest onCycle so the once-created detector always calls
+  // the current handler (which closes over the active tab's sticker state).
+  const onCycleRef = useRef(onCycle);
+  onCycleRef.current = onCycle;
+  const dtap = useRef(createDoubleTap(() => onCycleRef.current?.())).current;
   const drag = useRef<{ lw: number; lh: number; hw: number; hh: number; startX: number; startY: number; base: Point } | null>(null);
   const [guide, setGuide] = useState<{ x: number | null; y: number | null }>({ x: null, y: null });
   const [grabbing, setGrabbing] = useState(false);
@@ -70,6 +78,7 @@ export function StickerLayer({ kind, sticker, pos, setPos, editing, hidden }: St
     drag.current = { lw: layer.width, lh: layer.height, ...ext, startX: e.clientX, startY: e.clientY, base: { ...pos } };
     setGrabbing(true);
     setSnapAnim(false);
+    dtap.down(e.clientX, e.clientY, e.timeStamp);
     try {
       stickRef.current?.setPointerCapture(e.pointerId);
     } catch {
@@ -102,6 +111,7 @@ export function StickerLayer({ kind, sticker, pos, setPos, editing, hidden }: St
     setGuide({ x: null, y: null });
     setGrabbing(false);
     drag.current = null;
+    dtap.up(e.clientX, e.clientY, e.timeStamp);
     try {
       stickRef.current?.releasePointerCapture(e.pointerId);
     } catch {

@@ -276,10 +276,6 @@ export function Result() {
       ping('Export failed. Try again');
     }
   };
-  const saveHistory = () => {
-    ping('Saved to history on this device');
-    flashSaved();
-  };
   const newScan = () => {
     startNewScan();
     navigate('/scan');
@@ -307,6 +303,7 @@ export function Result() {
         setPos={(p) => setPos((s) => ({ ...s, face: p }))}
         editing={editing}
         hidden={!stickerOn}
+        onCycle={swapSticker}
       />
     ) : kind === 'outfit' ? (
       <StickerLayer
@@ -316,6 +313,7 @@ export function Result() {
         setPos={(p) => setPos((s) => ({ ...s, outfit: p }))}
         editing={editing}
         hidden={!stickerOn}
+        onCycle={swapSticker}
       />
     ) : (
       <ReceiptStampEditor preset={receiptPreset} setPreset={setReceiptPreset} editing={editing} />
@@ -333,7 +331,6 @@ export function Result() {
         receipt={result.receipt}
         onExportAll={exportAll}
         onShare={share}
-        onSaveHistory={saveHistory}
         onNewScan={newScan}
       />
     );
@@ -448,6 +445,7 @@ export function Result() {
                 <i style={{ background: 'var(--accent)' }} />
                 {currentSticker.label}
               </span>
+              <span className="rs-cb-hint">double-tap sticker to swap</span>
               <span className="rs-cb-spacer" />
               <button className="rs-cb-btn" onClick={swapSticker}>
                 <Icon.swap />
