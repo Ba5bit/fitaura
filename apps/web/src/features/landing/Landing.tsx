@@ -505,20 +505,22 @@ function SectionRail() {
 
 function FinalCTA() {
   return (
-    <section className="ln-final ln-wrap">
-      <span className="ln-eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>
-        YOUR TURN
-      </span>
-      <h2>
-        UPLOAD. SCAN. <span className="hl">GET POSTED.</span>
-      </h2>
-      <p>
-        Two photos, one credit, three cards your group chat will not let go of. The first one's free.
-      </p>
-      <div className="ln-hero-actions">
-        <Link className="ln-btn primary lg" to="/vault">
-          Get your verdict
-        </Link>
+    <section className="ln-section ln-wrap">
+      <div className="ln-final">
+        <span className="ln-eyebrow" style={{ justifyContent: 'center', display: 'flex' }}>
+          YOUR TURN
+        </span>
+        <h2>
+          UPLOAD. SCAN. <span className="hl">GET POSTED.</span>
+        </h2>
+        <p>
+          Two photos, one credit, three cards your group chat will not let go of. The first one's free.
+        </p>
+        <div className="ln-hero-actions">
+          <Link className="ln-btn primary lg" to="/vault">
+            Get your verdict
+          </Link>
+        </div>
       </div>
     </section>
   );
