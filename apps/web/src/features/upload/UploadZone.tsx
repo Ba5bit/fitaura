@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type PointerEvent, type CSSProperties } from 'react';
 import { Icon } from '../../lib/icons';
 import { ZOOM_MIN, ZOOM_MAX, clampView, imgStyle, bakeCrop, type View, type Frame } from './cropMath';
+// Same demo photos the landing's example Face/Outfit cards use, reused as the
+// "Use a sample" images so the sample reads as a real scan, not a placeholder.
+import exampleFace from '../../assets/example-face.jpg';
+import exampleFit from '../../assets/example-fit.jpg';
+
+const SAMPLE_PHOTO: Record<ZoneKind, string> = { face: exampleFace, outfit: exampleFit };
 
 export type ZoneKind = 'face' | 'outfit';
 type Status = 'empty' | 'uploading' | 'ready' | 'error';
@@ -24,48 +30,6 @@ const CROP: Record<ZoneKind, CropSpec> = {
 const ERR: Record<ErrorType, { title: string; msg: (k: ZoneKind) => string }> = {
   invalid: { title: 'Unsupported file', msg: () => "We can read JPG, PNG, WEBP or HEIC. That file isn't an image we support." },
 };
-
-/** Clearly-a-placeholder sample generator (not a fake photo). Ported from design. */
-function makeSample(kind: ZoneKind): { url: string; w: number; h: number } {
-  const W = 900;
-  const H = kind === 'face' ? 900 : 1200;
-  const c = document.createElement('canvas');
-  c.width = W;
-  c.height = H;
-  const g = c.getContext('2d')!;
-  const grad = g.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0, '#1a2230');
-  grad.addColorStop(0.5, '#222a39');
-  grad.addColorStop(1, '#12161f');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, W, H);
-  g.save();
-  g.globalAlpha = 0.05;
-  g.strokeStyle = '#ffffff';
-  g.lineWidth = 2;
-  for (let i = -H; i < W; i += 26) {
-    g.beginPath();
-    g.moveTo(i, 0);
-    g.lineTo(i + H, H);
-    g.stroke();
-  }
-  g.restore();
-  const cx = W * 0.5;
-  const cy = kind === 'face' ? H * 0.46 : H * 0.5;
-  const r = kind === 'face' ? W * 0.26 : W * 0.22;
-  const rg = g.createRadialGradient(cx, cy, 8, cx, cy, r * (kind === 'face' ? 1.6 : 2.4));
-  rg.addColorStop(0, 'rgba(131,180,255,0.55)');
-  rg.addColorStop(1, 'rgba(131,180,255,0)');
-  g.fillStyle = rg;
-  g.beginPath();
-  g.arc(cx, cy, r * (kind === 'face' ? 1.6 : 2.4), 0, 7);
-  g.fill();
-  g.fillStyle = 'rgba(255,255,255,0.6)';
-  g.textAlign = 'center';
-  g.font = "600 30px 'Space Mono', monospace";
-  g.fillText(kind === 'face' ? 'SAMPLE · SELFIE' : 'SAMPLE · OUTFIT', W / 2, H - 54);
-  return { url: c.toDataURL('image/webp', 0.8), w: W, h: H };
-}
 
 interface UploadZoneProps {
   kind: ZoneKind;
@@ -205,9 +169,10 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
 
   async function loadSample() {
     revokeObjUrl(); // drop any prior file's object URL before switching to the sample
-    const s = makeSample(kind);
-    const im = await loadImageEl(s.url);
-    fileInfo.current = (kind === 'face' ? 'selfie' : 'outfit') + '.webp · sample';
+    const url = SAMPLE_PHOTO[kind];
+    const im = await loadImageEl(url);
+    const s = { url, w: im.naturalWidth, h: im.naturalHeight };
+    fileInfo.current = (kind === 'face' ? 'selfie' : 'outfit') + '.jpg · sample';
     runProgress(() => {
       const v = clampView({ zoom: 1, x: 0, y: 0 }, s, frame);
       imgElRef.current = im;
