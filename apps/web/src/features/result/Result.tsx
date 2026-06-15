@@ -276,10 +276,6 @@ export function Result() {
       ping('Export failed. Try again');
     }
   };
-  const saveHistory = () => {
-    ping('Saved to history on this device');
-    flashSaved();
-  };
   const newScan = () => {
     startNewScan();
     navigate('/scan');
@@ -333,7 +329,6 @@ export function Result() {
         receipt={result.receipt}
         onExportAll={exportAll}
         onShare={share}
-        onSaveHistory={saveHistory}
         onNewScan={newScan}
       />
     );

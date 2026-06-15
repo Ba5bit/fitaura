@@ -5,7 +5,6 @@ interface ReceiptSummaryBlockProps {
   receipt: DatingReceiptResult;
   onExportAll: () => void;
   onShare: () => void;
-  onSaveHistory: () => void;
   onNewScan: () => void;
 }
 
@@ -18,7 +17,6 @@ export function ReceiptSummaryBlock({
   receipt,
   onExportAll,
   onShare,
-  onSaveHistory,
   onNewScan,
 }: ReceiptSummaryBlockProps) {
   return (
@@ -47,10 +45,6 @@ export function ReceiptSummaryBlock({
         <button className="rs-bigbtn" onClick={onShare}>
           <Icon.share />
           Share verdict
-        </button>
-        <button className="rs-bigbtn" onClick={onSaveHistory}>
-          <Icon.bookmark />
-          Save to history
         </button>
         <button className="rs-bigbtn danger" onClick={onNewScan}>
           <Icon.refresh />
