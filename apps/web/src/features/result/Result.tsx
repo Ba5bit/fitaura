@@ -303,6 +303,7 @@ export function Result() {
         setPos={(p) => setPos((s) => ({ ...s, face: p }))}
         editing={editing}
         hidden={!stickerOn}
+        onCycle={swapSticker}
       />
     ) : kind === 'outfit' ? (
       <StickerLayer
@@ -312,6 +313,7 @@ export function Result() {
         setPos={(p) => setPos((s) => ({ ...s, outfit: p }))}
         editing={editing}
         hidden={!stickerOn}
+        onCycle={swapSticker}
       />
     ) : (
       <ReceiptStampEditor preset={receiptPreset} setPreset={setReceiptPreset} editing={editing} />
@@ -443,6 +445,7 @@ export function Result() {
                 <i style={{ background: 'var(--accent)' }} />
                 {currentSticker.label}
               </span>
+              <span className="rs-cb-hint">double-tap sticker to swap</span>
               <span className="rs-cb-spacer" />
               <button className="rs-cb-btn" onClick={swapSticker}>
                 <Icon.swap />

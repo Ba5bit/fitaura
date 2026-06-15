@@ -138,6 +138,9 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
   letter-spacing:0.04em; text-transform:uppercase; color:var(--ink); max-width:140px;
   overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .rs-cb-current i{ width:8px;height:8px;border-radius:2px; background:var(--lime); flex:none; }
+.rs-cb-hint{ font-family:"Space Mono",monospace; font-size:10px; letter-spacing:0.06em;
+  color:var(--ink-faint); opacity:.7; white-space:nowrap; }
+@media (max-width:560px){ .rs-cb-hint{ display:none; } }
 .rs-cb-spacer{ flex:1; }
 .rs-cb-btn{ display:inline-flex; align-items:center; gap:7px; cursor:pointer;
   font-family:"Hanken Grotesk"; font-weight:600; font-size:12.5px; color:var(--ink);
