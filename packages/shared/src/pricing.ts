@@ -20,5 +20,5 @@ export const CREDIT_PACKS: CreditPack[] = [
     featured: true,
     badge: 'Most picked',
   },
-  { id: 'group', tier: 'Group chat', credits: 80, price: '$29.99', perScan: '$0.37 / scan' },
+  { id: 'group', tier: 'Group chat', credits: 80, price: '$24.99', perScan: '$0.31 / scan' },
 ];
