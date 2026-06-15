@@ -247,7 +247,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
         </div>
         <div className="rhs">
           {creditChip}
-          {canScan ? (
+          {!signedIn || canScan ? (
             <button className="vlt-btn primary lg" onClick={onScan}>
               <Icon.scan /> Generate verdict
             </button>
@@ -290,7 +290,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
           </div>
 
           <div className="vlt-grid">
-            <CreateTile onScan={canScan ? onScan : onBuy} />
+            <CreateTile onScan={!signedIn || canScan ? onScan : onBuy} />
             {shown.map((r) => (
               <SoloCard
                 key={r.receipt.generationId}

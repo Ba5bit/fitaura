@@ -10,3 +10,6 @@ dist-ssr/
 coverage/
 *.tsbuildinfo
 .playwright-mcp/
+
+# agent worktrees (created by background subagents)
+.claude/worktrees/

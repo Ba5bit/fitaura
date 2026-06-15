@@ -15,7 +15,9 @@ import '../../design/upload.css';
 export function Upload() {
   const navigate = useNavigate();
   const { face, outfit, setFace, setOutfit } = useGeneration();
-  const { freeScanAvailable, credits, canScan } = useAccount();
+  const { signedIn, credits, canScan } = useAccount();
+  // Guests can still run the teaser scan; generation is gated at the reveal step.
+  const guest = !signedIn;
   const mobile = useMediaQuery('(max-width: 760px)');
   const [attempted, setAttempted] = useState(false);
 
@@ -60,10 +62,10 @@ export function Upload() {
                 <Icon.back /> Vault
               </Link>
             </div>
-            {freeScanAvailable ? (
+            {guest ? (
               <span className="status-chip free">
                 <span className="d" />
-                First scan free
+                First verdict free
               </span>
             ) : (
               <span className="status-chip credits">
@@ -120,21 +122,20 @@ export function Upload() {
             )}
 
             <div className="cta-block">
-              {canScan ? (
+              {guest || canScan ? (
                 <button className={'cta ' + (bothReady ? 'go' : 'disabled')} onClick={onGenerate}>
-                  <Icon.bolt /> {freeScanAvailable ? 'Scan my aura — free' : 'Scan my aura'}
+                  <Icon.bolt /> {guest ? 'Scan my aura — free' : 'Scan my aura'}
                 </button>
               ) : (
-                // Out of free scans + no credits — make the action explicit instead
-                // of silently jumping to pricing.
-                <button className="cta go" onClick={() => navigate('/#credits')}>
-                  <Icon.credit /> Out of scans — get credits
+                // Signed in but out of credits — make the action explicit.
+                <button className="cta go" onClick={() => navigate('/credits')}>
+                  <Icon.credit /> Out of credits — top up
                 </button>
               )}
               <div className="cta-meta">
-                {freeScanAvailable ? (
+                {guest ? (
                   <span className="free">
-                    <Icon.spark /> First generation is on us
+                    <Icon.spark /> First verdict's free when you sign up
                   </span>
                 ) : canScan ? (
                   <span className="cost">
@@ -142,17 +143,17 @@ export function Upload() {
                   </span>
                 ) : (
                   <span className="cost">
-                    <Icon.credit /> Free scan used · 1 credit per scan
+                    <Icon.credit /> Out of credits · top up to scan
                   </span>
                 )}
                 <span>~20 sec</span>
               </div>
-              {canScan && !bothReady && !attempted && (
+              {(guest || canScan) && !bothReady && !attempted && (
                 <div className="cta-hint">Add both photos to unlock your scan.</div>
               )}
-              {!canScan && (
+              {!guest && !canScan && (
                 <div className="cta-hint block">
-                  You've used your free verdict. <Link to="/#credits">Grab a credit pack</Link> to keep scanning.
+                  Out of credits. <Link to="/credits">Grab a credit pack</Link> to keep scanning.
                 </div>
               )}
             </div>
