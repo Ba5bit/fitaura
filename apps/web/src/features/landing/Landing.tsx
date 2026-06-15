@@ -239,7 +239,7 @@ function Analysis() {
         ))}
       </div>
       <div
-        className="ln-an-panel rs-analysis"
+        className={'ln-an-panel rs-analysis' + (tab === 'receipt' ? ' single' : '')}
         style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
       >
         {tab === 'face' && <FaceAnalysisBlock face={HERO.face} verdict={DEFAULT_VERDICT} run={seen} />}

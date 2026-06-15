@@ -43,6 +43,18 @@ correctly; count-ups settle to the real values (AURA 92, fit 91, dating 9.1);
 receipt has no action buttons; section order is
 `how → analysis → outputs → modes → credits → privacy`.
 
+## Addendum — fill the empty right half (desktop)
+
+The panel was capped at 760px and left-aligned, leaving the right ~40% empty.
+Each Face/Outfit tab already renders two blocks (intro + breakdown), so on
+desktop (`min-width:980px`) the panel becomes a 2-column grid — intro on the
+left, detailed breakdown on the right — filling the width. The Receipt tab is a
+single block, so it gets a `.single` modifier that keeps it `display:block`,
+capped at 640px. The grid override uses `.ln-an-panel.rs-analysis` specificity
+because `result-shell.css` (which sets `.rs-analysis { display:flex }`) loads
+after `landing.css`. Mobile still stacks (flex column). Verified all three tabs
+at 1320 + 393.
+
 ## Files
 
 - `apps/web/src/features/landing/Landing.tsx`
