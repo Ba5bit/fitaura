@@ -41,7 +41,7 @@ function Nav() {
   }, [menuOpen]);
   return (
     <nav className={'ln-nav v2' + (scrolled ? ' scrolled' : '')}>
-      <a className="ln-brand" href="#top" aria-label="FITAURA — home">
+      <a className="ln-brand" href="#top" aria-label="FITAURA home">
         <span className="dot" />
         <span className="wm">FITAURA</span>
       </a>
@@ -96,12 +96,12 @@ function Hero() {
             EVERY AURA HAS A <span className="hl">VERDICT</span>
           </h1>
           <p className="ln-hero-sub">
-            Scan yourself, a friend, or your glow-up. FitAura reads the aura and hands back a verdict
+            Scan yourself, a friend, or your glow-up. FitAura reads your aura and hands back a verdict
             built to post.
           </p>
           <div className="ln-hero-actions">
             <Link className="ln-btn primary lg" to="/vault">
-              Scan me — it's free
+              Scan me, it's free
             </Link>
             <a className="ln-btn lg ghost" href="#modes">
               Explore the modes
@@ -142,7 +142,7 @@ function Hero() {
 function Artifacts() {
   const [ref, seen] = useInView<HTMLElement>();
   const arts = [
-    { n: '01', name: 'Face Card', desc: "Your selfie, an aura read and one verdict you'll want to repost." },
+    { n: '01', name: 'Face Card', desc: "Your selfie, your aura read, one verdict you'll want to repost." },
     { n: '02', name: 'Outfit Check', desc: 'How the fit lands on your build: silhouette, proportions, score.' },
     { n: '03', name: 'Dating Receipt', desc: 'The final cheque. One verdict: green flag, normie, or red flag.' },
   ];
@@ -160,7 +160,7 @@ function Artifacts() {
         <div className="ln-bundle-note">
           <Icon.bolt />
           <span>
-            Every scan returns <b>all three</b> — not one card at a time.
+            Every scan returns <b>all three</b>, not one card at a time.
           </span>
         </div>
       </div>
@@ -220,8 +220,8 @@ function Analysis() {
           </h2>
         </div>
         <p className="ln-lead">
-          Every verdict ships with the in-app read behind it — aura, fit and dating score, broken
-          down category by category. Here's the real thing, not a mockup.
+          Every verdict ships with the in-app read behind it. Aura, fit, and dating score, broken
+          down category by category. The real thing, not a mockup.
         </p>
       </div>
       <div className="ln-an-tabs" role="tablist">
@@ -326,8 +326,8 @@ function Credits() {
               First scan's <span className="hl">on us.</span>
             </h2>
             <p className="ln-lead">
-              Your first complete verdict is free. After that, top up with credits whenever you want
-              another — friends, exes, celebrities, fair game.
+              Your first verdict is free. After that, top up with credits whenever you want another.
+              Friends, exes, celebrities, all fair game.
             </p>
           </div>
           <span className="free-pill" style={{ alignSelf: 'center' }}>
@@ -380,8 +380,8 @@ function Privacy() {
           <p>
             We use your face and outfit photos to build your verdict, then drop them. They're{' '}
             <b style={{ color: 'var(--ink)' }}>never permanently stored on our servers</b>. Your finished
-            cards, receipts and history live on your own device, so once you close the tab we no longer
-            have the originals.
+            cards, receipts, and history live on your device. Close the tab and we no longer have the
+            originals.
           </p>
           <div className="ln-privacy-points">
             <span className="pp">Source photos not server-stored</span>
@@ -451,7 +451,7 @@ function Modes() {
             </h2>
           </div>
           <p className="ln-lead">
-            Solo Scan is live today. Friend vs Friend and Glow Up are next — same Vault, brand-new
+            Solo Scan is live today. Friend vs Friend and Glow Up are next, same Vault, brand-new
             verdicts. We'll ping you the moment they drop.
           </p>
         </div>
@@ -558,10 +558,10 @@ function FinalCTA() {
           YOUR TURN
         </span>
         <h2>
-          UPLOAD - SCAN <span className="hl">GET POSTED</span>
+          UPLOAD. SCAN. <span className="hl">GET POSTED.</span>
         </h2>
         <p>
-          Two photos, one credit, three cards your group chat will not let go of. The first one's free.
+          Two photos, one credit, three cards your group chat won't let go of. First one's free.
         </p>
         <div className="ln-hero-actions">
           <Link className="ln-btn primary lg" to="/vault">
@@ -584,8 +584,7 @@ function Footer() {
               <span className="wm">FITAURA</span>
             </div>
             <p>
-              Face card, outfit check and dating receipt — made for social sharing. For entertainment
-              only.
+              Face card, outfit check, and dating receipt, made for sharing. For entertainment only.
             </p>
           </div>
           <div className="ln-footer-cols">

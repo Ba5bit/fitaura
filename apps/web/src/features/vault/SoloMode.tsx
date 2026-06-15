@@ -318,8 +318,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
           </span>
           <div className="et">No verdicts yet</div>
           <div className="es">
-            Drop a face photo and an outfit photo and FitAura returns your full three-part verdict. Your first scan is
-            free.
+            Drop a face photo and an outfit photo. FitAura returns your full three-part verdict. First scan is free.
           </div>
           <div className="outs">
             {mode.outputs.map((o) => (
@@ -346,7 +345,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
           </div>
           <div className="ea">
             <button className="vlt-btn primary lg" onClick={onScan}>
-              <Icon.scan /> Run your first scan — free
+              <Icon.scan /> Run your first scan, free
             </button>
           </div>
         </div>

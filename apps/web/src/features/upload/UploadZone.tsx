@@ -333,7 +333,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
             </div>
             <ul className="zone-tips">
               {(kind === 'face'
-                ? ['Front-facing, head & shoulders', 'Even light, no heavy shadow', 'Just you — solo shot']
+                ? ['Front-facing, head & shoulders', 'Even light, no heavy shadow', 'Just you, solo shot']
                 : ['Full outfit, head to shoes', 'Stand back, plain background', 'Mirror or full-length is perfect']
               ).map((t) => (
                 <li key={t}>

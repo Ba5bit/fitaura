@@ -53,8 +53,8 @@ export class ErrorBoundary extends Component<Props, State> {
             Something broke
           </div>
           <p style={{ color: 'var(--ink-dim)', fontSize: 15, lineHeight: 1.55, margin: '16px 0 0' }}>
-            The app hit an unexpected error. Your saved scans and credits are on your device and safe — reloading
-            usually fixes it.
+            The app hit an unexpected error. Your saved scans and credits are safe on your device. A reload usually
+            fixes it.
           </p>
           <button
             onClick={() => window.location.assign('/')}

@@ -52,7 +52,7 @@ export function AuthGate() {
             KEEP GOING.
           </h2>
           <p className="aw-modal-sub">
-            Your first verdict was free and stayed on this device. An account lets you buy credits and run more — on
+            Your first verdict was free and stayed on this device. An account lets you buy credits and run more, on
             any device you log in from.
           </p>
           <ul className="pts">
@@ -131,7 +131,7 @@ export function AuthGate() {
           <div className="aw-finehelp">
             <Icon.shield />
             <span>
-              We store your account, credit balance and payment receipts — never your photos.{' '}
+              We store your account, credit balance, and payment receipts, never your photos.{' '}
               <button
                 type="button"
                 className="lk"
@@ -167,7 +167,7 @@ export function Paywall() {
           FREE VERDICT USED
         </h2>
         <p className="aw-modal-sub">
-          Your next scan needs 1 credit. Each credit returns all three cards plus the full analysis — never one card
+          Your next scan needs 1 credit. Each credit returns all three cards plus the full analysis, never one card
           at a time.
         </p>
         <button
@@ -296,7 +296,7 @@ export function Checkout() {
               <button className="aw-btn primary block" style={{ marginTop: '18px' }} onClick={pay}>
                 <Icon.lock /> Pay {p.price}
               </button>
-              <div className="aw-fineprint">Card details are tokenized by our payment partner — never stored by Fitaura.</div>
+              <div className="aw-fineprint">Card details are tokenized by our payment partner, never stored by Fitaura.</div>
             </>
           )}
         </div>
@@ -328,7 +328,7 @@ export function Processing() {
         <h2 className="aw-modal-title" style={{ marginTop: '22px' }}>
           PROCESSING…
         </h2>
-        <p className="aw-modal-sub">Hang tight — don't close or refresh this window.</p>
+        <p className="aw-modal-sub">Hang tight. Don't close or refresh this window.</p>
         <div className="aw-statuslines">
           {lines.map((l, i) => (
             <div key={i} className={'aw-statusline' + (l.done ? ' done' : l.on || i <= stage ? ' on' : '')}>

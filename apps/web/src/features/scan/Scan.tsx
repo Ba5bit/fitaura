@@ -96,7 +96,7 @@ function Rail({ idx }: { idx: number }) {
           <div className="rail-step" key={s.key} data-state={state}>
             <span className="rail-node">{state === 'done' ? <Icon.check /> : <span className="num">{s.code}</span>}</span>
             <span className="rail-label">{s.rail}</span>
-            <span className="rail-code">{state === 'active' ? 'scanning' : state === 'done' ? 'done' : '—'}</span>
+            <span className="rail-code">{state === 'active' ? 'scanning' : state === 'done' ? 'done' : '·'}</span>
           </div>
         );
       })}
@@ -180,7 +180,7 @@ export function Scan() {
         setGenErr(outcome.retake.instruction);
         setGenState('retake');
       } else if (outcome.reason === 'error') {
-        setGenErr('That scan did not go through. Your credit was refunded — give it another go.');
+        setGenErr('That scan did not go through. Your credit was refunded, give it another go.');
         setGenState('error');
       } else {
         navigate('/scan');
@@ -245,7 +245,7 @@ export function Scan() {
     if (outcome.reason === 'retake') {
       setScanError({ kind: 'retake', message: outcome.retake.instruction });
     } else if (outcome.reason === 'error') {
-      setScanError({ kind: 'error', message: 'That scan did not go through. Your credit was refunded — give it another go.' });
+      setScanError({ kind: 'error', message: 'That scan did not go through. Your credit was refunded, give it another go.' });
     } else {
       navigate('/scan');
     }
@@ -372,7 +372,7 @@ export function Scan() {
                 </h2>
                 <p className="sub">
                   {signedIn
-                    ? 'Three cards and one dating receipt — fresh off the press.'
+                    ? 'Three cards and one dating receipt, fresh off the press.'
                     : 'Create your free account to reveal all three cards and your dating receipt.'}
                 </p>
                 <button className="go" onClick={onReveal} disabled={revealing}>

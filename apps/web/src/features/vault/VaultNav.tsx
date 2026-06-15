@@ -15,7 +15,7 @@ export function VaultNav() {
 
   return (
     <nav className="vlt-nav">
-      <button className="vlt-brand" onClick={() => navigate('/')} aria-label="FITAURA — home">
+      <button className="vlt-brand" onClick={() => navigate('/')} aria-label="FITAURA home">
         <span className="dot" />
         <span className="wm">FITAURA</span>
       </button>

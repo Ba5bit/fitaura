@@ -80,7 +80,7 @@ export function Upload() {
             <h2>
               Drop your <span className="hl">face</span> &amp; <span className="hl">fit</span>
             </h2>
-            <p className="sub">Two photos, one scan. We read your face and outfit, then score the aura.</p>
+            <p className="sub">Two photos, one scan. We read your face and outfit, then score your aura.</p>
           </div>
 
           <div className="ua-zones">
@@ -124,12 +124,12 @@ export function Upload() {
             <div className="cta-block">
               {guest || canScan ? (
                 <button className={'cta ' + (bothReady ? 'go' : 'disabled')} onClick={onGenerate}>
-                  <Icon.bolt /> {guest ? 'Scan my aura — free' : 'Scan my aura'}
+                  <Icon.bolt /> {guest ? 'Scan my aura, free' : 'Scan my aura'}
                 </button>
               ) : (
                 // Signed in but out of credits — make the action explicit.
                 <button className="cta go" onClick={() => navigate('/credits')}>
-                  <Icon.credit /> Out of credits — top up
+                  <Icon.credit /> Out of credits. Top up
                 </button>
               )}
               <div className="cta-meta">

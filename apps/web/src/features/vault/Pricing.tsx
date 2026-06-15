@@ -27,7 +27,7 @@ export function Pricing() {
           <SubHead
             eyebrow="CREDITS"
             title="PRICING & CREDITS"
-            sub="FitAura runs on credits, not subscriptions. One credit unlocks the complete verdict — all three cards plus analysis."
+            sub="FitAura runs on credits, not subscriptions. One credit unlocks the complete verdict: all three cards plus analysis."
           />
 
           <div className="vlt-panel glow">

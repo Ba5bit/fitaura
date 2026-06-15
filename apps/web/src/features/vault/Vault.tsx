@@ -40,7 +40,7 @@ function ModeRail({ mode, onSelect }: { mode: ScanModeId; onSelect: (id: ScanMod
       })}
       <div className="vlt-rail-foot">
         <div className="t">More modes incoming</div>
-        <div className="s">Friend vs Friend and Glow Up unlock the same Vault — your cards, new previews.</div>
+        <div className="s">Friend vs Friend and Glow Up unlock the same Vault. Your cards, new previews.</div>
       </div>
     </aside>
   );

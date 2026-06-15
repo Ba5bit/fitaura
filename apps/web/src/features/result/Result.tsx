@@ -244,7 +244,7 @@ export function Result() {
       ping(`Saved ${tabDef.name.toLowerCase()} card to device`);
       flashSaved();
     } catch {
-      ping('Export failed — try again');
+      ping('Export failed. Try again');
     }
   };
   const share = async () => {
@@ -254,11 +254,11 @@ export function Result() {
       const res = await shareResult(out);
       if (res === 'shared') ping('Shared');
       else if (res === 'downloaded') {
-        ping('Saved to device · share from there');
+        ping('Saved to device. Share from there');
         flashSaved();
       }
     } catch {
-      ping('Share failed — try again');
+      ping('Share failed. Try again');
     }
   };
   const exportAll = async () => {
@@ -273,7 +273,7 @@ export function Result() {
       flashSaved();
       ping('Saved all 3 cards to device');
     } catch {
-      ping('Export failed — try again');
+      ping('Export failed. Try again');
     }
   };
   const saveHistory = () => {
@@ -349,7 +349,7 @@ export function Result() {
             type="button"
             className="rs-brand"
             onClick={() => navigate('/')}
-            aria-label="FITAURA — back to home"
+            aria-label="FITAURA, back to home"
             title="Back to home"
           >
             <span className="dot" />

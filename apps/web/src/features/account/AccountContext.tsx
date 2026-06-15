@@ -183,7 +183,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       setScene(null);
       const dest = authRedirect.current ?? '/vault';
       authRedirect.current = null;
-      flash(dest === '/vault' ? 'Signed in — welcome to your vault.' : 'Signed in — revealing your verdict…');
+      flash(dest === '/vault' ? 'Signed in. Welcome to your vault.' : 'Signed in. Revealing your verdict…');
       navigate(dest);
     },
     [flash, navigate],
@@ -237,7 +237,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     setUserId(null);
     setUser(null);
     setCredits(0);
-    flash('Logged out — results stay on this device.');
+    flash('Logged out. Results stay on this device.');
     navigate('/');
     void authSignOut().catch(() => {});
   }, [flash, navigate]);
