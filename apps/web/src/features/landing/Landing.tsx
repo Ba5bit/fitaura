@@ -219,57 +219,6 @@ function How() {
   );
 }
 
-function Bundle() {
-  const items = [
-    { t: 'Face Card', s: 'shareable' },
-    { t: 'Face analysis breakdown', s: 'in-app' },
-    { t: 'Outfit Check Card', s: 'shareable' },
-    { t: 'Outfit fit breakdown', s: 'in-app' },
-    { t: 'Dating Score Receipt', s: 'shareable' },
-  ];
-  return (
-    <section className="ln-section ln-wrap">
-      <div className="ln-bundle-grid">
-        <div>
-          <span className="ln-eyebrow">ONE CREDIT, THE WHOLE VERDICT</span>
-          <h2 className="ln-h2">
-            A single scan
-            <br />
-            unlocks <span className="hl">everything.</span>
-          </h2>
-          <ul className="ln-bundle-list">
-            {items.map((it) => (
-              <li key={it.t}>
-                <span className="ck">
-                  <Icon.check />
-                </span>
-                {it.t}
-                <span className="sub">{it.s}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div className="ln-credit-box">
-          <span className="ln-eyebrow">WHAT ONE CREDIT BUYS</span>
-          <div className="one" style={{ marginTop: '16px' }}>
-            1 SCAN =<br />
-            <span className="hl">3 CARDS</span>
-          </div>
-          <p className="one-sub">
-            No piecemeal unlocks, no upsell mid-result. One credit runs the full face, outfit and
-            dating verdict, all at once.
-          </p>
-          <div className="ln-hero-actions" style={{ marginTop: '26px' }}>
-            <Link className="ln-btn primary" to="/vault">
-              Run your first scan free
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function Credits() {
   const { credits, startCheckout } = useAccount();
 
@@ -608,7 +557,6 @@ export function Landing() {
       <Artifacts />
       <How />
       <Modes />
-      <Bundle />
       <Credits />
       <Privacy />
       <FinalCTA />
