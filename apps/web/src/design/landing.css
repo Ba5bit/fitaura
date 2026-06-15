@@ -172,8 +172,11 @@ body { overflow-y: auto; }
 @media (min-width: 980px) {
   .ln-an-panel.rs-analysis { max-width: none; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 }
-/* Receipt tab: the real receipt card sits in the right column. */
+/* Receipt tab: the real receipt card sits in the right column, its top aligned
+   with the summary block. transform-origin top stops the scaled card from
+   drifting down (the default center origin pushed it below the summary). */
 .ln-an-receipt { align-items: flex-start; }
+.ln-an-receipt .receipt { transform-origin: top center; }
 
 /* ============================ HOW IT WORKS ============================ */
 .ln-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 56px; }
