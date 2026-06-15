@@ -10,6 +10,17 @@ export const rubricRatingSchema = z.object({
 });
 export type RubricRating = z.infer<typeof rubricRatingSchema>;
 
+/** Apparent gender presentation + icon recognition (rules doc §, v3).
+ * Entertainment styling read, NOT an identity claim. */
+export const presentationSchema = z.object({
+  gender: z.enum(['femme', 'masc', 'unsure']),
+  genderConfidence: z.number().min(0).max(1),
+  expressionStrength: z.number().int().min(0).max(100), // masc/fem index; display-only
+  recognizedIcon: z.string().max(60).nullable(),
+  recognizedConfidence: z.number().min(0).max(1),
+});
+export type Presentation = z.infer<typeof presentationSchema>;
+
 export const inputIssueSchema = z.enum([
   'face_missing', 'multiple_faces', 'face_too_small', 'face_obscured',
   'face_blurry', 'face_low_light', 'outfit_missing', 'outfit_too_cropped',
@@ -31,6 +42,7 @@ export const soloScanSchema = z
       issues: z.array(inputIssueSchema).max(14),
       retakeInstruction: z.string().max(300).nullable(),
     }),
+    presentation: presentationSchema,
     faceAnalysis: z.object({
       photoPresentation: rubricRatingSchema,
       faceHarmony: rubricRatingSchema,
