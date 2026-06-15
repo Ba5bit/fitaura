@@ -41,13 +41,14 @@ function slugToTab(slug: string): number | null {
 
 export function Result() {
   const navigate = useNavigate();
-  const { result, startNewScan } = useGeneration();
+  const { result, startNewScan, hydrated } = useGeneration();
   const { credits } = useAccount();
 
-  // No result yet → back to the start.
+  // No result yet → back to the start. Wait for hydration so a reload at /result
+  // doesn't bounce home before IndexedDB has loaded the current result.
   useEffect(() => {
-    if (!result) navigate('/', { replace: true });
-  }, [result, navigate]);
+    if (hydrated && !result) navigate('/', { replace: true });
+  }, [hydrated, result, navigate]);
 
   const initialTab = (() => {
     const fromHash = slugToTab((location.hash || '').replace('#', ''));
