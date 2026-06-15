@@ -3,13 +3,10 @@ import type { DatingVerdict } from '../verdict';
 import type { SoloScanAIOutput } from './schema';
 import { FACE_KEYS, OUTFIT_KEYS } from './schema';
 
-/** rules doc §17 rating→score curve. */
-const RATING_SCORE: Record<number, number> = { 1: 35, 2: 50, 3: 65, 4: 80, 5: 92 };
-
+/** Each category rating is already a 0–100 score (rules doc §17, v2). Clamp for safety;
+ * null stays null (category not assessable). */
 export function scoreFromRating(rating: number | null): number | null {
-  // Null for unassessable; also null for any out-of-range value (Zod guards 1–5
-  // upstream, but this keeps the return type honest if unvalidated data flows in).
-  return rating == null ? null : (RATING_SCORE[rating] ?? null);
+  return rating == null ? null : Math.max(0, Math.min(100, rating));
 }
 
 export interface Weighted {
@@ -62,7 +59,7 @@ export function auraIndex(ai: SoloScanAIOutput, face: number, outfit: number): n
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
 /** FNV-1a string hash → unsigned 32-bit. */
-function hashSeed(s: string): number {
+export function hashSeed(s: string): number {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);
@@ -88,11 +85,11 @@ export function percent(scanId: string, key: string, base: number, spread = 12):
 
 /**
  * Dating verdict from the Aura Index + a small seeded nudge (rules doc §18).
- * Bands are effectively ±3 around the 78 / 58 thresholds because of the nudge.
+ * Bands are effectively ±3 around the 70 / 45 thresholds because of the nudge.
  */
 export function pickVerdict(aura: number, scanId: string): DatingVerdict {
   const c = aura + jitter(`${scanId}:verdict`, 3);
-  if (c >= 78) return 'green_flag';
-  if (c >= 58) return 'normie';
+  if (c >= 70) return 'green_flag';
+  if (c >= 45) return 'normie';
   return 'red_flag';
 }

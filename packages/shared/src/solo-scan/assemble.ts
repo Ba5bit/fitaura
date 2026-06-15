@@ -8,7 +8,7 @@ import type { SoloScanAIOutput, RubricRating } from './schema';
 import {
   scoreFromRating, faceScore, outfitScore, auraIndex, displayScore, percent, pickVerdict,
 } from './scoring';
-import { pickFaceArchetype, pickOutfitCaption, pickPunchline } from './content-bank';
+import { pickFaceArchetype, pickOutfitCaption, pickPunchline, scoreBand } from './content-bank';
 
 /** Display value for a rubric category that is null (not assessable). */
 const UNSCORED_DISPLAY = 50;
@@ -16,8 +16,14 @@ const UNSCORED_DISPLAY = 50;
  * flavor number (e.g. aura 70 → +240), matching the scale of the original mock. */
 const AURA_GAIN_SCALE = 12;
 
-const DESCRIPTOR: Record<number, string> = { 5: 'Elite', 4: 'Strong', 3: 'Even', 2: 'Soft', 1: 'Off' };
-const descriptorFor = (r: number | null) => (r == null ? '—' : (DESCRIPTOR[r] ?? '—'));
+const descriptorFor = (score: number | null): string => {
+  if (score == null) return '—';
+  if (score >= 85) return 'Elite';
+  if (score >= 68) return 'Strong';
+  if (score >= 45) return 'Even';
+  if (score >= 25) return 'Soft';
+  return 'Off';
+};
 
 function faceStickerById(id: string) {
   return stickerFromPreset(STICKER_BANK.face.find((s) => s.id === id) ?? STICKER_BANK.face[0]);
@@ -49,12 +55,16 @@ export function assembleResult(
   if (face == null || outfit == null) throw new Error('insufficient_signal');
 
   const aura = auraIndex(ai, face, outfit);
+  // `verdict` (jittered ±3, 3 dating bands) and `band` (hard thresholds, 6 caption
+  // bands) are intentionally decoupled scales off the same aura — near a boundary the
+  // card archetype/caption and the receipt's verdict tone can land on different sides.
   const verdict = pickVerdict(aura, scanId);
+  const band = scoreBand(aura);
   const d = (s: number, key: string) => displayScore(s, scanId, key, promptVersion);
 
-  const archetype = pickFaceArchetype(ai.contentSelection.faceArchetypeCandidates, verdict);
-  const caption = pickOutfitCaption(ai.contentSelection.outfitCaptionCandidates, verdict);
-  const punchline = pickPunchline(ai.receiptContent.punchlineCandidates, verdict);
+  const archetype = pickFaceArchetype(ai.contentSelection.faceArchetypeCandidates, band, scanId);
+  const caption = pickOutfitCaption(ai.contentSelection.outfitCaptionCandidates, band, scanId);
+  const punchline = pickPunchline(ai.receiptContent.punchlineCandidates, band, scanId);
 
   const fa = ai.faceAnalysis;
   const oa = ai.outfitAnalysis;

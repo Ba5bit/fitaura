@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { assembleResult, sampleAIOutput, DATING_VERDICTS } from '@fitaura/shared';
 
 describe('assembleResult', () => {
-  const result = assembleResult(sampleAIOutput(), 'scan-test-1', 'v1');
+  const result = assembleResult(sampleAIOutput(), 'scan-test-1', 'v2');
 
   it('produces a valid verdict and matching chip', () => {
     expect(DATING_VERDICTS).toContain(result.verdict);
@@ -32,7 +32,7 @@ describe('assembleResult', () => {
   });
 
   it('is deterministic for the same scanId', () => {
-    const again = assembleResult(sampleAIOutput(), 'scan-test-1', 'v1');
+    const again = assembleResult(sampleAIOutput(), 'scan-test-1', 'v2');
     expect(again.face.card.scores[0].value).toBe(result.face.card.scores[0].value);
     expect(again.verdict).toBe(result.verdict);
     expect(again.receipt.generationId).toBe(result.receipt.generationId);
@@ -44,6 +44,6 @@ describe('assembleResult', () => {
     for (const k of Object.keys(ai.faceAnalysis) as (keyof typeof ai.faceAnalysis)[]) {
       ai.faceAnalysis[k].rating = null;
     }
-    expect(() => assembleResult(ai, 'scan-x', 'v1')).toThrow(/insufficient_signal/);
+    expect(() => assembleResult(ai, 'scan-x', 'v2')).toThrow(/insufficient_signal/);
   });
 });
