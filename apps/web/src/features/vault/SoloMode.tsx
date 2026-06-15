@@ -150,7 +150,7 @@ function CreateTile({ onScan }: { onScan: () => void }) {
 /** Solo Scan mode content — the live MVP mode. */
 export function SoloMode({ mode }: { mode: ScanMode }) {
   const navigate = useNavigate();
-  const { history, startNewScan, openResult, removeResult, renameResult } = useGeneration();
+  const { history, startNewScan, openResult, removeResult, renameResult, hydrated } = useGeneration();
   const { signedIn, flash, credits, canScan } = useAccount();
   const [filter, setFilter] = useState<'all' | DatingVerdict>('all');
   const [menu, setMenu] = useState<string | null>(null);
@@ -169,7 +169,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
     };
   }, [menu]);
 
-  const hasResults = history.length > 0;
+  const hasResults = hydrated && history.length > 0;
   const counts = history.reduce<Record<string, number>>((m, r) => {
     m[r.verdict] = (m[r.verdict] || 0) + 1;
     return m;
@@ -308,6 +308,8 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
             )}
           </div>
         </>
+      ) : !hydrated ? (
+        <div className="vlt-empty" style={{ minHeight: 160 }} aria-busy="true" />
       ) : (
         /* focused empty state — Generate stays dominant, mode stays selected */
         <div className="vlt-empty">

@@ -40,6 +40,8 @@ function toAccountUser(user: { id: string; email: string | null | undefined }, c
 
 interface AccountContextValue {
   signedIn: boolean;
+  /** Stable account id used to namespace on-device storage (null when signed out). */
+  userId: string | null;
   user: AccountUser | null;
   /** Server-side credit balance for the signed-in user. */
   credits: number;
@@ -290,6 +292,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AccountContextValue>(
     () => ({
       signedIn,
+      userId,
       user,
       credits,
       canScan,
@@ -317,7 +320,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       openMissing,
     }),
     [
-      signedIn, user, credits, canScan, spendForScan, refundScan, scene, authStatus, authError,
+      signedIn, userId, user, credits, canScan, spendForScan, refundScan, scene, authStatus, authError,
       pack, lastPurchaseCredits, missingId, toast, flash, closeScene, openAuth, signUp, logIn,
       requestLogout, confirmLogout, openPaywall, startCheckout, pay, failPayment, openMissing,
     ],

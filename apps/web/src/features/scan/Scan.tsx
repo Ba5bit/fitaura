@@ -106,7 +106,7 @@ function Rail({ idx }: { idx: number }) {
 
 export function Scan() {
   const navigate = useNavigate();
-  const { face, outfit, bothPhotosReady, runGeneration } = useGeneration();
+  const { face, outfit, bothPhotosReady, runGeneration, hydrated } = useGeneration();
   const { signedIn, openAuth, canScan, spendForScan, openPaywall, refundScan } = useAccount();
   // Set when a guest hit "reveal" — once they sign in, the effect below finishes
   // the reveal. The verdict is only generated after authentication.
@@ -135,10 +135,11 @@ export function Scan() {
   // Guards against a double-tap double-spend before `revealing` disables the button.
   const revealingRef = useRef(false);
 
-  // Guard: a scan needs both confirmed photos.
+  // Guard: a scan needs both confirmed photos (after hydration, so a reload here
+  // doesn't bounce to the upload page before IndexedDB loads).
   useEffect(() => {
-    if (!bothPhotosReady) navigate('/scan', { replace: true });
-  }, [bothPhotosReady, navigate]);
+    if (hydrated && !bothPhotosReady) navigate('/scan', { replace: true });
+  }, [hydrated, bothPhotosReady, navigate]);
 
   const idx = stageAt(progress);
   const stage = STAGES[idx];
@@ -148,6 +149,7 @@ export function Scan() {
   // failure it's refunded. Guests run the teaser only — no token spend until they
   // sign up at the reveal (Task 2). Runs exactly once (startedRef + StrictMode).
   useEffect(() => {
+    if (!hydrated) return;
     if (!bothPhotosReady || startedRef.current) return;
     if (!signedIn) {
       startedRef.current = true; // guest teaser — generation deferred to post-sign-up
@@ -184,7 +186,7 @@ export function Scan() {
         navigate('/scan');
       }
     })();
-  }, [bothPhotosReady, signedIn, canScan, spendForScan, runGeneration, refundScan, openPaywall, navigate]);
+  }, [hydrated, bothPhotosReady, signedIn, canScan, spendForScan, runGeneration, refundScan, openPaywall, navigate]);
 
   // Progress driver. For a signed-in scan the animation HOLDS near the end until
   // the real generation settles, so the wait is synced to the actual AI. Guests

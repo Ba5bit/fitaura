@@ -1,39 +1,14 @@
-import { createContext, useCallback, useContext, useMemo, useRef, type ReactNode } from 'react';
-import {
-  type FullGenerationResult,
-} from '@fitaura/shared';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { runSoloScan, type SoloScanOutcome } from '../services/soloScanService';
-import { useLocalStorage } from './useLocalStorage';
+import { useAccount } from '../features/account/AccountContext';
+import {
+  accountKeyFor, loadAccount, putResult, putSession, deleteResult, renameResultDb,
+  moveAccountData, migrateLegacyLocalStorage, trimToCap,
+  type UploadedPhoto, type GenerationResult,
+} from './generationDb';
 
-/** A baked, cropped photo ready to drop into a card (data URL, on-device). */
-export interface UploadedPhoto {
-  url: string;
-}
-
-export interface GenerationResult extends FullGenerationResult {
-  /** When this generation was produced (device-local history). */
-  producedAt: string;
-  /** Optional user-given name for the vault (defaults to the generation id). */
-  name?: string;
-}
-
-/** Newest results kept on-device. Capped so localStorage stays small. */
-const HISTORY_CAP = 4;
-
-/** Device-domain only — photos/results never leave the device (privacy rule). */
-interface PersistedState {
-  face: UploadedPhoto | null;
-  outfit: UploadedPhoto | null;
-  result: GenerationResult | null;
-  history: GenerationResult[];
-}
-
-const INITIAL: PersistedState = {
-  face: null,
-  outfit: null,
-  result: null,
-  history: [],
-};
+// Re-export the shared types so existing consumers keep importing them from here.
+export type { UploadedPhoto, GenerationResult } from './generationDb';
 
 /** The retake fields, derived from the service outcome so the two can't drift. */
 export type RetakeInfo = Omit<Extract<SoloScanOutcome, { kind: 'retake' }>, 'kind'>;
@@ -49,58 +24,114 @@ interface GenerationContextValue {
   outfit: UploadedPhoto | null;
   result: GenerationResult | null;
   bothPhotosReady: boolean;
-  /** Recent on-device results (newest first). */
+  /** Recent on-device results for the current account (newest first). */
   history: GenerationResult[];
+  /** False until the current account's on-device data has loaded from IndexedDB. */
+  hydrated: boolean;
   setFace: (photo: UploadedPhoto | null) => void;
   setOutfit: (photo: UploadedPhoto | null) => void;
-  /** Runs the AI generation from the uploaded photos. Credit gating happens in AccountContext. */
   runGeneration: () => Promise<RunOutcome>;
-  /** Clears the current photos to begin a fresh scan (keeps result/history). */
   startNewScan: () => void;
-  /** Make a stored history result the current one. Returns false if missing. */
   openResult: (generationId: string) => boolean;
-  /** Permanently remove a result from the on-device history. */
   removeResult: (generationId: string) => void;
-  /** Rename a result in the on-device history. */
   renameResult: (generationId: string, name: string) => void;
 }
 
 const GenerationContext = createContext<GenerationContextValue | null>(null);
 
 export function GenerationProvider({ children }: { children: ReactNode }) {
-  const [rawState, setState] = useLocalStorage<PersistedState>('fitaura.state', INITIAL);
+  const { userId } = useAccount();
+  const accountKey = accountKeyFor(userId);
 
-  // Coerce against legacy persisted state (older blobs predate `history`, and
-  // earlier versions stored credits/freeUsed here — those are dropped on read).
-  const state: PersistedState = {
-    face: rawState.face ?? null,
-    outfit: rawState.outfit ?? null,
-    result: rawState.result ?? null,
-    history: rawState.history ?? [],
-  };
+  const [face, setFaceState] = useState<UploadedPhoto | null>(null);
+  const [outfit, setOutfitState] = useState<UploadedPhoto | null>(null);
+  const [history, setHistory] = useState<GenerationResult[]>([]);
+  const [currentId, setCurrentId] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
 
-  // Mirror of the latest state so runGeneration can read current state without a
-  // stale closure. IMPORTANT: after any await, merge via a functional setState
-  // updater (read `prev`) — state may have changed while the scan was in flight.
-  const stateRef = useRef(state);
-  stateRef.current = state;
-
-  const setFace = useCallback(
-    (photo: UploadedPhoto | null) => setState((s) => ({ ...s, face: photo })),
-    [setState],
-  );
-  const setOutfit = useCallback(
-    (photo: UploadedPhoto | null) => setState((s) => ({ ...s, outfit: photo })),
-    [setState],
+  const result = useMemo(
+    () => history.find((h) => h.receipt.generationId === currentId) ?? null,
+    [history, currentId],
   );
 
-  const bothPhotosReady = !!state.face && !!state.outfit;
+  // Latest snapshot for callbacks that run after an await (avoids stale closures).
+  const stateRef = useRef({ face, outfit, history, currentId, accountKey });
+  stateRef.current = { face, outfit, history, currentId, accountKey };
+
+  // Tracks the previous account so a guest→login transition can be detected.
+  // undefined = first run (no hand-off); null = was guest; string = was signed in.
+  const prevUserId = useRef<string | null | undefined>(undefined);
+
+  // Hydrate on mount and on account switch; run the one-time legacy migration and
+  // the guest→login hand-off. Degrades to in-memory if IndexedDB is unavailable.
+  useEffect(() => {
+    let active = true;
+    setHydrated(false);
+    // Reset in-memory state immediately so stateRef is consistent with the
+    // new accountKey during the IndexedDB load window. Without this, any write
+    // that fires before the await resolves would use the new key but the old
+    // account's face/outfit/history, corrupting the wrong namespace.
+    setFaceState(null);
+    setOutfitState(null);
+    setHistory([]);
+    setCurrentId(null);
+    void (async () => {
+      try {
+        await migrateLegacyLocalStorage(Date.now());
+        if (prevUserId.current === null && userId) {
+          await moveAccountData('guest', accountKey, Date.now());
+        }
+        const data = await loadAccount(accountKey, Date.now());
+        if (!active) return;
+        setFaceState(data.session.face);
+        setOutfitState(data.session.outfit);
+        setCurrentId(data.session.currentResultId);
+        setHistory(data.results);
+      } catch {
+        // IndexedDB blocked/unavailable — keep whatever is in memory.
+      } finally {
+        if (active) {
+          prevUserId.current = userId;
+          setHydrated(true);
+        }
+      }
+    })();
+    return () => { active = false; };
+  }, [accountKey, userId]);
+
+  const persistSession = useCallback((next: Partial<{ face: UploadedPhoto | null; outfit: UploadedPhoto | null; currentResultId: string | null }>) => {
+    const s = stateRef.current;
+    void putSession(s.accountKey, {
+      accountKey: s.accountKey,
+      face: next.face !== undefined ? next.face : s.face,
+      outfit: next.outfit !== undefined ? next.outfit : s.outfit,
+      currentResultId: next.currentResultId !== undefined ? next.currentResultId : s.currentId,
+    });
+  }, []);
+
+  const setFace = useCallback((photo: UploadedPhoto | null) => {
+    setFaceState(photo);
+    persistSession({ face: photo });
+  }, [persistSession]);
+
+  const setOutfit = useCallback((photo: UploadedPhoto | null) => {
+    setOutfitState(photo);
+    persistSession({ outfit: photo });
+  }, [persistSession]);
+
+  const bothPhotosReady = !!face && !!outfit;
 
   const runGeneration = useCallback<GenerationContextValue['runGeneration']>(async () => {
     const s = stateRef.current;
     if (!s.face || !s.outfit) return { ok: false, reason: 'missing_photos' };
 
-    const outcome = await runSoloScan(s.face.url, s.outfit.url);
+    // Capture the account identity and photos BEFORE the long await so that an
+    // account switch during the scan cannot cause us to persist under the wrong key.
+    const startedKey = s.accountKey;
+    const startedFace = s.face;
+    const startedOutfit = s.outfit;
+
+    const outcome = await runSoloScan(startedFace.url, startedOutfit.url);
     if (outcome.kind === 'retake') {
       return { ok: false, reason: 'retake', retake: { faceUsable: outcome.faceUsable, outfitUsable: outcome.outfitUsable, instruction: outcome.instruction } };
     }
@@ -110,86 +141,64 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
 
     const now = new Date().toISOString();
     const base = outcome.result;
-    // Use the photos that were actually scanned (captured before the await) for the
-    // card images — not whatever may have been swapped in while the scan was running.
+    // Use the pre-await photos for card imageUrls — never the post-await snapshot.
     const result: GenerationResult = {
       ...base,
       producedAt: now,
-      face: { ...base.face, card: { ...base.face.card, imageUrl: s.face.url } },
-      outfit: { ...base.outfit, card: { ...base.outfit.card, imageUrl: s.outfit.url } },
+      face: { ...base.face, card: { ...base.face.card, imageUrl: startedFace.url } },
+      outfit: { ...base.outfit, card: { ...base.outfit.card, imageUrl: startedOutfit.url } },
       receipt: { ...base.receipt, generatedAt: now },
     };
 
-    // Merge into whatever state is current AFTER the await (functional updater) so a
-    // face/outfit/history change made during the scan isn't clobbered by a stale snapshot.
-    setState((prev) => ({
-      ...prev,
-      result,
-      history: [result, ...prev.history.filter((h) => h.receipt.generationId !== result.receipt.generationId)].slice(
-        0,
-        HISTORY_CAP,
-      ),
-    }));
+    await putResult(startedKey, result);
+    void putSession(startedKey, { accountKey: startedKey, face: startedFace, outfit: startedOutfit, currentResultId: result.receipt.generationId });
+
+    // Only update the live React state if the provider is still on the account
+    // that started this generation. If the user switched mid-scan the result is
+    // safely persisted in IndexedDB and will appear on next load of that account.
+    if (stateRef.current.accountKey === startedKey) {
+      setHistory((prev) => trimToCap([result, ...prev.filter((h) => h.receipt.generationId !== result.receipt.generationId)]));
+      setCurrentId(result.receipt.generationId);
+    }
     return { ok: true, result };
-  }, [setState]);
+  }, []);
 
-  const startNewScan = useCallback(
-    () => setState((s) => ({ ...s, face: null, outfit: null })),
-    [setState],
-  );
+  const startNewScan = useCallback(() => {
+    setFaceState(null);
+    setOutfitState(null);
+    persistSession({ face: null, outfit: null });
+  }, [persistSession]);
 
-  const openResult = useCallback(
-    (generationId: string) => {
-      const found = stateRef.current.history.find((h) => h.receipt.generationId === generationId);
-      if (!found) return false;
-      setState((s) => ({ ...s, result: found }));
-      return true;
-    },
-    [setState],
-  );
+  const openResult = useCallback((generationId: string) => {
+    const s = stateRef.current;
+    if (!s.history.some((h) => h.receipt.generationId === generationId)) return false;
+    setCurrentId(generationId);
+    persistSession({ currentResultId: generationId });
+    return true;
+  }, [persistSession]);
 
-  const removeResult = useCallback(
-    (generationId: string) =>
-      setState((s) => ({
-        ...s,
-        history: s.history.filter((h) => h.receipt.generationId !== generationId),
-        result: s.result?.receipt.generationId === generationId ? null : s.result,
-      })),
-    [setState],
-  );
+  const removeResult = useCallback((generationId: string) => {
+    const s = stateRef.current;
+    setHistory((prev) => prev.filter((h) => h.receipt.generationId !== generationId));
+    if (s.currentId === generationId) {
+      setCurrentId(null);
+      persistSession({ currentResultId: null });
+    }
+    void deleteResult(s.accountKey, generationId);
+  }, [persistSession]);
 
-  const renameResult = useCallback(
-    (generationId: string, name: string) => {
-      const clean = name.trim();
-      setState((s) => {
-        const apply = (r: GenerationResult): GenerationResult =>
-          r.receipt.generationId === generationId ? { ...r, name: clean || undefined } : r;
-        return {
-          ...s,
-          history: s.history.map(apply),
-          result: s.result ? apply(s.result) : s.result,
-        };
-      });
-    },
-    [setState],
-  );
+  const renameResult = useCallback((generationId: string, name: string) => {
+    const clean = name.trim();
+    setHistory((prev) => prev.map((r) => (r.receipt.generationId === generationId ? { ...r, name: clean || undefined } : r)));
+    void renameResultDb(stateRef.current.accountKey, generationId, clean);
+  }, []);
 
   const value = useMemo<GenerationContextValue>(
     () => ({
-      face: state.face,
-      outfit: state.outfit,
-      result: state.result,
-      bothPhotosReady,
-      history: state.history,
-      setFace,
-      setOutfit,
-      runGeneration,
-      startNewScan,
-      openResult,
-      removeResult,
-      renameResult,
+      face, outfit, result, bothPhotosReady, history, hydrated,
+      setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult,
     }),
-    [state, bothPhotosReady, setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult],
+    [face, outfit, result, bothPhotosReady, history, hydrated, setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult],
   );
 
   return <GenerationContext.Provider value={value}>{children}</GenerationContext.Provider>;
