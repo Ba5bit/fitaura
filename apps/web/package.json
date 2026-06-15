@@ -17,7 +17,6 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^1.2.0",
     "@zumer/snapdom": "^2.12.8",
-    "html-to-image": "^1.11.13",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0"
