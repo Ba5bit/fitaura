@@ -47,3 +47,42 @@ describe('assembleResult', () => {
     expect(() => assembleResult(ai, 'scan-x', 'v2')).toThrow(/insufficient_signal/);
   });
 });
+
+describe('assembleResult v3', () => {
+  it('face card shows aura, haircut, gender index, main character', () => {
+    const r = assembleResult(sampleAIOutput(), 'scan-v3', 'v3');
+    expect(r.face.card.scores.map((s) => s.id)).toEqual(['aura', 'haircut-match', 'gender-index', 'main-character']);
+    expect(r.face.card.scores[2].label).toBe('Masculinity Index'); // masc fixture
+  });
+
+  it('labels the index Femininity Index for confident femme', () => {
+    const ai = sampleAIOutput();
+    ai.presentation = { ...ai.presentation, gender: 'femme', genderConfidence: 0.9 };
+    const r = assembleResult(ai, 'scan-v3', 'v3');
+    expect(r.face.card.scores[2].label).toBe('Femininity Index');
+  });
+
+  it('femme bias raises the aura vs the same scan read as masc', () => {
+    const masc = assembleResult(sampleAIOutput(), 'scan-cmp', 'v3');
+    const ai = sampleAIOutput();
+    ai.presentation = { ...ai.presentation, gender: 'femme', genderConfidence: 0.9 };
+    const femme = assembleResult(ai, 'scan-cmp', 'v3');
+    expect(femme.face.analysis.aura).toBeGreaterThan(masc.face.analysis.aura);
+  });
+
+  it('keeps jaw presence + face harmony in the breakdown', () => {
+    const r = assembleResult(sampleAIOutput(), 'scan-v3', 'v3');
+    const ids = r.face.analysis.breakdown.map((t) => t.id);
+    expect(ids).toContain('jaw');
+    expect(ids).toContain('harmony');
+  });
+
+  it('surfaces a recognized icon name only above the confidence gate', () => {
+    const hi = sampleAIOutput();
+    hi.presentation = { ...hi.presentation, recognizedIcon: 'McLovin', recognizedConfidence: 0.9 };
+    const lo = sampleAIOutput();
+    lo.presentation = { ...lo.presentation, recognizedIcon: 'McLovin', recognizedConfidence: 0.5 };
+    expect(assembleResult(hi, 'scan-icon', 'v3').receipt.summary).toContain('McLovin');
+    expect(assembleResult(lo, 'scan-icon', 'v3').receipt.summary).not.toContain('McLovin');
+  });
+});

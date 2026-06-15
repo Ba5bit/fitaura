@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   scoreFromRating, weightedAverage, jitter, displayScore,
   pickVerdict, percent,
+  biasFactor, biasedRating, applyScoreBias, faceScore,
+  sampleAIOutput,
 } from '@fitaura/shared';
 
 describe('scoring', () => {
@@ -52,5 +54,42 @@ describe('scoring', () => {
   it('percent is clamped 0..100 and deterministic', () => {
     expect(percent('scan1', 'ghost', 50)).toBe(percent('scan1', 'ghost', 50));
     expect(percent('scan1', 'ghost', 99, 10)).toBeLessThanOrEqual(100);
+  });
+});
+
+describe('bias', () => {
+  const base = () => sampleAIOutput().presentation;
+
+  it('is 1.0 with no femme, no icon', () => {
+    expect(biasFactor({ ...base(), gender: 'masc', recognizedIcon: null })).toBe(1);
+  });
+
+  it('applies the femme factor only when confidently femme', () => {
+    expect(biasFactor({ ...base(), gender: 'femme', genderConfidence: 0.9 })).toBeCloseTo(1.07);
+    expect(biasFactor({ ...base(), gender: 'femme', genderConfidence: 0.4 })).toBe(1); // below gate
+  });
+
+  it('applies the icon factor only when confidently recognized', () => {
+    expect(biasFactor({ ...base(), recognizedIcon: 'McLovin', recognizedConfidence: 0.9 })).toBeCloseTo(1.15);
+    expect(biasFactor({ ...base(), recognizedIcon: 'McLovin', recognizedConfidence: 0.3 })).toBe(1);
+  });
+
+  it('stacks femme and icon', () => {
+    const f = biasFactor({ ...base(), gender: 'femme', genderConfidence: 0.9, recognizedIcon: 'X', recognizedConfidence: 0.9 });
+    expect(f).toBeCloseTo(1.07 * 1.15);
+  });
+
+  it('biasedRating clamps to 100 and passes null through', () => {
+    expect(biasedRating(50, 1.07)).toBe(54); // round(53.5)
+    expect(biasedRating(98, 1.15)).toBe(100); // clamps
+    expect(biasedRating(null, 1.15)).toBeNull();
+  });
+
+  it('applyScoreBias raises the aggregate face score', () => {
+    const ai = sampleAIOutput();
+    const biased = applyScoreBias(ai, 1.15);
+    expect(faceScore(biased)!).toBeGreaterThan(faceScore(ai)!);
+    // factor 1 returns the same object untouched
+    expect(applyScoreBias(ai, 1)).toBe(ai);
   });
 });

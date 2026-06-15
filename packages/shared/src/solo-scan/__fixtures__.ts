@@ -7,10 +7,14 @@ const r = (rating: number | null, confidence = 0.8, evidence = 'Visible in the i
 /** A deterministic, schema-valid AI output for tests. */
 export function sampleAIOutput(): SoloScanAIOutput {
   return {
-    schemaVersion: 'solo_scan_v2',
+    schemaVersion: 'solo_scan_v3',
     inputQuality: {
       usable: true, faceUsable: true, outfitUsable: true,
       samePersonLikely: true, issues: [], retakeInstruction: null,
+    },
+    presentation: {
+      gender: 'masc', genderConfidence: 0.9, expressionStrength: 70,
+      recognizedIcon: null, recognizedConfidence: 0,
     },
     faceAnalysis: {
       photoPresentation: r(78), faceHarmony: r(76), jawPresence: r(55),

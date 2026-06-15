@@ -7,6 +7,7 @@ import { VERDICT_LABEL } from '../verdict.ts';
 import type { SoloScanAIOutput, RubricRating } from './schema.ts';
 import {
   scoreFromRating, faceScore, outfitScore, auraIndex, displayScore, percent, pickVerdict,
+  biasFactor, applyScoreBias, ICON_NAME_CONFIDENCE_MIN,
 } from './scoring.ts';
 import { pickFaceArchetype, pickOutfitCaption, pickPunchline, scoreBand } from './content-bank.ts';
 
@@ -50,11 +51,17 @@ export function assembleResult(
   scanId: string,
   promptVersion: string,
 ): FullGenerationResult {
-  const face = faceScore(ai);
-  const outfit = outfitScore(ai);
+  const factor = biasFactor(ai.presentation);
+  const b = applyScoreBias(ai, factor);          // biased clone (or ai itself when factor===1)
+  const confidentlyFemme = ai.presentation.gender === 'femme'
+    && ai.presentation.genderConfidence >= 0.60;
+  const contentGender = confidentlyFemme ? 'femme' : 'masc';
+
+  const face = faceScore(b);
+  const outfit = outfitScore(b);
   if (face == null || outfit == null) throw new Error('insufficient_signal');
 
-  const aura = auraIndex(ai, face, outfit);
+  const aura = auraIndex(b, face, outfit);
   // `verdict` (jittered ±3, 3 dating bands) and `band` (hard thresholds, 6 caption
   // bands) are intentionally decoupled scales off the same aura — near a boundary the
   // card archetype/caption and the receipt's verdict tone can land on different sides.
@@ -62,12 +69,12 @@ export function assembleResult(
   const band = scoreBand(aura);
   const d = (s: number, key: string) => displayScore(s, scanId, key, promptVersion);
 
-  const archetype = pickFaceArchetype(ai.contentSelection.faceArchetypeCandidates, band, scanId);
-  const caption = pickOutfitCaption(ai.contentSelection.outfitCaptionCandidates, band, scanId);
-  const punchline = pickPunchline(ai.receiptContent.punchlineCandidates, band, scanId);
+  const archetype = pickFaceArchetype(ai.contentSelection.faceArchetypeCandidates, band, scanId, contentGender);
+  const caption = pickOutfitCaption(ai.contentSelection.outfitCaptionCandidates, band, scanId, contentGender);
+  const punchline = pickPunchline(ai.receiptContent.punchlineCandidates, band, scanId, contentGender);
 
-  const fa = ai.faceAnalysis;
-  const oa = ai.outfitAnalysis;
+  const fa = b.faceAnalysis;
+  const oa = b.outfitAnalysis;
   const sc = (r: RubricRating, key: string) => d(scoreFromRating(r.rating) ?? UNSCORED_DISPLAY, key);
 
   /* ---- Face ---- */
@@ -78,8 +85,9 @@ export function assembleResult(
     index: `AURA INDEX ${aura}`,
     scores: [
       score('aura', 'Aura', aura),
-      score('jaw-presence', 'Jaw Presence', sc(fa.jawPresence, 'jaw')),
-      score('face-harmony', 'Face Harmony', sc(fa.faceHarmony, 'harmony')),
+      score('haircut-match', 'Haircut Match', sc(fa.haircutMatch, 'haircut')),
+      score('gender-index', confidentlyFemme ? 'Femininity Index' : 'Masculinity Index',
+        d(ai.presentation.expressionStrength, 'gender-index')),
       score('main-character', 'Main Character', sc(fa.mainCharacterEnergy, 'mainchar'), true),
     ],
     sticker: faceStickerById(archetype.stickerId),
@@ -176,7 +184,10 @@ export function assembleResult(
       datingVerdict: verdict,
       finalPunchline: punchline,
       stamp: ['FITAURA', 'VERIFIED'],
-      summary: `${ai.faceCopy.summary} ${ai.outfitCopy.verdict}`,
+      summary: ai.presentation.recognizedIcon
+        && ai.presentation.recognizedConfidence >= ICON_NAME_CONFIDENCE_MIN
+        ? `Giving ${ai.presentation.recognizedIcon} energy. ${ai.faceCopy.summary} ${ai.outfitCopy.verdict}`
+        : `${ai.faceCopy.summary} ${ai.outfitCopy.verdict}`,
     },
   };
 }

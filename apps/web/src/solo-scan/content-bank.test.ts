@@ -49,3 +49,23 @@ describe('content bank', () => {
     expect(() => pickFaceArchetype(['nonsense'], 'dire', 'scan-a')).not.toThrow();
   });
 });
+
+describe('gendered content', () => {
+  it('femme override text is used when gender is femme', () => {
+    // unc carries a femme override (AUNTIE / STATUS) — see Task 4 bank.
+    const masc = pickFaceArchetype(['face_archetype.unc'], 'dire', 's1', 'masc');
+    const femme = pickFaceArchetype(['face_archetype.unc'], 'dire', 's1', 'femme');
+    expect(masc.line).toEqual(['UNC', 'STATUS']);
+    expect(femme.line).toEqual(['AUNTIE', 'STATUS']);
+  });
+
+  it('a femme scan never receives a masc-only id, even if nominated', () => {
+    const a = pickFaceArchetype(['face_archetype.alpha_male'], 'high', 's2', 'femme');
+    expect(a.line).not.toEqual(['ALPHA', 'MALE']); // masc-only → filtered out → band fallback
+  });
+
+  it('a masc scan never receives a femme-only id, even if nominated', () => {
+    const a = pickFaceArchetype(['face_archetype.it_girl'], 'high', 's3', 'masc');
+    expect(a.line).not.toEqual(['IT', 'GIRL']);
+  });
+});
