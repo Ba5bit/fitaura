@@ -164,7 +164,10 @@
 
 /* ============================ READOUT COLUMN ============================ */
 .readout{ min-width:0; display:flex; flex-direction:column; gap:16px; }
-.sa[data-mobile="true"] .readout{ gap:13px; }
+/* Mobile: present the scanning info as its own rounded card (the specimen is
+   already framed; this gives the readout matching block borders). */
+.sa[data-mobile="true"] .readout{ gap:13px; border:1px solid var(--hair); border-radius:18px;
+  background:color-mix(in oklab,var(--panel) 60%,transparent); padding:18px 16px; backdrop-filter:blur(4px); }
 
 .ro-stage{ display:flex; align-items:baseline; gap:12px; }
 .ro-code{ font-family:"Space Mono",monospace; font-size:12px; letter-spacing:0.16em; color:var(--accent);
@@ -278,6 +281,9 @@
 /* ============================ DONE / REVEAL ============================ */
 .reveal{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
   position:relative; z-index:2; padding:20px; gap:0; }
+/* Mobile: the verdict reveal becomes its own rounded card, centered in the view. */
+.sa[data-mobile="true"] .reveal{ flex:0 1 auto; margin:auto 0; padding:34px 22px; border:1px solid var(--hair);
+  border-radius:18px; background:color-mix(in oklab,var(--panel) 60%,transparent); backdrop-filter:blur(4px); }
 .reveal .stamp{ font-family:"Anton",sans-serif; font-size:13px; letter-spacing:0.3em; color:var(--gold);
   text-transform:uppercase; }
 .reveal h2{ font-family:"Anton",sans-serif; font-weight:400; text-transform:uppercase; font-size:42px;
