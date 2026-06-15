@@ -1,7 +1,6 @@
 import {
   STICKER_BANK,
   stickerFromPreset,
-  VERDICT_LABEL,
   type DatingVerdict,
   type FullGenerationResult,
   type ScoreItem,
@@ -303,5 +302,3 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
 /** The featured demo lands on GREEN FLAG — the example photos sit with the
  * highest scores (aura 92, dating 9.1, "Certified Main Character / Lover Boy"). */
 export const DEFAULT_VERDICT: DatingVerdict = 'green_flag';
-
-export { VERDICT_LABEL };

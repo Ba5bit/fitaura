@@ -146,7 +146,7 @@ export function downloadResult(out: ExportResult) {
 }
 
 /** Can the browser share image files natively? */
-export function canShareFiles(): boolean {
+function canShareFiles(): boolean {
   if (typeof navigator === 'undefined' || !navigator.share || !navigator.canShare) return false;
   try {
     const f = new File([new Blob(['x'])], 't.png', { type: 'image/png' });
