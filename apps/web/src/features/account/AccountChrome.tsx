@@ -12,7 +12,7 @@ import { ProfileMenu } from './ProfileMenu';
  */
 export function CreditChip() {
   const navigate = useNavigate();
-  const { signedIn, openAuth, credits, freeScanAvailable } = useAccount();
+  const { signedIn, openAuth, credits } = useAccount();
 
   if (signedIn) {
     return (
@@ -25,23 +25,14 @@ export function CreditChip() {
       </button>
     );
   }
-  if (freeScanAvailable) {
-    return (
-      <button className="aw-chip free" onClick={() => navigate('/vault')}>
-        <span className="gem">
-          <Icon.bolt />
-        </span>
-        1 FREE VERDICT
-      </button>
-    );
-  }
+  // Guests: bait the free verdict — tapping opens sign-up (the free credits land
+  // on registration; there is no token-spending guest scan anymore).
   return (
-    <button className="aw-chip zero" onClick={() => openAuth()}>
+    <button className="aw-chip free" onClick={() => openAuth()}>
       <span className="gem">
-        <Icon.gem />
+        <Icon.bolt />
       </span>
-      <b>0</b>
-      <span className="credit-word"> credits</span>
+      1 FREE VERDICT
     </button>
   );
 }

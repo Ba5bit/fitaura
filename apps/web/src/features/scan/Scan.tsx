@@ -113,6 +113,15 @@ export function Scan() {
   const [pendingReveal, setPendingReveal] = useState(false);
   const [revealing, setRevealing] = useState(false);
   const [scanError, setScanError] = useState<{ kind: 'retake' | 'error'; message: string } | null>(null);
+  // Signed-in generation lifecycle — the AI runs DURING the scan animation (synced).
+  // Guests stay 'idle' (teaser only) and generate after they sign up at the reveal.
+  const [genState, setGenState] = useState<'idle' | 'running' | 'ready' | 'error' | 'retake'>('idle');
+  const [genErr, setGenErr] = useState<string | null>(null);
+  const genStateRef = useRef(genState);
+  genStateRef.current = genState;
+  // Guards the one-time scan kickoff against React StrictMode's double-invoke
+  // (a double run here would double-spend a credit / double-call the AI).
+  const startedRef = useRef(false);
 
   const reduced =
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
@@ -134,15 +143,62 @@ export function Scan() {
   const idx = stageAt(progress);
   const stage = STAGES[idx];
 
-  // Progress driver.
+  // Kick off the real generation immediately for a signed-in user, so the AI
+  // works WHILE the animation plays (Task 3 sync). A credit is spent up front; on
+  // failure it's refunded. Guests run the teaser only — no token spend until they
+  // sign up at the reveal (Task 2). Runs exactly once (startedRef + StrictMode).
+  useEffect(() => {
+    if (!bothPhotosReady || startedRef.current) return;
+    if (!signedIn) {
+      startedRef.current = true; // guest teaser — generation deferred to post-sign-up
+      return;
+    }
+    if (!canScan) {
+      startedRef.current = true;
+      openPaywall();
+      navigate('/scan');
+      return;
+    }
+    startedRef.current = true;
+    setGenState('running');
+    void (async () => {
+      const ok = await spendForScan();
+      if (!ok) {
+        openPaywall();
+        navigate('/scan');
+        return;
+      }
+      const outcome = await runGeneration();
+      if (outcome.ok) {
+        setGenState('ready');
+        return;
+      }
+      await refundScan();
+      if (outcome.reason === 'retake') {
+        setGenErr(outcome.retake.instruction);
+        setGenState('retake');
+      } else if (outcome.reason === 'error') {
+        setGenErr('That scan did not go through. Your credit was refunded — give it another go.');
+        setGenState('error');
+      } else {
+        navigate('/scan');
+      }
+    })();
+  }, [bothPhotosReady, signedIn, canScan, spendForScan, runGeneration, refundScan, openPaywall, navigate]);
+
+  // Progress driver. For a signed-in scan the animation HOLDS near the end until
+  // the real generation settles, so the wait is synced to the actual AI. Guests
+  // have no generation in flight, so they finish on the timer (pure teaser).
   useEffect(() => {
     if (!bothPhotosReady) return;
     const dur = reduced ? 3500 : 9000;
     const frame = (t: number) => {
       if (startRef.current == null) startRef.current = t;
-      const p = Math.min(100, ((t - startRef.current) / dur) * 100);
-      setProgress(reduced ? Math.floor(p / 4) * 4 : p);
-      if (p >= 100) {
+      const rawP = Math.min(100, ((t - startRef.current) / dur) * 100);
+      const settled = !signedIn || (genStateRef.current !== 'idle' && genStateRef.current !== 'running');
+      const capped = settled ? rawP : Math.min(rawP, 95);
+      setProgress(reduced ? Math.floor(capped / 4) * 4 : capped);
+      if (rawP >= 100 && settled) {
         setProgress(100);
         setPhase('done');
         return;
@@ -151,7 +207,7 @@ export function Scan() {
     };
     rafRef.current = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [bothPhotosReady, reduced]);
+  }, [bothPhotosReady, reduced, signedIn]);
 
   // Microcopy rotation.
   useEffect(() => {
@@ -160,9 +216,10 @@ export function Scan() {
     return () => clearInterval(id);
   }, [phase]);
 
-  const doReveal = useCallback(async () => {
-    // Synchronous guard: the button is only disabled after `spendForScan` resolves,
-    // so without this a fast double-tap could spend two credits on slow networks.
+  // Guest-only: after sign-up the verdict is generated (this is the FIRST time we
+  // spend tokens for a guest — never before registration). Same spend→generate→
+  // refund-on-failure contract as the signed-in kickoff.
+  const doRevealGuest = useCallback(async () => {
     if (revealingRef.current) return;
     revealingRef.current = true;
     setScanError(null);
@@ -182,8 +239,6 @@ export function Scan() {
       navigate('/result#face');
       return;
     }
-    // Any failure after a successful spend → give the credit back (always — including
-    // the should-never-happen missing_photos case, since the spend already landed).
     await refundScan();
     if (outcome.reason === 'retake') {
       setScanError({ kind: 'retake', message: outcome.retake.instruction });
@@ -194,27 +249,27 @@ export function Scan() {
     }
   }, [spendForScan, openPaywall, runGeneration, refundScan, navigate]);
 
-  // Reveal policy: a guest's first scan is free (reveals straight away); once it's
-  // used, a guest is sent to sign-in (returning here on success), and a signed-in
-  // user with no credits hits the paywall.
+  // Reveal: a signed-in user already has their verdict (generated during the scan)
+  // — just open it. A guest is sent to sign-up; generation happens afterwards.
   const onReveal = useCallback(() => {
-    if (canScan) {
-      void doReveal();
-    } else if (!signedIn) {
-      setPendingReveal(true);
-      openAuth('/scan/run');
-    } else {
-      openPaywall();
+    if (signedIn) {
+      if (genStateRef.current === 'ready') {
+        localStorage.setItem('fitaura.tab', 'face');
+        navigate('/result#face');
+      }
+      return;
     }
-  }, [canScan, signedIn, doReveal, openAuth, openPaywall]);
+    setPendingReveal(true);
+    openAuth('/scan/run');
+  }, [signedIn, navigate, openAuth]);
 
-  // Once a pending guest signs in (and now has credits), finish the reveal.
+  // Once a pending guest signs up (and the free credits land), run the generation.
   useEffect(() => {
-    if (pendingReveal && canScan) {
+    if (pendingReveal && signedIn && canScan) {
       setPendingReveal(false);
-      void doReveal();
+      void doRevealGuest();
     }
-  }, [pendingReveal, canScan, doReveal]);
+  }, [pendingReveal, signedIn, canScan, doRevealGuest]);
 
   const micro = stage.micro[microIdx % stage.micro.length];
   const faceSrc = face?.url ?? null;
@@ -284,37 +339,68 @@ export function Scan() {
 
         {phase === 'done' && (
           <div className="reveal">
-            <span className="stamp">✶ Verdict printed ✶</span>
-            <h2>
-              Your verdict is <span className="hl">in.</span>
-            </h2>
-            <p className="sub">Three cards and one dating receipt — fresh off the press.</p>
-            <button className="go" onClick={onReveal} disabled={revealing}>
-              {revealing
-                ? 'Reading the room…'
-                : canScan
-                  ? 'Reveal my verdict'
-                  : 'Log in to reveal your verdict'}
-            </button>
-            {scanError && (
-              <div className="crop-note warn" style={{ marginTop: 16, maxWidth: 420 }}>
-                <Icon.alert />
-                <span>
-                  {scanError.message}
-                  {scanError.kind === 'retake' && (
-                    <>
-                      {' '}
-                      <button
-                        className="leave-btn"
-                        style={{ textDecoration: 'underline', width: 'auto', padding: 0 }}
-                        onClick={() => navigate('/scan')}
-                      >
-                        Replace a photo
-                      </button>
-                    </>
-                  )}
+            {signedIn && (genState === 'error' || genState === 'retake') ? (
+              // Signed-in generation failed during the scan — credit already refunded.
+              <>
+                <span className="stamp" style={{ color: 'var(--red)' }}>
+                  ✶ Scan hiccup ✶
                 </span>
-              </div>
+                <h2>
+                  Let's try <span className="hl">again.</span>
+                </h2>
+                <div className="crop-note warn" style={{ marginTop: 16, maxWidth: 420 }}>
+                  <Icon.alert />
+                  <span>
+                    {genErr}{' '}
+                    <button
+                      className="leave-btn"
+                      style={{ textDecoration: 'underline', width: 'auto', padding: 0 }}
+                      onClick={() => navigate('/scan')}
+                    >
+                      {genState === 'retake' ? 'Replace a photo' : 'Try again'}
+                    </button>
+                  </span>
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="stamp">✶ Verdict printed ✶</span>
+                <h2>
+                  Your verdict is <span className="hl">in.</span>
+                </h2>
+                <p className="sub">
+                  {signedIn
+                    ? 'Three cards and one dating receipt — fresh off the press.'
+                    : 'Create your free account to reveal all three cards and your dating receipt.'}
+                </p>
+                <button className="go" onClick={onReveal} disabled={revealing}>
+                  {revealing
+                    ? 'Reading the room…'
+                    : signedIn
+                      ? 'Reveal my verdict'
+                      : 'Sign up to reveal your verdict'}
+                </button>
+                {scanError && (
+                  <div className="crop-note warn" style={{ marginTop: 16, maxWidth: 420 }}>
+                    <Icon.alert />
+                    <span>
+                      {scanError.message}
+                      {scanError.kind === 'retake' && (
+                        <>
+                          {' '}
+                          <button
+                            className="leave-btn"
+                            style={{ textDecoration: 'underline', width: 'auto', padding: 0 }}
+                            onClick={() => navigate('/scan')}
+                          >
+                            Replace a photo
+                          </button>
+                        </>
+                      )}
+                    </span>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
