@@ -56,3 +56,17 @@ lock never engages — the deadlock only happens against the real client.
 ## Files
 
 - `apps/web/src/features/account/AccountContext.tsx`
+
+## Addendum — why it only reproduced on localhost
+
+The deadlock surfaced on `localhost` but not on the Vercel-hosted build. Cause:
+`<StrictMode>` (`main.tsx`) double-invokes effects **in dev only**. The double
+mount fired concurrent `getSession`/`getBalance` calls that contended for the
+Supabase auth lock, reliably triggering the deadlock; the production build does
+not double-invoke, so the race usually didn't trip. (Same StrictMode footgun
+that bit `runGeneration` earlier.)
+
+Hardened `confirmLogout` further: it no longer `await`s `signOut()`. It clears
+local state and navigates immediately, then revokes the session in the
+background (`void authSignOut().catch(...)`). A `try/catch` only guards against a
+*throw*; a *hang* would still strand the user — firing-and-forgetting can't.

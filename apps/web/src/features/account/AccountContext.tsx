@@ -228,21 +228,18 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   );
 
   const requestLogout = useCallback(() => setScene('logout'), []);
-  const confirmLogout = useCallback(async () => {
-    // Close the dialog immediately, then sign out. We clear local state and
-    // navigate regardless of the network call's outcome so a slow/failed
-    // signOut can never leave the user stuck "logged in".
+  const confirmLogout = useCallback(() => {
+    // Log out of the UI immediately, then revoke the session in the background.
+    // We deliberately do NOT await signOut: if its auth-lock call ever stalls
+    // (notably under dev StrictMode's double-mount), awaiting it would trap the
+    // user "logged in". The onAuthChange SIGNED_OUT event re-confirms this state.
     setScene(null);
-    try {
-      await authSignOut();
-    } catch {
-      // Already logging out locally — ignore revoke errors (offline, expired token).
-    }
     setUserId(null);
     setUser(null);
     setCredits(0);
     flash('Logged out — results stay on this device.');
     navigate('/');
+    void authSignOut().catch(() => {});
   }, [flash, navigate]);
 
   const canScan = signedIn ? credits > 0 : freeScanAvailable;
