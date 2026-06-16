@@ -11,8 +11,11 @@ import { Landing } from './features/landing/Landing';
 import { Upload } from './features/upload/Upload';
 import { Scan } from './features/scan/Scan';
 import { Result } from './features/result/Result';
+import { AuthConfirm } from './features/auth/AuthConfirm';
+import { UpdatePassword } from './features/auth/UpdatePassword';
 import './design/account-web.css';
 import './design/vault.css';
+import './design/auth.css';
 
 /**
  * Reset the window scroll to the top on every route (pathname) change. React
@@ -48,6 +51,8 @@ export function App() {
           {/* Redirects from the old account-area IA into the new vault. */}
           <Route path="/storage" element={<Navigate to="/settings" replace />} />
           <Route path="/results" element={<Navigate to="/vault" replace />} />
+          <Route path="/auth/confirm" element={<AuthConfirm />} />
+          <Route path="/auth/update-password" element={<UpdatePassword />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <AccountOverlays />

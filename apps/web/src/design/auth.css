@@ -1,0 +1,9 @@
+/* apps/web/src/design/auth.css — standalone (non-modal) auth pages */
+.auth-page{ min-height:100dvh; display:grid; place-items:center; padding:24px;
+  background:var(--bg, #07090c); }
+.auth-card{ width:100%; max-width:420px; border:1px solid var(--hair-soft);
+  background:var(--panel); border-radius:18px; padding:28px 26px; text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:14px; }
+.auth-card .aw-spinner{ margin:4px auto; }
+.auth-card .aw-btn{ width:100%; }
+.auth-card .auth-msg{ color:var(--muted, #9aa3ad); font-size:14px; line-height:1.5; }
