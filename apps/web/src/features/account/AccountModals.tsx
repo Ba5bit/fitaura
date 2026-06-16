@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CREDIT_PACKS, type CreditPack } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
+import { signupPasswordError } from '../../lib/authValidation';
 import { useAccount } from './AccountContext';
 import { WebModal, WebDialogBody, WebField } from './WebModal';
 
@@ -9,37 +10,46 @@ const packById = (id: string): CreditPack => CREDIT_PACKS.find((p) => p.id === i
 
 /* ============================ AUTH GATE ============================ */
 export function AuthGate() {
-  const { closeScene, signUp, logIn, authStatus, authError } = useAccount();
+  const { closeScene, signUp, logIn, requestPasswordReset, authStatus, authError } = useAccount();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [mode, setMode] = useState<'signup' | 'login'>('signup');
+  const [mode, setMode] = useState<'signup' | 'login' | 'reset'>('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // Shown after a successful sign-up, prompting the user to log in.
-  const [notice, setNotice] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
   const isSignup = mode === 'signup';
+  const isReset = mode === 'reset';
   const pending = authStatus === 'pending';
 
-  const switchMode = (m: 'signup' | 'login') => {
+  const switchMode = (m: 'signup' | 'login' | 'reset') => {
     setMode(m);
-    setNotice(null);
+    setPassword('');
+    setConfirm('');
+    setLocalError(null);
   };
 
   const submit = async () => {
     if (pending) return;
-    if (isSignup) {
-      const ok = await signUp(email.trim(), password);
-      if (ok) {
-        // Registration succeeds but does NOT log you in — switch to the Log in
-        // tab and ask for the password again.
-        setMode('login');
-        setPassword('');
-        setNotice("You're registered. Now log in with your email and password.");
-      }
-    } else {
-      void logIn(email.trim(), password);
+    setLocalError(null);
+    if (isReset) {
+      await requestPasswordReset(email.trim());
+      return;
     }
+    if (isSignup) {
+      const err = signupPasswordError(password, confirm);
+      if (err) {
+        setLocalError(err);
+        return;
+      }
+      await signUp(email.trim(), password);
+      return;
+    }
+    void logIn(email.trim(), password);
   };
+
+  const title = isReset ? ['RESET YOUR', 'PASSWORD'] : ['SAVE YOUR SCANS', 'KEEP GOING'];
+  const cta = pending ? 'Working…' : isReset ? 'Send reset link' : isSignup ? 'Create account' : 'Log in';
 
   return (
     <WebModal size="lg" onClose={closeScene}>
@@ -47,87 +57,58 @@ export function AuthGate() {
         <div className="aw-auth-left">
           <span className="aw-eyebrow accent">ACCOUNT REQUIRED TO CONTINUE</span>
           <h2 className="aw-modal-title" style={{ marginTop: '16px', fontSize: '34px' }}>
-            SAVE YOUR SCANS
+            {title[0]}
             <br />
-            KEEP GOING
+            {title[1]}
           </h2>
           <p className="aw-modal-sub">
             Your first verdict was free and stayed on this device. An account lets you buy credits and run more, on
             any device you log in from.
           </p>
           <ul className="pts">
-            <li>
-              <span className="ck">
-                <Icon.check />
-              </span>
-              <span>
-                Credits follow your login<span className="s">Not tied to one browser</span>
-              </span>
-            </li>
-            <li>
-              <span className="ck">
-                <Icon.check />
-              </span>
-              <span>
-                Payment receipts saved<span className="s">On your account, server-side</span>
-              </span>
-            </li>
-            <li>
-              <span className="ck">
-                <Icon.check />
-              </span>
-              <span>
-                Your photos stay on your device<span className="s">We never store source photos</span>
-              </span>
-            </li>
+            <li><span className="ck"><Icon.check /></span><span>Credits follow your login<span className="s">Not tied to one browser</span></span></li>
+            <li><span className="ck"><Icon.check /></span><span>Payment receipts saved<span className="s">On your account, server-side</span></span></li>
+            <li><span className="ck"><Icon.check /></span><span>Your photos stay on your device<span className="s">We never store source photos</span></span></li>
           </ul>
         </div>
 
         <div className="aw-auth-right">
-          <div className="aw-seg" role="tablist">
-            <button type="button" role="tab" aria-selected={isSignup} onClick={() => switchMode('signup')}>
-              Sign up
-            </button>
-            <button type="button" role="tab" aria-selected={!isSignup} onClick={() => switchMode('login')}>
-              Log in
-            </button>
-          </div>
-          {/* A real form so Enter submits from either field. display:contents keeps
-              the layout identical to the previous flat stack. */}
+          {!isReset && (
+            <div className="aw-seg" role="tablist">
+              <button type="button" role="tab" aria-selected={isSignup} onClick={() => switchMode('signup')}>Sign up</button>
+              <button type="button" role="tab" aria-selected={mode === 'login'} onClick={() => switchMode('login')}>Log in</button>
+            </div>
+          )}
           <form
             style={{ display: 'contents' }}
-            onSubmit={(e) => {
-              e.preventDefault();
-              void submit();
-            }}
+            onSubmit={(e) => { e.preventDefault(); void submit(); }}
           >
             <WebField label="Email" type="email" placeholder="you@email.com" value={email} onChange={setEmail} />
-            <WebField
-              label="Password"
-              type="password"
-              placeholder={isSignup ? 'Create a password' : 'Your password'}
-              value={password}
-              onChange={setPassword}
-            />
-            {notice && !authError && (
-              <p className="aw-formnotice" role="status">
-                {notice}
-              </p>
+            {!isReset && (
+              <WebField
+                label="Password"
+                type="password"
+                placeholder={isSignup ? 'Create a password' : 'Your password'}
+                value={password}
+                onChange={setPassword}
+              />
             )}
-            {authError && (
-              <p className="aw-formerror" role="alert">
-                {authError}
-              </p>
+            {isSignup && (
+              <WebField label="Confirm password" type="password" placeholder="Re-enter your password" value={confirm} onChange={setConfirm} />
             )}
-            <button
-              type="submit"
-              className="aw-btn primary block"
-              style={{ marginTop: '18px' }}
-              disabled={pending}
-            >
-              {pending ? 'Working…' : isSignup ? 'Create account' : 'Log in'}
+            {(localError || authError) && (
+              <p className="aw-formerror" role="alert">{localError ?? authError}</p>
+            )}
+            <button type="submit" className="aw-btn primary block" style={{ marginTop: '18px' }} disabled={pending}>
+              {cta}
             </button>
           </form>
+          {!isSignup && !isReset && (
+            <button type="button" className="aw-linkbtn" onClick={() => switchMode('reset')}>Forgot password?</button>
+          )}
+          {isReset && (
+            <button type="button" className="aw-linkbtn" onClick={() => switchMode('login')}>Back to log in</button>
+          )}
           <div className="aw-finehelp">
             <Icon.shield />
             <span>
@@ -135,10 +116,7 @@ export function AuthGate() {
               <button
                 type="button"
                 className="lk"
-                onClick={() => {
-                  closeScene();
-                  navigate('/settings', { state: { from: pathname } });
-                }}
+                onClick={() => { closeScene(); navigate('/settings', { state: { from: pathname } }); }}
               >
                 How your data is stored
               </button>
