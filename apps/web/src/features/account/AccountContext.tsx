@@ -1,8 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CREDIT_PACKS } from '@fitaura/shared';
-import { authSignIn, authSignOut, authSignUp, getCurrentSession, onAuthChange } from '../../services/authService';
-import { getBalance, grantCredits, refundCredit, spendCredit } from '../../services/creditsService';
+import {
+  authResend, authResetPassword, authSignIn, authSignOut, authSignUp,
+  getCurrentSession, onAuthChange,
+} from '../../services/authService';
+import { getBalance, grantCredits, refundCredit, spendCredit, hasUsedFreeScan } from '../../services/creditsService';
 
 export interface AccountUser {
   email: string;
@@ -16,6 +19,7 @@ export interface AccountUser {
 export type Scene =
   | null
   | 'auth'
+  | 'confirm'
   | 'paywall'
   | 'checkout'
   | 'processing'
@@ -23,6 +27,8 @@ export type Scene =
   | 'failure'
   | 'logout'
   | 'missing';
+
+export type ConfirmKind = 'signup' | 'recovery';
 
 export type AuthStatus = 'idle' | 'pending' | 'error';
 
@@ -63,6 +69,17 @@ interface AccountContextValue {
   missingId: string | null;
   toast: string | null;
 
+  /** Email awaiting confirmation / reset, shown on the confirm scene. */
+  pendingEmail: string | null;
+  /** Which "check your email" copy to show. */
+  confirmKind: ConfirmKind;
+  /** Seconds remaining before resend is allowed again (0 = allowed). */
+  resendCooldown: number;
+  /** Resend the signup-confirmation or password-reset email (cooldown-guarded). */
+  resendConfirmation: () => Promise<void>;
+  /** Send a password-reset email and open the recovery confirm scene. */
+  requestPasswordReset: (email: string) => Promise<void>;
+
   flash: (msg: string) => void;
   closeScene: () => void;
   openAuth: (redirectTo?: string) => void;
@@ -99,6 +116,19 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const procTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const authRedirect = useRef<string | null>(null);
+
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [confirmKind, setConfirmKind] = useState<ConfirmKind>('signup');
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Tick the resend cooldown down to zero.
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((s) => (s <= 1 ? 0 : s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  const RESEND_COOLDOWN_SECONDS = 45;
 
   const signedIn = !!userId;
 
@@ -193,18 +223,19 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     async (email, password) => {
       setAuthStatus('pending');
       setAuthError(null);
-      const res = await authSignUp(email, password);
+      const res = await authSignUp(email.trim(), password, { usedFreeScan: hasUsedFreeScan() });
       if (!res.ok) {
         setAuthStatus('error');
         setAuthError(res.error);
         return false;
       }
-      // Registration and login are deliberately two steps. Email confirmation is
-      // off, so Supabase auto-creates a session on signup — discard it so the
-      // user logs in explicitly next (the AuthGate switches to the Log in tab).
-      // The profile (3 credits) was already created by the DB signup trigger.
-      await authSignOut();
+      // Email confirmation is on: signUp creates no session. Show the
+      // "check your email" scene instead of logging in.
       setAuthStatus('idle');
+      setPendingEmail(res.user.email ?? email.trim());
+      setConfirmKind('signup');
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+      setScene('confirm');
       return true;
     },
     [],
@@ -214,18 +245,52 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     async (email, password) => {
       setAuthStatus('pending');
       setAuthError(null);
-      const res = await authSignIn(email, password);
+      const res = await authSignIn(email.trim(), password);
       if (!res.ok) {
+        if (res.needsConfirm) {
+          // They have an account but haven't confirmed — send them to the
+          // confirm scene so they can resend.
+          setAuthStatus('idle');
+          setPendingEmail(email.trim());
+          setConfirmKind('signup');
+          setResendCooldown(0);
+          setScene('confirm');
+          return false;
+        }
         setAuthStatus('error');
         setAuthError(res.error);
         return false;
       }
-      // Balance loads via the userId effect once finishAuth sets the user.
       finishAuth(res.user.id, res.user.email);
       return true;
     },
     [finishAuth],
   );
+
+  const requestPasswordReset = useCallback<AccountContextValue['requestPasswordReset']>(async (email) => {
+    setAuthStatus('pending');
+    setAuthError(null);
+    const res = await authResetPassword(email.trim());
+    if (!res.ok) {
+      setAuthStatus('error');
+      setAuthError(res.error);
+      return;
+    }
+    setAuthStatus('idle');
+    setPendingEmail(email.trim());
+    setConfirmKind('recovery');
+    setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    setScene('confirm');
+  }, []);
+
+  const resendConfirmation = useCallback<AccountContextValue['resendConfirmation']>(async () => {
+    if (resendCooldown > 0 || !pendingEmail) return;
+    setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    const res = confirmKind === 'recovery'
+      ? await authResetPassword(pendingEmail)
+      : await authResend(pendingEmail);
+    flash(res.ok ? 'Email sent — check your inbox.' : res.error);
+  }, [resendCooldown, pendingEmail, confirmKind, flash]);
 
   const requestLogout = useCallback(() => setScene('logout'), []);
   const confirmLogout = useCallback(() => {
@@ -306,6 +371,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       lastPurchaseCredits,
       missingId,
       toast,
+      pendingEmail,
+      confirmKind,
+      resendCooldown,
+      resendConfirmation,
+      requestPasswordReset,
       flash,
       closeScene,
       openAuth,
@@ -321,7 +391,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     }),
     [
       signedIn, userId, user, credits, canScan, spendForScan, refundScan, scene, authStatus, authError,
-      pack, lastPurchaseCredits, missingId, toast, flash, closeScene, openAuth, signUp, logIn,
+      pack, lastPurchaseCredits, missingId, toast, pendingEmail, confirmKind, resendCooldown,
+      resendConfirmation, requestPasswordReset, flash, closeScene, openAuth, signUp, logIn,
       requestLogout, confirmLogout, openPaywall, startCheckout, pay, failPayment, openMissing,
     ],
   );
