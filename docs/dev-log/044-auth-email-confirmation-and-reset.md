@@ -72,22 +72,24 @@ Recovery uses the same route: `type=recovery&next=/auth/update-password`. `verif
   `//`, `https://`, `javascript:`), and `token_hash` is never logged or rendered. Both helpers are
   pure + unit-tested.
 
-## Registration credit grant — 1, or 2 if registered before generating
-New rule: a new account gets **1 credit**; if the user registers **before generating any image**
-(i.e. before consuming the free scan, `!hasUsedFreeScan()`), they get **2**. Implemented
-server-side and atomically: `signUp` sends `used_free_scan` as **signup metadata**
-(`options.data.used_free_scan`), and the `public.handle_new_user` trigger grants
-`2` when `raw_user_meta_data->>'used_free_scan' = 'false'`, else `1` (was: a flat default of 3).
-Chosen over a client-side `grantCredits(+1)` top-up because that path isn't forgery-proof and
-isn't atomic. **Known accepted gap:** a user could forge `used_free_scan: false` for +1 credit —
-low stakes, consistent with the deferred credit-hardening cycle.
+## Registration credit grant — flat 1 credit
+A new account gets a flat **1 credit** (was a default of 3), granted server-side by the
+`public.handle_new_user` trigger. The first scan spends it (1→0), regardless of entry path
+(scan-from-landing or register-then-scan).
+
+We briefly designed — and built — a "2 credits if you register **before** generating any image"
+bonus, to equalize the scan-first path (free guest scan + 1 granted credit) against the
+register-first path (1 credit only). It was implemented by sending a `used_free_scan` flag as
+signup metadata and branching in the trigger. **We dropped it for simplicity** (user call): every
+new account just gets 1. That's why `authSignUp` takes no metadata arg and the trigger is
+unconditional — if you find references to `used_free_scan` anywhere, they're leftovers to remove.
 
 ## NOT done in this branch — required to actually ship (deploy-time / manual)
 The frontend is complete and merged, but the feature is **not fully live** until:
-1. **DB trigger migration** (plan Task 9) — redefine `handle_new_user` for the 1/2 grant. Applied
-   via the Supabase MCP `apply_migration` at deploy time, **coordinated with the frontend deploy**
-   (applying it early would drop new signups to 1 credit before the metadata-sending frontend is
-   live). SQL is in the plan.
+1. **DB trigger migration** (plan Task 9) — redefine `handle_new_user` to grant a flat **1**
+   credit (was default 3). Applied via the Supabase MCP `apply_migration` at deploy time. Note:
+   this drops new signups from 3 → 1 credit the moment it's applied, so coordinate it with the
+   frontend deploy. SQL is in the plan.
 2. **Supabase dashboard** (plan Task 10) — Site URL `https://fitaura.studio`; redirect allow-list
    `https://fitaura.studio/**` + `http://localhost:5173/**`; edit the **Confirm signup** and
    **Reset password** email templates to the first-party `/auth/confirm` links above.
