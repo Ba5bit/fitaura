@@ -18,6 +18,10 @@ function friendly(message: string): string {
   if (m.includes('email not confirmed')) return 'Please confirm your email first — check your inbox (and spam).';
   if (m.includes('invalid login credentials')) return 'Wrong email or password.';
   if (m.includes('password should be at least')) return 'Password is too short (minimum 6 characters).';
+  if (m.includes('should be different') || m.includes('same as the old') || m.includes('same_password'))
+    return 'Your new password must be different from your current one.';
+  if (m.includes('weak') || m.includes('pwned') || m.includes('breach'))
+    return 'That password is too weak or has appeared in a data breach — pick another.';
   if (m.includes('unable to validate email')) return 'That email address looks invalid.';
   if (m.includes('email') && m.includes('valid')) return 'That email address looks invalid.';
   if (m.includes('expired') || m.includes('invalid')) return 'This link is invalid or has expired.';

@@ -93,6 +93,20 @@ describe('authResend / authResetPassword / authVerifyOtp / authUpdatePassword', 
     expect(await authUpdatePassword('newpassword1')).toEqual({ ok: true });
     expect(updateUser).toHaveBeenCalledWith({ password: 'newpassword1' });
   });
+  it('authUpdatePassword maps a same-as-current-password error to a clear message', async () => {
+    updateUser.mockResolvedValue({ error: { message: 'New password should be different from the old password.' } });
+    expect(await authUpdatePassword('samepass1')).toEqual({
+      ok: false,
+      error: 'Your new password must be different from your current one.',
+    });
+  });
+  it('authUpdatePassword maps a weak/breached-password error to a clear message', async () => {
+    updateUser.mockResolvedValue({ error: { message: 'Password is known to be weak and easy to guess, please choose a different one.' } });
+    expect(await authUpdatePassword('123456')).toEqual({
+      ok: false,
+      error: 'That password is too weak or has appeared in a data breach — pick another.',
+    });
+  });
 });
 
 describe('authSignOut', () => {

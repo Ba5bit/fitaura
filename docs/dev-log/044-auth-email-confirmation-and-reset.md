@@ -61,6 +61,12 @@ Recovery uses the same route: `type=recovery&next=/auth/update-password`. `verif
   email showed "This link is invalid or has expired." Fix: email-validation checks must come
   **before** the generic `expired || invalid` line in `authService.ts`. Order matters in this
   function — add new cases with that in mind.
+- **`friendly()` also maps password-update failures (added post-ship).** On the reset page,
+  `updateUser` with your *current* password returns "New password should be different from the old
+  password" → mapped to "Your new password must be different from your current one." (it previously
+  fell through to the generic "Something went wrong"). Weak/breached passwords (if Supabase password
+  protection is on) → a "too weak / data breach" message. Genuine server errors still get the
+  generic fallback — that's intentional.
 - **StrictMode double-invoke on `/auth/confirm`.** The verify effect is guarded by a `ran` ref:
   the OTP token is single-use, so a second dev-StrictMode invocation would fail and wrongly show
   the error state.
