@@ -18,9 +18,9 @@ function friendly(message: string): string {
   if (m.includes('email not confirmed')) return 'Please confirm your email first — check your inbox (and spam).';
   if (m.includes('invalid login credentials')) return 'Wrong email or password.';
   if (m.includes('password should be at least')) return 'Password is too short (minimum 6 characters).';
-  if (m.includes('expired') || m.includes('invalid')) return 'This link is invalid or has expired.';
   if (m.includes('unable to validate email')) return 'That email address looks invalid.';
   if (m.includes('email') && m.includes('valid')) return 'That email address looks invalid.';
+  if (m.includes('expired') || m.includes('invalid')) return 'This link is invalid or has expired.';
   if (m.includes('rate') || m.includes('too many')) return 'Too many attempts — wait a minute and try again.';
   return 'Something went wrong. Please try again.';
 }

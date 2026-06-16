@@ -10,10 +10,10 @@ const packById = (id: string): CreditPack => CREDIT_PACKS.find((p) => p.id === i
 
 /* ============================ AUTH GATE ============================ */
 export function AuthGate() {
-  const { closeScene, signUp, logIn, requestPasswordReset, authStatus, authError } = useAccount();
+  const { closeScene, signUp, logIn, requestPasswordReset, authStatus, authError, authInitialMode } = useAccount();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [mode, setMode] = useState<'signup' | 'login' | 'reset'>('signup');
+  const [mode, setMode] = useState<'signup' | 'login' | 'reset'>(authInitialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -156,7 +156,7 @@ export function EmailSentNotice() {
         >
           <Icon.refresh /> {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : isRecovery ? 'Resend reset link' : 'Resend confirmation'}
         </button>
-        <button className="aw-linkbtn" onClick={() => openAuth()}>
+        <button className="aw-linkbtn" onClick={() => openAuth(undefined, 'login')}>
           Back to log in
         </button>
         <div className="aw-fineprint" style={{ marginTop: '6px' }}>

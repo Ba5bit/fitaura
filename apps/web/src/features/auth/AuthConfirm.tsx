@@ -44,7 +44,7 @@ export function AuthConfirm() {
             <div className="aw-glyph bad"><Icon.x /></div>
             <h2 className="aw-modal-title">LINK INVALID</h2>
             <p className="auth-msg">This link is invalid or has expired. Sign in to request a new one.</p>
-            <button className="aw-btn primary" onClick={() => { navigate('/'); openAuth(); }}>
+            <button className="aw-btn primary" onClick={() => { navigate('/'); openAuth(undefined, 'login'); }}>
               Back to sign in
             </button>
           </>

@@ -82,7 +82,9 @@ interface AccountContextValue {
 
   flash: (msg: string) => void;
   closeScene: () => void;
-  openAuth: (redirectTo?: string) => void;
+  openAuth: (redirectTo?: string, mode?: 'signup' | 'login') => void;
+  /** Initial tab for the auth modal when it next opens. */
+  authInitialMode: 'signup' | 'login';
   /** Email/password sign-up. Resolves true on success. */
   signUp: (email: string, password: string) => Promise<boolean>;
   /** Email/password log-in. Resolves true on success. */
@@ -120,6 +122,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [confirmKind, setConfirmKind] = useState<ConfirmKind>('signup');
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [authInitialMode, setAuthInitialMode] = useState<'signup' | 'login'>('signup');
 
   // Tick the resend cooldown down to zero.
   useEffect(() => {
@@ -192,8 +195,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     setAuthError(null);
     setScene(null);
   }, []);
-  const openAuth = useCallback((redirectTo?: string) => {
+  const openAuth = useCallback((redirectTo?: string, mode?: 'signup' | 'login') => {
     authRedirect.current = redirectTo ?? null;
+    setAuthInitialMode(mode ?? 'signup');
     setAuthStatus('idle');
     setAuthError(null);
     setScene('auth');
@@ -229,6 +233,11 @@ export function AccountProvider({ children }: { children: ReactNode }) {
         setAuthError(res.error);
         return false;
       }
+      if (res.status === 'session') {
+        // Email confirmation off (e.g. dev): a session already exists — just sign in.
+        finishAuth(res.user.id, res.user.email);
+        return true;
+      }
       // Email confirmation is on: signUp creates no session. Show the
       // "check your email" scene instead of logging in.
       setAuthStatus('idle');
@@ -238,7 +247,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       setScene('confirm');
       return true;
     },
-    [],
+    [finishAuth],
   );
 
   const logIn = useCallback<AccountContextValue['logIn']>(
@@ -379,6 +388,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       flash,
       closeScene,
       openAuth,
+      authInitialMode,
       signUp,
       logIn,
       requestLogout,
@@ -392,7 +402,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     [
       signedIn, userId, user, credits, canScan, spendForScan, refundScan, scene, authStatus, authError,
       pack, lastPurchaseCredits, missingId, toast, pendingEmail, confirmKind, resendCooldown,
-      resendConfirmation, requestPasswordReset, flash, closeScene, openAuth, signUp, logIn,
+      resendConfirmation, requestPasswordReset, flash, closeScene, openAuth, authInitialMode, signUp, logIn,
       requestLogout, confirmLogout, openPaywall, startCheckout, pay, failPayment, openMissing,
     ],
   );
