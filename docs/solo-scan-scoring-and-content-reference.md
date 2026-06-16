@@ -5,8 +5,14 @@
 > every caption / sticker / punchline bank, and **where to edit what** when you want to
 > tune the vibe. This is the reference for prompt fine-tuning.
 >
-> **Status:** describes the live system at `SOLO_SCAN_PROMPT_VERSION = v2` /
-> `SOLO_SCAN_SCHEMA_VERSION = solo_scan_v2`. Keep this file in sync when you tune.
+> **Status:** describes the live system at `SOLO_SCAN_PROMPT_VERSION = v3` /
+> `SOLO_SCAN_SCHEMA_VERSION = solo_scan_v3`. Keep this file in sync when you tune.
+> **What v3 added over v2:** apparent-gender presentation + public-figure/meme **icon
+> recognition** (a new `presentation` field), a multiplicative **score bias** (femme
+> ×1.07, recognized icon ×1.15), **gendered content banks** (masc / femme variants of
+> archetypes, captions, punchlines + female-coded line overrides), a **savage anti-slop
+> copy voice** with a banned-phrase list, and a **Face Card metric swap** (the third
+> mini-score is now a Masc/Fem Index). See dev-log `042-solo-scan-v3.md`.
 
 ---
 
@@ -20,18 +26,22 @@
 ```
 
 **The model decides** (per category, 0–100): the raw rubric ratings, confidence, and a
-short evidence string; usability of the photos; the copy strings (face/outfit summaries,
+short evidence string; the **presentation read** (apparent gender + a recognized icon name,
+each with a confidence); usability of the photos; the copy strings (face/outfit summaries,
 "works/hurts/verdict"); and **candidate lists** of archetype / caption / punchline / sticker
 IDs drawn from fixed allowlists.
 
-**The backend decides** (deterministic, seeded by `scanId`): the aggregate Face / Outfit
-scores, the **Aura Index**, the categorical **verdict** (green / normie / red), display
-jitter (±3 so scores don't look suspiciously round), the receipt's flavor metrics, and the
-**final pick** of archetype / caption / sticker / punchline from the model's candidates.
+**The backend decides** (deterministic, seeded by `scanId`): a **bias factor** from the
+presentation read, the aggregate Face / Outfit scores (computed on the *biased* ratings),
+the **Aura Index**, the categorical **verdict** (green / normie / red), the 6-way score
+band, display jitter (±3 so scores don't look suspiciously round), the receipt's flavor
+metrics, the **final pick** of archetype / caption / sticker / punchline from the model's
+candidates (gender-filtered), and **whether to surface the recognized icon's name** in copy.
 
 > The model never computes the Aura Score, Dating Score, or verdict — the prompt explicitly
 > forbids it (`gemini.ts` SYSTEM_INSTRUCTION). Final scoring is 100% backend, so it's stable
-> and tunable without re-prompting.
+> and tunable without re-prompting. The model also never writes the recognized icon's name
+> into copy; the backend decides whether the recognition was confident enough to surface.
 
 **Key files**
 
@@ -39,58 +49,66 @@ jitter (±3 so scores don't look suspiciously round), the receipt's flavor metri
 |---|---|
 | `supabase/functions/solo-scan/gemini.ts` | The prompt (`SYSTEM_INSTRUCTION`), the response JSON schema, the Gemini call. |
 | `supabase/functions/solo-scan/index.ts` | HTTP handler: validate images → call Gemini → validate → assemble → log. |
-| `packages/shared/src/solo-scan/schema.ts` | Zod contract for the model's JSON + the canonical `FACE_KEYS` / `OUTFIT_KEYS`. |
-| `packages/shared/src/solo-scan/scoring.ts` | Weights, `auraIndex`, `displayScore` jitter, `percent`, `pickVerdict`. |
-| `packages/shared/src/solo-scan/content-bank.ts` | `scoreBand` + the archetype / caption / punchline banks + `pickBanded`. |
+| `packages/shared/src/solo-scan/schema.ts` | Zod contract for the model's JSON (incl. `presentation`) + the canonical `FACE_KEYS` / `OUTFIT_KEYS`. |
+| `packages/shared/src/solo-scan/scoring.ts` | Weights, `biasFactor`/`applyScoreBias`, `auraIndex`, `displayScore` jitter, `percent`, `pickVerdict`. |
+| `packages/shared/src/solo-scan/content-bank.ts` | `scoreBand` + the gendered archetype / caption / punchline banks + gender-aware `pickBanded`. |
 | `packages/shared/src/solo-scan/assemble.ts` | Turns the rubric + banks into the final `FullGenerationResult`. |
 | `packages/shared/src/sticker-bank.ts` | The face / outfit sticker presets (label, tone, rotation). |
 | `packages/shared/src/solo-scan/constants.ts` | `SOLO_SCAN_PROMPT_VERSION` / `SCHEMA_VERSION`. |
 
 > Note: the **landing page** hero/analysis cards use *static showcase data*, not this
-> pipeline. Numbers like "Commitment Risk: LOW" or traits like "Eyebrows / Facial Hair" on
-> the marketing page are hard-coded mockups; the real assembled output is defined in
-> `assemble.ts` (see §6). Don't tune against the landing mock.
+> pipeline (`apps/web/src/data/mockGenerations.ts`). The marketing Face Cards were updated
+> to the v3 metric labels, but the numbers are hard-coded mockups — don't tune against them.
+> The real assembled output is defined in `assemble.ts` (see §6).
 
 ---
 
 ## 2. The Gemini prompt (current `SYSTEM_INSTRUCTION`)
 
-Verbatim from `gemini.ts`:
+Verbatim from `gemini.ts` (v3):
 
 ```
 You are FitAura's Solo Scan visual classification engine.
 Analyze the supplied FACE PHOTO and OUTFIT PHOTO using only visible, presentation-related evidence.
-Return only JSON matching the provided schema. The result is entertainment-oriented styling
-feedback. Do not present subjective judgments as scientific, biometric, medical, or psychological facts.
-Do not infer identity, ethnicity, nationality, religion, sexuality, gender identity, health,
-disability, wealth, criminality, real trustworthiness, real personality, or romantic compatibility.
+Return only JSON matching the provided schema. The result is entertainment-oriented styling feedback. Do not present subjective judgments as scientific, biometric, medical, or psychological facts.
+
+GENDER PRESENTATION: Classify the subject's apparent gender presentation as "femme", "masc", or "unsure" with genderConfidence 0-1, for entertainment styling only. This is a read of presentation, NOT a claim about identity, and may be wrong; use "unsure" when genuinely ambiguous. Set expressionStrength 0-100 for how strongly the look reads as that presentation (a vanity stat, not attractiveness).
+Do not infer ethnicity, nationality, religion, sexuality, health, disability, wealth, criminality, real trustworthiness, real personality, or romantic compatibility.
+
+ICON RECOGNITION: You MAY recognize widely-known public figures or popular fictional/meme characters and set recognizedIcon to the name with recognizedConfidence 0-1. NEVER attempt to identify a private or ordinary individual; if the subject is not a widely-known public figure or meme character, set recognizedIcon to null. A resemblance is entertainment, not a factual identity claim.
+
 If an attribute cannot be assessed reliably, return a null rating and explain why briefly.
-Score each category 0-100. Anchor: 0-20 clearly weak for this presentation, 21-40 below average,
-41-60 neutral or mixed, 61-80 strong, 81-100 clearly elite. Use the full range, differentiate
-categories from one another, and avoid clustering on round multiples of 10. Return a null rating
-only when a category genuinely cannot be assessed.
-Keep evidence concrete and tied to visible image details. Keep all copy to one short sentence.
-Select content IDs only from these allowlists.
-faceArchetypeCandidates allowed: <14 IDs — see §5>
-outfitCaptionCandidates allowed: <11 IDs — see §5>
-punchlineCandidates allowed: <13 IDs — see §5>
-Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs
-final scoring and verdict assignment.
-Set schemaVersion to "solo_scan_v2".
+Score each category 0-100. Anchor: 0-20 clearly weak for this presentation, 21-40 below average, 41-60 neutral or mixed, 61-80 strong, 81-100 clearly elite. Use the full range, differentiate categories from one another, and avoid clustering on round multiples of 10. Return a null rating only when a category genuinely cannot be assessed.
+
+VOICE: Write every copy field as a savage, funny roast of the look, fit, pose and vibe — confident, internet-native, in the sticker lexicon (rizz, NPC, delulu, chopped, aura, sigma, mid). Roast hard, but ONLY the presentation. NEVER roast or reference ethnicity, nationality, religion, sexuality, disability, body in a hateful way, or any protected trait. One short, punchy sentence per field.
+BANNED (never write like an AI or a corporate fashion app): "elevate", "in today's world", "let's dive in", "it's not just X it's Y", "a testament to", "when it comes to", "consider ...", em-dash sermons, hedging, polite filler. Be sharp, plain, human and funny.
+
+Select content IDs only from these allowlists, matching the detected gender. If gender is "femme", pick from NEUTRAL or FEMME only. If gender is "masc" or "unsure", pick from NEUTRAL or MASC only. Femme copy must use female-coded language (never "lover boy").
+faceArchetypeCandidates: NEUTRAL / MASC / FEMME — see §5
+outfitCaptionCandidates: NEUTRAL / MASC / FEMME — see §5
+punchlineCandidates: NEUTRAL / MASC / FEMME — see §5
+
+Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment. Do not write the recognized icon's name into the copy; the backend decides whether to surface it.
+Set schemaVersion to "solo_scan_v3".
 ```
 
 **Annotations / levers:**
 
 - **Scoring anchor** — the `0-20 … 81-100` band text is the single biggest lever on score
   distribution. Loosening/tightening it shifts where real scans land. (See §4 for how that
-  feeds the green/normie/red split.)
-- **"avoid clustering on round multiples of 10"** + `temperature: 0.3` — pushes the model
-  off lazy 70/80/90 answers so categories actually differentiate.
-- **Allowlists** — the model can only pick caption/archetype/punchline IDs that exist in the
-  banks. Adding a new funny line means adding it to **both** the bank (§5) **and** the prompt
-  allowlist, or the model can never choose it.
-- **Guardrail line** ("Do not infer … gender identity …") — this is the clause that conflicts
-  with the planned gender-aware feature; it will be reworded in Bucket B.
+  feeds the green/normie/red split.) Note this is the *pre-bias* distribution; the femme/icon
+  bias (§4.2) then nudges the inputs upward.
+- **Gender + icon read** — `presentation` is what drives the bias (§4.2), the content gender
+  filter (§5), and the Face Card's Masc/Fem Index (§6). It's an *entertainment styling read*,
+  explicitly not an identity claim; the prompt guards against inferring protected traits.
+- **VOICE block + BANNED list** — this is the savage anti-slop voice. The banned-phrase list is
+  the lever against corporate/AI-tell copy. The copy fields (`faceCopy`/`outfitCopy`) are 100%
+  model-authored, one short sentence each.
+- **Allowlists are gender-scoped** — the model is told to pick only NEUTRAL+MASC (for masc/unsure)
+  or NEUTRAL+FEMME (for femme). The backend *also* enforces this (see §5), so a mis-tagged
+  candidate is dropped, not rendered.
+- **"avoid clustering on round multiples of 10"** + `temperature: 0.3` — pushes the model off
+  lazy 70/80/90 answers so categories actually differentiate.
 - **Generation config** (`gemini.ts buildBody`): `temperature 0.3`, `maxOutputTokens 2500`,
   `thinkingConfig.thinkingBudget 0`, structured JSON output via `responseSchema`.
 
@@ -100,6 +118,16 @@ Set schemaVersion to "solo_scan_v2".
 
 Every category rating is `{ rating: int 0–100 | null, confidence: 0–1, evidence: ≤400 chars }`.
 `null` rating = "not assessable" (dropped from the weighted average, see §4).
+
+**`presentation` (v3, new):**
+
+| Field | Type | Meaning |
+|---|---|---|
+| `gender` | `'femme' \| 'masc' \| 'unsure'` | Apparent presentation (entertainment read, not identity). |
+| `genderConfidence` | `0–1` | Confidence in the gender read; **gates** the femme bias + content gender at `≥ 0.60`. |
+| `expressionStrength` | `int 0–100` | "How strongly the look reads as that presentation" — a vanity stat. Shown as the Face Card Masc/Fem Index; **not** an attractiveness score and **not** biased. |
+| `recognizedIcon` | `string ≤60 \| null` | A widely-known public figure / meme character name, or `null`. Never a private individual. |
+| `recognizedConfidence` | `0–1` | Confidence in the recognition; **gates** the icon bias at `≥ 0.60` and the icon *name in copy* at `≥ 0.85`. |
 
 **Face rubric — `FACE_KEYS` (7):** `photoPresentation`, `faceHarmony`, `jawPresence`,
 `haircutMatch`, `groomingCoherence`, `visualPresence`, `mainCharacterEnergy`.
@@ -114,16 +142,19 @@ retakeInstruction), `faceCopy` (strongestPoint / improvement / summary), `outfit
 
 > The Zod schema is the gate: if the model returns a shape that fails `safeParse`, the scan is
 > rejected (`schema_invalid`). `issues` is constrained to a closed enum on the Gemini side too,
-> so a stray free-text issue can't sink an otherwise-valid scan.
+> so a stray free-text issue can't sink an otherwise-valid scan. The Gemini response schema
+> (`RESPONSE_SCHEMA` in `gemini.ts`) mirrors `presentation` so the model is structurally forced
+> to emit it.
 
 ---
 
 ## 4. Scoring math (`scoring.ts`)
 
-### 4.1 Category → aggregate
+### 4.1 Category → biased rating → aggregate
 
-Each rating is already 0–100 (clamped by `scoreFromRating`). Aggregate Face and Outfit
-scores are **weighted averages that drop `null` categories and redistribute their weight**:
+Each rating is already 0–100 (clamped by `scoreFromRating`). **Before aggregation, v3 applies a
+multiplicative bias** to every face/outfit rating (§4.2). Aggregate Face and Outfit scores are
+then **weighted averages that drop `null` categories and redistribute their weight**:
 
 **Face weights** (sum 1.00):
 
@@ -154,16 +185,41 @@ scores are **weighted averages that drop `null` categories and redistribute thei
 > `photoPresentation` feeds the Face aggregate but is **not** shown as its own breakdown trait
 > (it rates the photo, not the face).
 
-### 4.2 Aura Index
+### 4.2 Score bias (v3) — femme + recognized icon
+
+A single **multiplicative factor** is applied to every face/outfit rating *before* the weighted
+averages (`biasFactor` → `applyScoreBias`). It composes two independent, gated nudges:
+
+| Source | Factor | Gate | Constant |
+|---|---|---|---|
+| Confidently **femme** | ×1.07 | `gender === 'femme'` && `genderConfidence ≥ 0.60` | `FEMME_SCORE_BIAS = 0.07`, `FEMME_CONFIDENCE_MIN = 0.60` |
+| Recognized **icon** | ×1.15 | `recognizedIcon != null` && `recognizedConfidence ≥ 0.60` | `ICON_SCORE_BIAS = 0.15`, `ICON_CONFIDENCE_MIN = 0.60` |
+
+```
+biasFactor = (femme gate met ? 1.07 : 1) × (icon gate met ? 1.15 : 1)
+```
+
+`applyScoreBias(ai, factor)` returns the input **unchanged when `factor === 1`** (the common
+case); otherwise it clones the AI output with every rating `round(rating × factor)` clamped to
+0–100. `expressionStrength` and all copy are **not** biased. The bias is applied once, up front,
+so it propagates into the aggregates, the Aura Index, the verdict, the band, and every displayed
+sub-score consistently.
+
+> **Tuning note.** `FEMME_SCORE_BIAS` is documented as tunable in the 0.05–0.10 range. Because
+> the bias shifts the *input* to `pickVerdict` (§4.4), changing it also shifts the green/normie/red
+> split for biased scans — calibrate the two together against real photos.
+
+### 4.3 Aura Index
 
 ```
 auraIndex = round( face × 0.45 + outfit × 0.45 + visualPresence × 0.10 )
 ```
 
-`visualPresence` here is the raw category rating (falls back to the Face aggregate if null).
-The Aura Index is the spine: it drives the verdict, the score band, and the receipt metrics.
+`face`/`outfit` are the biased aggregates; `visualPresence` is the biased raw category rating
+(falls back to the Face aggregate if null). The Aura Index is the spine: it drives the verdict,
+the score band, and the receipt metrics.
 
-### 4.3 Display jitter — why scores aren't round
+### 4.4 Display jitter — why scores aren't round
 
 - `hashSeed(s)` — FNV-1a 32-bit hash of a string. Deterministic.
 - `jitter(seed, spread=3)` — integer in `[-spread, +spread]` from the hash.
@@ -175,7 +231,7 @@ in the seed, **bumping `SOLO_SCAN_PROMPT_VERSION` re-rolls the jitter** for all 
 - `percent(scanId, key, base, spread=12)` = `clamp(base + jitter("scanId:key", 12), 0, 100)` —
   used for the receipt's flavor percentages (note: **not** seeded with promptVersion).
 
-### 4.4 Verdict & bands
+### 4.5 Verdict & bands
 
 **`pickVerdict(aura, scanId)`** — the categorical dating verdict:
 
@@ -196,6 +252,10 @@ Effective guaranteed bands (because of the ±3 nudge):
 | 42–47 | normie / red boundary |
 | ≤ 41 | always red |
 
+> The `70 / 45` thresholds are an **estimate** carried over from v2 and not yet calibrated against
+> the v3 bias. With femme ×1.07 + icon ×1.15 shifting the input upward, biased scans skew greener.
+> This is an open follow-up: sample real scans and adjust `pickVerdict` if the split feels off.
+
 **`scoreBand(aura)`** — a finer 6-way band used **only** to pick fallback content and seed picks
 (decoupled from the 3-way verdict on purpose, so a card's archetype and the receipt's verdict
 can land on different sides near a boundary):
@@ -211,17 +271,27 @@ can land on different sides near a boundary):
 
 ---
 
-## 5. Content banks
+## 5. Content banks (now gendered)
 
 > **How a line gets chosen — read this first.** In `pickBanded` (`content-bank.ts`): the model's
-> candidate IDs are filtered to those that exist in the bank. **If at least one valid candidate
-> survives, the pick is a seeded choice _among the model's candidates_ — the band is NOT used to
-> filter.** The band only matters (a) as part of the random seed and (b) as the fallback pool when
-> the model returns zero valid candidates. **Implication for tuning: the model effectively
-> controls which archetype/caption/punchline you get, via its candidate list.** Bias the *content*
-> by biasing the prompt's candidate selection, not the bands.
+> candidate IDs are filtered to those that **exist in the bank _and_ are eligible for the scan's
+> gender**. A femme scan is eligible for NEUTRAL + FEMME entries; a masc/unsure scan for
+> NEUTRAL + MASC. **If at least one valid candidate survives, the pick is a seeded choice _among
+> the model's candidates_ — the band is NOT used to filter.** The band only matters (a) as part of
+> the random seed and (b) as the (gender-filtered) fallback pool when the model returns zero valid
+> candidates. **Implication for tuning: the model effectively controls which
+> archetype/caption/punchline you get, via its candidate list — so bias the content through the
+> prompt's candidate selection, not the bands.**
+>
+> **Content gender** is derived in `assemble.ts`: `confidentlyFemme = gender === 'femme' &&
+> genderConfidence ≥ 0.60` → `'femme'`, otherwise `'masc'`. So **"unsure" maps to masc content**.
+> Femme entries with a `femme:` override render the female-coded line instead of the default
+> (e.g. `let_him_cook` → "LET HER COOK", `certified_lover_boy` → "CERTIFIED HEARTBREAKER",
+> `unc` → "AUNTIE STATUS").
 
-### 5.1 Face archetypes (`FACE_BANK`, 14) → card verdict line + sticker
+### 5.1 Face archetypes (`FACE_BANK`, 31) → card verdict line + sticker
+
+**Neutral (14):**
 
 | ID | Line | Sticker | Band |
 |---|---|---|---|
@@ -238,14 +308,43 @@ can land on different sides near a boundary):
 | `face_archetype.canon_event` | CANON / EVENT | canon-event | poor |
 | `face_archetype.ai_slop` | CERTIFIED / AI SLOP | ai-slop | poor |
 | `face_archetype.negative_aura` | NEGATIVE / AURA | negative-aura | dire |
-| `face_archetype.unc` | UNC / STATUS | unc | dire |
+| `face_archetype.unc` | UNC / STATUS *(femme: AUNTIE / STATUS)* | unc | dire |
 
-### 5.2 Outfit captions (`OUTFIT_BANK`, 11) → outfit card caption + sticker
+**Masc-only (8):**
+
+| ID | Line | Sticker | Band |
+|---|---|---|---|
+| `face_archetype.gigachad` | GIGA / CHAD | chad | elite |
+| `face_archetype.alpha_male` | ALPHA / MALE | alpha | high |
+| `face_archetype.sigma_male` | SIGMA / MALE | sigma | high |
+| `face_archetype.milf_hunter` | DEFINITELY A / MILF HUNTER | milf-hunter | mid |
+| `face_archetype.performative_male` | PERFORMATIVE / MALE | performative-male | mid |
+| `face_archetype.simp` | CERTIFIED / SIMP | simp | low |
+| `face_archetype.beta_male` | BETA / MALE | beta | poor |
+| `face_archetype.tate_follower` | TATE ACADEMY / DROPOUT | tate | poor |
+
+**Femme-only (9):**
+
+| ID | Line | Sticker | Band |
+|---|---|---|---|
+| `face_archetype.mother` | SHE IS / MOTHER | mother | elite |
+| `face_archetype.femme_fatale` | FEMME / FATALE | femme-fatale | elite |
+| `face_archetype.it_girl` | IT / GIRL | it-girl | high |
+| `face_archetype.girlboss` | CERTIFIED / GIRLBOSS | girlboss | high |
+| `face_archetype.material_girl` | MATERIAL / GIRL | material-girl | high |
+| `face_archetype.vip` | VIP / ENERGY | vip | high |
+| `face_archetype.clean_girl` | CLEAN / GIRL | clean-girl | mid |
+| `face_archetype.brat` | CERTIFIED / BRAT | brat | mid |
+| `face_archetype.drama_queen` | DRAMA / QUEEN | drama-queen | low |
+
+### 5.2 Outfit captions (`OUTFIT_BANK`, 21) → outfit card caption + sticker
+
+**Neutral (11):**
 
 | ID | Caption | Sticker | Band |
 |---|---|---|---|
 | `outfit_caption.locked_in` | THE FIT IS LOCKED IN | locked-in | elite |
-| `outfit_caption.let_him_cook` | LET HIM COOK | let-him-cook | elite |
+| `outfit_caption.let_him_cook` | LET HIM COOK *(femme: LET HER COOK)* | let-him-cook | elite |
 | `outfit_caption.fit_has_lore` | THE FIT HAS LORE | fit-has-lore | high |
 | `outfit_caption.rizz` | RIZZ ON SIGHT | rizz | high |
 | `outfit_caption.clean_npc_potential` | CLEAN NPC WITH POTENTIAL | buffering | mid |
@@ -256,57 +355,118 @@ can land on different sides near a boundary):
 | `outfit_caption.never_cook_again` | NEVER COOK AGAIN | never-cook-again | dire |
 | `outfit_caption.aura_debt` | IN AURA DEBT | aura-debt | dire |
 
-### 5.3 Punchlines (`PUNCHLINE_BANK`, 13) → receipt final reading
+**Masc-only (5, age / roast):**
+
+| ID | Caption | Sticker | Band |
+|---|---|---|---|
+| `outfit_caption.sigma_grindset` | SIGMA GRINDSET FIT | sigma-fit | high |
+| `outfit_caption.millennial_coded` | MILLENNIAL CODED | millennial | low |
+| `outfit_caption.unc_fit` | UNC FIT DETECTED | unc-fit | low |
+| `outfit_caption.old_money_temu` | OLD MONEY (FROM TEMU) | old-money-temu | poor |
+| `outfit_caption.boomer` | BOOMER-CODED FIT | boomer | poor |
+
+**Femme-only (5):**
+
+| ID | Caption | Sticker | Band |
+|---|---|---|---|
+| `outfit_caption.fashion_girl` | FASHION GIRL CERTIFIED | fashion-girl | high |
+| `outfit_caption.vip_fit` | VIP LIST FIT | vip-fit | high |
+| `outfit_caption.material_girl_fit` | MATERIAL GIRL FIT | material-girl-fit | high |
+| `outfit_caption.brat_fit` | BRAT SUMMER FIT | brat-fit | high |
+| `outfit_caption.clean_girl_fit` | CLEAN GIRL AESTHETIC | clean-girl-fit | mid |
+
+### 5.3 Punchlines (`PUNCHLINE_BANK`, 26) → receipt final reading
+
+**Neutral (15):**
 
 | ID | Text | Band |
 |---|---|---|
 | `punchline.certified_goat` | CERTIFIED GOAT | elite |
 | `punchline.built_different` | BUILT DIFFERENT | elite |
-| `punchline.certified_lover_boy` | CERTIFIED LOVER BOY | high |
+| `punchline.certified_lover_boy` | CERTIFIED LOVER BOY *(femme: CERTIFIED HEARTBREAKER)* | high |
 | `punchline.rizz_god` | RIZZ GOD CONFIRMED | high |
 | `punchline.aura_farmer` | CERTIFIED AURA FARMER | high |
+| `punchline.no_cap` | NO CAP | high |
 | `punchline.clean_npc_potential` | NPC WITH POTENTIAL | mid |
 | `punchline.honorable_mention` | HONORABLE MENTION | mid |
 | `punchline.high_aura_low_stability` | RED FLAG ON REMISSION | low |
-| `punchline.delusional_lover_boy` | DELUSIONAL LOVER BOY | low |
+| `punchline.delusional_lover_boy` | DELUSIONAL LOVER BOY *(femme: DELULU IT-GIRL)* | low |
 | `punchline.negative_aura` | NEGATIVE AURA DETECTED | poor |
 | `punchline.ai_slop` | DOCUMENTED AI SLOP | poor |
+| `punchline.bro_capping` | BRO IS CAPPING | poor |
 | `punchline.aura_debt` | IN AURA DEBT | dire |
 | `punchline.canon_chopped` | CANON EVENT | dire |
+
+**Masc-only (6):**
+
+| ID | Text | Band |
+|---|---|---|
+| `punchline.alpha_confirmed` | ALPHA CONFIRMED | elite |
+| `punchline.sigma_grindset` | SIGMA GRINDSET | high |
+| `punchline.milf_hunter_license` | MILF HUNTER LICENSE | mid |
+| `punchline.certified_simp` | CERTIFIED SIMP | low |
+| `punchline.beta_energy` | BETA ENERGY | poor |
+| `punchline.tate_dropout` | TATE ACADEMY DROPOUT | dire |
+
+**Femme-only (5):**
+
+| ID | Text | Band |
+|---|---|---|
+| `punchline.mother_mothered` | MOTHER HAS MOTHERED | elite |
+| `punchline.slay` | CERTIFIED SLAYYY | elite |
+| `punchline.it_girl` | CERTIFIED IT GIRL | high |
+| `punchline.girlboss_trio` | GASLIGHT GATEKEEP GIRLBOSS | high |
+| `punchline.drama_queen_crowned` | DRAMA QUEEN CROWNED | low |
 
 ### 5.4 Stickers (`sticker-bank.ts`)
 
 Each preset: `{ label, tone, rotation }`. Tones: `accent` (positive), `chrome` (neutral),
 `warn` (negative). Archetypes/captions reference stickers **by id** (the `stickerId` columns above).
 
-- **Face stickers (15):** `hear-me-out`(warn), `plot-relevant`(chrome), `aura-farmer`(accent),
-  `chad`(accent), `main-character`(chrome), `goat`(accent), `mafia-boss`(accent),
-  `locked-in`(accent), `honorable-mention`(chrome), `delusional`(warn), `chopped`(warn),
-  `canon-event`(warn), `negative-aura`(warn), `unc`(warn), `ai-slop`(warn).
-- **Outfit stickers (11):** `fit-has-lore`(accent), `let-him-cook`(accent),
+- **Face stickers (31):** the 15 original — `hear-me-out`(warn), `plot-relevant`(chrome),
+  `aura-farmer`(accent), `chad`(accent), `main-character`(chrome), `goat`(accent),
+  `mafia-boss`(accent), `locked-in`(accent), `honorable-mention`(chrome), `delusional`(warn),
+  `chopped`(warn), `canon-event`(warn), `negative-aura`(warn), `unc`(warn), `ai-slop`(warn) —
+  plus masc `alpha`(accent), `sigma`(chrome), `beta`(warn), `tate`(warn), `milf-hunter`(chrome),
+  `simp`(warn), `performative-male`(chrome) and femme `mother`(accent), `femme-fatale`(accent),
+  `it-girl`(accent), `girlboss`(accent), `material-girl`(accent), `vip`(accent),
+  `clean-girl`(chrome), `brat`(accent), `drama-queen`(warn).
+- **Outfit stickers (21):** the 11 original — `fit-has-lore`(accent), `let-him-cook`(accent),
   `never-cook-again`(warn), `buffering`(chrome), `performative`(chrome), `locked-in`(accent),
-  `rizz`(accent), `delulu`(chrome), `ai-slop`(warn), `chopped`(warn), `aura-debt`(warn).
+  `rizz`(accent), `delulu`(chrome), `ai-slop`(warn), `chopped`(warn), `aura-debt`(warn) — plus
+  masc `sigma-fit`(chrome), `millennial`(chrome), `unc-fit`(warn), `old-money-temu`(warn),
+  `boomer`(warn) and femme `fashion-girl`(accent), `vip-fit`(accent), `material-girl-fit`(accent),
+  `brat-fit`(accent), `clean-girl-fit`(chrome).
 
-> **Gotcha:** the `chad` face sticker exists in the bank but **no face archetype maps to it** —
-> it's only reachable via the in-app manual sticker cycler, never auto-assigned. Free slot if
-> you want a "chad" archetype.
+> **v2 gotcha now resolved:** in v2 the `chad` face sticker existed with no archetype mapping to
+> it. In v3 `face_archetype.gigachad` (masc, elite) maps to `chad`. Every sticker referenced by an
+> archetype/caption now exists in the bank, and they're also reachable via the in-app manual
+> double-tap sticker cycler (see dev-log `043`).
 
 ---
 
 ## 6. Assembly — what each card shows (`assemble.ts`)
 
-Given the rubric + aura + verdict + band, `assembleResult` builds three cards. Display values
-run through `displayScore` (±3 jitter); `null` categories render as `UNSCORED_DISPLAY = 50`.
+Given the *biased* rubric + aura + verdict + band + content gender, `assembleResult` builds three
+cards. Display values run through `displayScore` (±3 jitter); `null` categories render as
+`UNSCORED_DISPLAY = 50`.
 
-**Face Card:** verdict line = chosen archetype; `AURA INDEX {aura}`; 4 mini-scores
-(Aura, Jaw Presence, Face Harmony, Main Character — last one flagged "hot"); sticker = archetype's.
+**Face Card:** verdict line = chosen archetype (femme override applied when femme);
+`AURA INDEX {aura}`; 4 mini-scores — **Aura · Haircut Match · Masc/Fem Index · Main Character**
+(last one flagged "hot"). The third tile's label is **"Femininity Index"** when confidently femme,
+else **"Masculinity Index"**, and its value is `presentation.expressionStrength` (jittered for
+display). Sticker = archetype's.
+
+> **v2 → v3 metric swap:** the v2 Face Card showed `Aura · Jaw Presence · Face Harmony · Main
+> Character`. v3 replaces Jaw Presence + Face Harmony tiles with `Haircut Match` + the Masc/Fem
+> Index. Jaw Presence and Face Harmony still appear in the **breakdown** below.
 
 **Face breakdown (6 traits):** Jaw Presence, Face Harmony, Visual Presence, Haircut Match,
-Grooming, Main Character. Each gets a `descriptor` from the **raw rating** (not the jittered
-display): `≥85 Elite · ≥68 Strong · ≥45 Even · ≥25 Soft · else Off · null "—"`.
+Grooming, Main Character. Each gets a `descriptor` from the **raw (biased) rating** (not the
+jittered display): `≥85 Elite · ≥68 Strong · ≥45 Even · ≥25 Soft · else Off · null "—"`.
 
-**Outfit Card:** caption = chosen outfit caption; overall = Outfit aggregate; 4 mini-scores
-(Silhouette, Proportions, Fit, Physique Match); sticker = caption's.
+**Outfit Card:** caption = chosen outfit caption (femme override applied); overall = Outfit
+aggregate; 4 mini-scores (Silhouette, Proportions, Fit, Physique Match); sticker = caption's.
 
 **Outfit supporting stats (≤4, skips null):** Color Story, Layering, Styling Intent,
 Overall Cohesion, Accessories — with the model's `evidence` as the note. Plus 2 **tags**:
@@ -323,26 +483,35 @@ strongest assessed category → "… on point" (good), weakest → "… needs wo
 | Main-Char Energy | `percent(base = mainCharacterEnergy rating ?? 50)%` | default |
 
 Receipt also carries: `generationId` (`0x….` hash of scanId), the punchline as
-`finalPunchline`, the verdict, and `summary = faceCopy.summary + " " + outfitCopy.verdict`.
+`finalPunchline` (femme override applied), the verdict, and `summary`. The summary prefixes
+**"Giving {recognizedIcon} energy."** when `recognizedIcon != null && recognizedConfidence ≥ 0.85`
+(`ICON_NAME_CONFIDENCE_MIN`); otherwise it's just `faceCopy.summary + " " + outfitCopy.verdict`.
 
-> **Copy source today:** the verdict explanation = `faceCopy.summary`, the roast =
-> `faceCopy.improvement`, outfit works/hurts/verdict come straight from `outfitCopy`. These are
-> the strings to make funnier in Bucket B — they're 100% model-authored, capped at one short
-> sentence each by the prompt.
+> **Known v3 gap (worth a future fix):** the receipt **row labels are not gendered** — "Lover-Boy
+> Prob." renders even on a femme scan, despite the femme voice rule banning "lover boy" elsewhere.
+> Only the archetype / caption / punchline / Masc-Fem-Index reflect gender; the static receipt row
+> labels in `assemble.ts` (`rows[]`) don't. If you gender the copy further, that's the place.
+
+> **Copy source:** the verdict explanation = `faceCopy.summary`, the roast = `faceCopy.improvement`,
+> outfit works/hurts/verdict come straight from `outfitCopy`. These are 100% model-authored, in the
+> savage anti-slop voice, capped at one short sentence each by the prompt.
 
 ---
 
 ## 7. Version constants (`constants.ts`)
 
-- `SOLO_SCAN_SCHEMA_VERSION = 'solo_scan_v2'` — the response contract. Bump on **schema** changes
+- `SOLO_SCAN_SCHEMA_VERSION = 'solo_scan_v3'` — the response contract. Bump on **schema** changes
   (the model must echo it back; Zod asserts the literal, so a mismatch rejects the scan).
-- `SOLO_SCAN_PROMPT_VERSION = 'v2'` — the prompt/scoring version. Bump when the **system
+- `SOLO_SCAN_PROMPT_VERSION = 'v3'` — the prompt/scoring version. Bump when the **system
   instruction or scoring weights change**; it re-seeds display jitter so old saved results stay
   internally consistent and new ones reflect the change.
 
 > The edge function is a **manual deploy** (not git/Vercel). After any change here or in
 > `gemini.ts` / `scoring.ts` / `content-bank.ts`: run tests → bump the version(s) → redeploy the
-> `solo-scan` function.
+> `solo-scan` function with
+> `npx supabase functions deploy solo-scan --project-ref rxtlbhjysksoxkdcdqyr --no-verify-jwt`.
+> Docker is **not** required (and not installed) — the CLI's server-side bundler is used, which is
+> why every relative import in `packages/shared/src/solo-scan` carries an explicit `.ts` extension.
 
 ---
 
@@ -350,16 +519,19 @@ Receipt also carries: `generationId` (`0x….` hash of scanId), the punchline as
 
 | You want to… | Edit | Notes |
 |---|---|---|
-| Make **captions/archetypes/punchlines funnier or add new ones** | `content-bank.ts` (add to bank) **and** `gemini.ts` allowlist | Must add to both, or the model can't pick it. The model's candidate list drives the pick (§5). |
-| **Bias content toward a meme** (e.g. force GOAT/CHAD for a recognized face) | `gemini.ts` SYSTEM_INSTRUCTION — add instructions on when to nominate which candidates | Selection is candidate-driven; band is fallback only. This is the lever for "McLovin → high." |
-| Make **verdict explanations / roasts funnier, less formal** | `gemini.ts` SYSTEM_INSTRUCTION (copy-voice rules) | `faceCopy`/`outfitCopy` are model-authored. Add a voice spec; ban AI-slop tells. |
-| Shift the **green / normie / red split** | `pickVerdict` thresholds in `scoring.ts` (70 / 45) | Bump `PROMPT_VERSION`, retest, redeploy. Calibrate against real scans. |
-| Change the **score distribution** (harsher/kinder) | the `0-20 … 81-100` anchor in `gemini.ts` | The single biggest lever on where raw scores land. |
+| Make **captions/archetypes/punchlines funnier or add new ones** | `content-bank.ts` (add to bank) **and** `gemini.ts` allowlist | Must add to both, or the model can't pick it. Tag with `gender: 'masc' \| 'femme'` (omit for neutral). The model's candidate list drives the pick (§5). |
+| **Bias content toward a meme** (e.g. force GOAT/CHAD for a recognized face) | `gemini.ts` SYSTEM_INSTRUCTION — instructions on when to nominate which candidates | Selection is candidate-driven; band is fallback only. The icon *score* bias (§4.2) is separate from which line you get. |
+| Tune the **femme / icon score bias** | `FEMME_SCORE_BIAS` / `ICON_SCORE_BIAS` (+ their `*_CONFIDENCE_MIN` gates) in `scoring.ts` | Femme is documented tunable 0.05–0.10. Changing it shifts the verdict split for biased scans — recalibrate §4.5. |
+| Change **when a recognized name appears in copy** | `ICON_NAME_CONFIDENCE_MIN` in `scoring.ts` (default 0.85) | Bias kicks in at 0.60 (`ICON_CONFIDENCE_MIN`); the *name* in the receipt summary only at 0.85. |
+| Make **verdict explanations / roasts funnier, less formal** | `gemini.ts` VOICE block + BANNED list | `faceCopy`/`outfitCopy` are model-authored. Extend the banned-phrase list to kill new AI tells. |
+| Shift the **green / normie / red split** | `pickVerdict` thresholds in `scoring.ts` (70 / 45) | Bump `PROMPT_VERSION`, retest, redeploy. **Open follow-up: not yet calibrated against the v3 bias.** |
+| Change the **score distribution** (harsher/kinder) | the `0-20 … 81-100` anchor in `gemini.ts` | The single biggest lever on where raw (pre-bias) scores land. |
+| Gender the **receipt row labels** ("Lover-Boy Prob." on femme) | `rows[]` in `assemble.ts` | Currently static; see the "known v3 gap" note in §6. |
 | Reweight which categories matter | `FACE_WEIGHTS` / `OUTFIT_WEIGHTS` in `scoring.ts` | Keep each set summing to 1.00. |
-| Add **gender awareness / female bias / female card names** | `schema.ts` (new field) + `gemini.ts` (detect + guardrail rewrite) + `scoring.ts` (bias) + `content-bank.ts` (female variants) | This is Bucket B; needs the guardrail line reworded and a `PROMPT_VERSION` + `SCHEMA_VERSION` bump. |
+| Add a new **Masc/Fem Index** behavior | `presentation.expressionStrength` (model) + the `gender-index` tile in `assemble.ts` | It's display-only and not biased. |
 | Adjust the **score wobble** | `jitter` spread in `scoring.ts` | Default ±3 for display, ±12 for receipt percentages. |
 
 ---
 
-*Last updated for `prompt v2 / schema solo_scan_v2`. Update this doc whenever you change a
-weight, threshold, bank entry, or the prompt.*
+*Last updated for `prompt v3 / schema solo_scan_v3`. Update this doc whenever you change a
+weight, threshold, bias constant, bank entry, or the prompt.*
