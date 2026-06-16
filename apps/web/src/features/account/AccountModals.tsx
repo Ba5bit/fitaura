@@ -150,6 +150,45 @@ export function AuthGate() {
   );
 }
 
+/* ============================ EMAIL SENT (confirm / recovery) ============================ */
+export function EmailSentNotice() {
+  const { pendingEmail, confirmKind, resendConfirmation, resendCooldown, closeScene, openAuth } = useAccount();
+  const isRecovery = confirmKind === 'recovery';
+  return (
+    <WebModal size="sm" onClose={closeScene}>
+      <WebDialogBody>
+        <div className="aw-glyph neutral">
+          <Icon.mail />
+        </div>
+        <h2 className="aw-modal-title" style={{ marginTop: '18px' }}>
+          CHECK YOUR EMAIL
+        </h2>
+        <p className="aw-modal-sub">
+          {isRecovery
+            ? 'We sent a password-reset link to '
+            : 'We sent a confirmation link to '}
+          <b style={{ color: 'var(--ink)' }}>{pendingEmail ?? 'your inbox'}</b>
+          {isRecovery ? '. Open it to set a new password.' : '. Click it to activate your account.'}
+        </p>
+        <button
+          className="aw-btn primary block"
+          style={{ marginTop: '20px' }}
+          disabled={resendCooldown > 0}
+          onClick={() => void resendConfirmation()}
+        >
+          <Icon.refresh /> {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : isRecovery ? 'Resend reset link' : 'Resend confirmation'}
+        </button>
+        <button className="aw-linkbtn" onClick={() => openAuth()}>
+          Back to log in
+        </button>
+        <div className="aw-fineprint" style={{ marginTop: '6px' }}>
+          Can't find it? Check your spam folder.
+        </div>
+      </WebDialogBody>
+    </WebModal>
+  );
+}
+
 /* ============================ PAYWALL ============================ */
 export function Paywall() {
   const { closeScene } = useAccount();
