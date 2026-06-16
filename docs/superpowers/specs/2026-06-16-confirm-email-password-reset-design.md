@@ -27,6 +27,8 @@ Separately, the registration **credit grant** is being changed (see §5).
 - Verify the email via a **first-party `fitaura.studio/auth/confirm`** link (fixes the Resend
   warning) using `token_hash` + `verifyOtp` (the SPA path from the reference doc).
 - Add a **password-reset** flow (forgot password → email → set new password).
+- Require the password to be entered **twice on registration** (a confirm-password field) so typos
+  can't silently lock a user out of an account they then can't confirm.
 - Change the registration credit grant to **1 credit**, or **2** when the user registers before
   generating any image.
 - No RLS weakening, no second Supabase client, no secrets in client code, no open redirects.
@@ -113,6 +115,12 @@ Reuses `WebModal` + `aw-*` (mirrors `PaySuccess` structure). Parameterized by
 the `confirm` scene with `confirmKind: 'recovery'`. The existing form shell/segmented control is
 reused. The post-signup branch (`submit` when `isSignup`) **no longer** switches to the login tab
 with a "now log in" notice — it defers to `AccountContext.signUp`, which opens the `confirm` scene.
+
+**Fields per mode.** `signup` → Email + Password + **Confirm password**; `login` → Email +
+Password; `reset` → Email only. In `signup`, submit is blocked with an inline "Passwords don't
+match" message (and never calls `signUp`) unless the two password fields are equal; the confirm
+field is cleared on mode switch alongside the existing password reset. The match check is a tiny
+pure predicate so the mismatch path is unit-testable.
 
 ## 3. Service layer (`authService.ts`)
 
@@ -209,6 +217,8 @@ hardening (reserve/consume RPC, server-authoritative grant) stays in the deferre
 - `AccountContext`: `signUp` → `scene='confirm'` + `pendingEmail` + `confirmKind='signup'`;
   already-registered → `authError`; `logIn` not-confirmed → error + resend affordance;
   `requestPasswordReset` → `confirm`/recovery; resend cooldown blocks rapid re-clicks.
+- `AuthGate` signup: mismatched passwords block submit with the inline error and do not call
+  `signUp`; matching passwords proceed.
 
 **Manual test report (per the reference doc checklist):**
 - Signup: email arrives from `fitaura.studio`, link starts with `https://fitaura.studio/auth/confirm`
