@@ -2,6 +2,7 @@ import { Icon } from '../../lib/icons';
 import { useAccount } from './AccountContext';
 import {
   AuthGate,
+  EmailSentNotice,
   Paywall,
   Checkout,
   Processing,
@@ -20,6 +21,7 @@ export function AccountOverlays() {
   return (
     <>
       {scene === 'auth' && <AuthGate />}
+      {scene === 'confirm' && <EmailSentNotice />}
       {scene === 'paywall' && <Paywall />}
       {scene === 'checkout' && <Checkout />}
       {scene === 'processing' && <Processing />}

@@ -29,15 +29,14 @@ Separately, the registration **credit grant** is being changed (see §5).
 - Add a **password-reset** flow (forgot password → email → set new password).
 - Require the password to be entered **twice on registration** (a confirm-password field) so typos
   can't silently lock a user out of an account they then can't confirm.
-- Change the registration credit grant to **1 credit**, or **2** when the user registers before
-  generating any image.
+- Grant a flat **1 credit** on registration (down from a default of 3).
 - No RLS weakening, no second Supabase client, no secrets in client code, no open redirects.
 
 ## Non-goals
 
 - OAuth / magic-link / invite / email-change flows (the `/auth/confirm` `type` allowlist is
   forward-compatible, but only `email` and `recovery` are wired this pass).
-- Hardening credits against forgery (the owner-`update` RLS gap and the metadata-trust gap in §5
+- Hardening credits against forgery (the owner-`update` RLS gap in §5
   remain a deferred "Cycle 1" item).
 - Switching to PKCE or SSR. The app stays a client-only SPA; sessions persist to localStorage via
   the existing browser client.
@@ -124,8 +123,7 @@ pure predicate so the mismatch path is unit-testable.
 
 ## 3. Service layer (`authService.ts`)
 
-- `authSignUp(email, password)` — pass signup metadata for the credit rule (see §5):
-  `supabase.auth.signUp({ email, password, options: { data: { used_free_scan: hasUsedFreeScan() } } })`.
+- `authSignUp(email, password)` — `supabase.auth.signUp({ email, password })`.
   Returns a result distinguishing: **ok + confirmation pending** (`!data.session`), **ok + session**
   (defensive; shouldn't happen with confirm on), and **already-registered** (`data.user` present
   with `identities` empty → "That email already has an account — try logging in.").
@@ -159,35 +157,20 @@ pure predicate so the mismatch path is unit-testable.
   user to signed-in once `/auth/confirm` establishes the session — so the email-confirm path lands
   in `/vault` with no extra wiring beyond the redirect.
 
-## 5. Registration credit grant (1, or 2 when registered before generating)
+## 5. Registration credit grant (flat 1)
 
-**Rule.**
-- Base grant on a new account = **1 credit**. (Covers "register *after* a scan → 1".)
-- If the user **registers before generating any image** = **2 credits**.
+**Rule.** Every new account gets a flat **1 credit**, regardless of entry path (scan-from-landing
+or register-then-scan). The first scan spends it (1 → 0).
 
-"Before generating any image" = the guest has **not consumed the free scan** on this device:
-`!hasUsedFreeScan()` (the `fitaura.freeScanUsed` flag in `creditsService.ts`), cross-checked by an
-empty generation `history`. The signup modal commonly appears *after* a guest's free scan (→ 1) or
-*before* any scan from the landing/nav (→ 2), which matches the intent.
+> An earlier revision granted **2** credits when the user registered *before* generating any image
+> (to equalize the scan-first vs register-first paths), passing a `used_free_scan` flag as signup
+> metadata. **That was dropped for simplicity** — flat 1 for everyone, so `signUp` sends no metadata.
 
-**Mechanism — metadata-driven trigger (server-side, atomic).**
-- The client passes `options.data.used_free_scan: boolean` on `signUp` (§3).
-- The existing `public.handle_new_user` `SECURITY DEFINER` trigger (today inserts the profile with
-  `credits` default 3) is altered to grant: `2` when `new.raw_user_meta_data->>'used_free_scan'`
-  is `'false'` (registered before generating), else `1`. Default when metadata is absent/anything
-  else: **1** (conservative).
-- There are **no committed `supabase/migrations/*.sql`** in the repo — schema lives in Supabase and
-  is changed via the Supabase MCP `apply_migration` (or dashboard). This change is one migration
-  redefining `handle_new_user` (and dropping the column `default 3`, or leaving it — the trigger
-  sets the value explicitly).
-
-**Why not a client top-up (+1 via `grantCredits`)?** That uses the owner-`update` path the credit
-hardening cycle wants to remove and is non-atomic. The trigger keeps the grant in one place,
-server-side.
-
-**Known gap (accepted, deferred).** A user could forge `used_free_scan: false` to get 2 instead of
-1 — a 1-credit abuse, consistent with the existing "credits not yet forgery-proof" posture. Real
-hardening (reserve/consume RPC, server-authoritative grant) stays in the deferred Cycle 1.
+**Mechanism.** The `public.handle_new_user` `SECURITY DEFINER` trigger (today inserts the profile
+with `credits` default 3) is altered to grant a flat **1**, server-side and atomic — no client-side
+top-up. There are **no committed `supabase/migrations/*.sql`** in the repo — schema lives in Supabase
+and is changed via the Supabase MCP `apply_migration` (or dashboard). This is one migration redefining
+`handle_new_user` and setting the `credits` column default to 1.
 
 ## 6. Manual configuration (cannot be done in code)
 
@@ -212,8 +195,8 @@ hardening (reserve/consume RPC, server-authoritative grant) stays in the deferre
 **Unit (Vitest, existing `vi.hoisted` supabase mock):**
 - Pure helpers: `getSafeNextPath` (incl. the three malicious values `https://evil.example`,
   `//evil.example`, `javascript:alert(1)` → fallback) and `isSupportedOtpType`.
-- `authService` wrappers call the right Supabase methods with the right args (incl. `signUp`
-  passing `used_free_scan`), and `friendly()` maps the not-confirmed error.
+- `authService` wrappers call the right Supabase methods with the right args, and `friendly()`
+  maps the not-confirmed error (email-validation cases ordered before the link expired/invalid case).
 - `AccountContext`: `signUp` → `scene='confirm'` + `pendingEmail` + `confirmKind='signup'`;
   already-registered → `authError`; `logIn` not-confirmed → error + resend affordance;
   `requestPasswordReset` → `confirm`/recovery; resend cooldown blocks rapid re-clicks.
@@ -226,7 +209,7 @@ hardening (reserve/consume RPC, server-authoritative grant) stays in the deferre
 - Expired/reused link → friendly invalid state; no token in UI/logs.
 - Recovery: forgot password → email → `/auth/confirm?type=recovery` → `/auth/update-password` →
   new password works, old fails.
-- Credit grant: register before any scan → 2 credits; use free scan then register → 1 credit.
+- Credit grant: every new account → 1 credit; the first scan spends it (1 → 0).
 - Regression: normal login, logout, session refresh, guest free-scan flow, DB profile creation.
 
 **Dev caveat:** Strategy A points the email link at the Site URL (`fitaura.studio`), so the

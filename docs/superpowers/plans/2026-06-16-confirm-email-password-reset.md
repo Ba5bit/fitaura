@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Tell users to confirm their email after signup, verify it via a first-party `fitaura.studio/auth/confirm` link, add a password-reset flow, require a confirm-password field on registration, and grant 1 credit on signup (2 when registered before generating).
+**Goal:** Tell users to confirm their email after signup, verify it via a first-party `fitaura.studio/auth/confirm` link, add a password-reset flow, require a confirm-password field on registration, and grant a flat 1 credit on signup.
 
 **Architecture:** Client-only Vite + React + React Router SPA. All Supabase auth calls stay behind `services/authService.ts`; `AccountContext` orchestrates scenes/state; UI calls the context. Email/recovery links are verified on a public `/auth/confirm` route via `supabase.auth.verifyOtp({ token_hash, type })` (the SPA path from `~/Downloads/FITAURA_SUPABASE_RESEND_AUTH.md`). The credit grant is set server-side by the `handle_new_user` trigger, keyed off a `used_free_scan` flag passed as signup metadata.
 
@@ -1072,22 +1072,20 @@ set search_path = ''
 as $$
 begin
   insert into public.profiles (id, credits)
-  values (
-    new.id,
-    case
-      when (new.raw_user_meta_data ->> 'used_free_scan') = 'false' then 2
-      else 1
-    end
-  );
+  values (new.id, 1);
   return new;
 end;
 $$;
 
--- Keep the column default consistent with the base grant.
+-- Set the column default consistent with the flat grant.
 alter table public.profiles alter column credits set default 1;
 ```
 
-> Rule: `used_free_scan = 'false'` (registered *before* generating) → 2 credits; otherwise (already scanned, or flag absent) → 1. Matches the `usedFreeScan: hasUsedFreeScan()` metadata sent by `authSignUp` (Task 3).
+> Rule: a flat **1 credit** for every new account (down from default 3). NOTE: an earlier draft of
+> this plan (and the Task 3/4 code blocks above) branched on a `used_free_scan` signup-metadata flag
+> for a 2-credit early-registration bonus. **That was dropped** — the grant is unconditional and
+> `signUp` sends no metadata (see commit `9cbdc3d` / dev-log 044). Ignore the `used_free_scan`
+> references in the earlier steps.
 > Reconcile `set search_path` / any extra statements with what Step 1 printed.
 
 - [ ] **Step 3: Verify** (MCP `execute_sql`)

@@ -54,6 +54,12 @@ export const Icon = {
       <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   ),
+  mail: (p: IconProps) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" {...p}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="M3 7l9 6 9-6" />
+    </svg>
+  ),
   lock: (p: IconProps) => (
     <svg {...base(p)} strokeWidth={p.strokeWidth ?? 1.8}>
       <rect x="5" y="11" width="14" height="9" rx="2" />
