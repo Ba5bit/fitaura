@@ -67,5 +67,6 @@ After any crucial step:
 - [041 — Score diversity (0–100) + caption bank expansion](041-score-diversity-caption-bank.md)
 - [042 — Solo Scan v3: gender-aware scoring, icon recognition, savage voice](042-solo-scan-v3.md)
 - [043 — Frontend tweaks: webcam capture, full-bleed scan, sticker cycle, glow + save-button cleanup](043-frontend-tweaks-webcam-scan-stickers.md)
+- [044 — Email confirmation, password reset & registration credit grant](044-auth-email-confirmation-and-reset.md)
 
 > Note: there is no entry 028 (number skipped during the v3 work; not a missing file).
