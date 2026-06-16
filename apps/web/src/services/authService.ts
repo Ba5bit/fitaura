@@ -25,16 +25,8 @@ function friendly(message: string): string {
   return 'Something went wrong. Please try again.';
 }
 
-export async function authSignUp(
-  email: string,
-  password: string,
-  opts: { usedFreeScan: boolean },
-): Promise<SignUpResult> {
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { used_free_scan: opts.usedFreeScan } },
-  });
+export async function authSignUp(email: string, password: string): Promise<SignUpResult> {
+  const { data, error } = await supabase.auth.signUp({ email, password });
   if (error || !data.user) return { ok: false, error: friendly(error?.message ?? 'no user') };
   // Confirm-email on: an existing account returns a user with an empty identities
   // array (anti-enumeration). Treat that as "already registered".

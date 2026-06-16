@@ -31,13 +31,9 @@ describe('authSignUp', () => {
       data: { user: { id: 'u1', email: 'a@b.com', identities: [{ id: 'i1' }] }, session: null },
       error: null,
     });
-    const res = await authSignUp('a@b.com', 'password123', { usedFreeScan: false });
+    const res = await authSignUp('a@b.com', 'password123');
     expect(res).toEqual({ ok: true, status: 'confirm', user: { id: 'u1', email: 'a@b.com' } });
-    expect(signUp).toHaveBeenCalledWith({
-      email: 'a@b.com',
-      password: 'password123',
-      options: { data: { used_free_scan: false } },
-    });
+    expect(signUp).toHaveBeenCalledWith({ email: 'a@b.com', password: 'password123' });
   });
 
   it('treats an empty identities array as already-registered', async () => {
@@ -45,13 +41,13 @@ describe('authSignUp', () => {
       data: { user: { id: 'u1', email: 'a@b.com', identities: [] }, session: null },
       error: null,
     });
-    const res = await authSignUp('a@b.com', 'password123', { usedFreeScan: true });
+    const res = await authSignUp('a@b.com', 'password123');
     expect(res).toEqual({ ok: false, error: 'That email already has an account — try logging in.' });
   });
 
   it('maps an error to a friendly message', async () => {
     signUp.mockResolvedValue({ data: { user: null, session: null }, error: { message: 'User already registered' } });
-    const res = await authSignUp('a@b.com', 'password123', { usedFreeScan: true });
+    const res = await authSignUp('a@b.com', 'password123');
     expect(res).toEqual({ ok: false, error: 'That email already has an account — try logging in.' });
   });
 });

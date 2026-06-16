@@ -5,7 +5,7 @@ import {
   authResend, authResetPassword, authSignIn, authSignOut, authSignUp,
   getCurrentSession, onAuthChange,
 } from '../../services/authService';
-import { getBalance, grantCredits, refundCredit, spendCredit, hasUsedFreeScan } from '../../services/creditsService';
+import { getBalance, grantCredits, refundCredit, spendCredit } from '../../services/creditsService';
 
 export interface AccountUser {
   email: string;
@@ -227,7 +227,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     async (email, password) => {
       setAuthStatus('pending');
       setAuthError(null);
-      const res = await authSignUp(email.trim(), password, { usedFreeScan: hasUsedFreeScan() });
+      const res = await authSignUp(email.trim(), password);
       if (!res.ok) {
         setAuthStatus('error');
         setAuthError(res.error);
