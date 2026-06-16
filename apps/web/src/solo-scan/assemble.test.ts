@@ -86,3 +86,29 @@ describe('assembleResult v3', () => {
     expect(assembleResult(lo, 'scan-icon', 'v3').receipt.summary).not.toContain('McLovin');
   });
 });
+
+describe('assembleResult v3.1 — meme glory vs honest celebrity', () => {
+  const lowRead = () => {
+    const ai = sampleAIOutput();
+    for (const k of Object.keys(ai.faceAnalysis) as (keyof typeof ai.faceAnalysis)[]) ai.faceAnalysis[k].rating = 20;
+    for (const k of Object.keys(ai.outfitAnalysis) as (keyof typeof ai.outfitAnalysis)[]) ai.outfitAnalysis[k].rating = 20;
+    ai.contentSelection.faceArchetypeCandidates = ['face_archetype.negative_aura']; // a low pick the model nominated
+    return ai;
+  };
+
+  it('a confident meme lands high + green despite a low raw read', () => {
+    const ai = lowRead();
+    ai.presentation = { ...ai.presentation, recognizedIcon: 'McLovin', recognizedConfidence: 0.95, recognizedKind: 'meme' };
+    const r = assembleResult(ai, 'scan-meme', 'v3_1');
+    expect(r.face.analysis.aura).toBeGreaterThanOrEqual(75);
+    expect(r.verdict).toBe('green_flag');
+  });
+
+  it('a real public figure with the same low read is NOT boosted (honest)', () => {
+    const ai = lowRead();
+    ai.presentation = { ...ai.presentation, recognizedIcon: 'Some Athlete', recognizedConfidence: 0.95, recognizedKind: 'real_person' };
+    const r = assembleResult(ai, 'scan-celeb', 'v3_1');
+    expect(r.face.analysis.aura).toBeLessThan(40);
+    expect(r.verdict).toBe('red_flag');
+  });
+});

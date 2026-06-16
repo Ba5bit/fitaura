@@ -18,6 +18,7 @@ export const presentationSchema = z.object({
   expressionStrength: z.number().int().min(0).max(100), // masc/fem index; display-only
   recognizedIcon: z.string().max(60).nullable(),
   recognizedConfidence: z.number().min(0).max(1),
+  recognizedKind: z.enum(['meme', 'real_person']).nullable(), // meme/fictional vs real public figure
 });
 export type Presentation = z.infer<typeof presentationSchema>;
 

@@ -5,14 +5,16 @@
 > every caption / sticker / punchline bank, and **where to edit what** when you want to
 > tune the vibe. This is the reference for prompt fine-tuning.
 >
-> **Status:** describes the live system at `SOLO_SCAN_PROMPT_VERSION = v3` /
-> `SOLO_SCAN_SCHEMA_VERSION = solo_scan_v3`. Keep this file in sync when you tune.
-> **What v3 added over v2:** apparent-gender presentation + public-figure/meme **icon
-> recognition** (a new `presentation` field), a multiplicative **score bias** (femme
-> ×1.07, recognized icon ×1.15), **gendered content banks** (masc / femme variants of
-> archetypes, captions, punchlines + female-coded line overrides), a **savage anti-slop
-> copy voice** with a banned-phrase list, and a **Face Card metric swap** (the third
-> mini-score is now a Masc/Fem Index). See dev-log `042-solo-scan-v3.md`.
+> **Status:** describes the live system at `SOLO_SCAN_PROMPT_VERSION = v3_1` /
+> `SOLO_SCAN_SCHEMA_VERSION = solo_scan_v3_1`. Keep this file in sync when you tune.
+> **v3.1 (latest):** recognition is split by `recognizedKind` — a confident **meme** gets a
+> **glory floor** (every rating lifted to 75–92 → high/green + legend content), while a **real
+> public figure** gets the **honest read** (no boost). The old flat ×1.15 icon multiplier is gone.
+> See dev-log `045-meme-glory-vs-honest-celebrity.md`.
+> **v3 (over v2):** apparent-gender presentation + meme/figure **icon recognition** (the
+> `presentation` field), a femme **score bias** (×1.07), **gendered content banks** (masc/femme
+> variants + female-coded overrides), a **savage anti-slop voice**, and a **Face Card metric swap**
+> (third mini-score is the Masc/Fem Index). See dev-log `042-solo-scan-v3.md`.
 
 ---
 
@@ -127,7 +129,8 @@ Every category rating is `{ rating: int 0–100 | null, confidence: 0–1, evide
 | `genderConfidence` | `0–1` | Confidence in the gender read; **gates** the femme bias + content gender at `≥ 0.60`. |
 | `expressionStrength` | `int 0–100` | "How strongly the look reads as that presentation" — a vanity stat. Shown as the Face Card Masc/Fem Index; **not** an attractiveness score and **not** biased. |
 | `recognizedIcon` | `string ≤60 \| null` | A widely-known public figure / meme character name, or `null`. Never a private individual. |
-| `recognizedConfidence` | `0–1` | Confidence in the recognition; **gates** the icon bias at `≥ 0.60` and the icon *name in copy* at `≥ 0.85`. |
+| `recognizedConfidence` | `0–1` | Confidence in the recognition; **gates** the meme-glory floor at `≥ 0.60` and the icon *name in copy* at `≥ 0.85`. |
+| `recognizedKind` (v3.1) | `'meme' \| 'real_person' \| null` | Whether the recognized icon is a fictional/meme character (→ glory floor, §4.2) or a real public figure (→ honest read, no boost). `null` when nothing recognized. |
 
 **Face rubric — `FACE_KEYS` (7):** `photoPresentation`, `faceHarmony`, `jawPresence`,
 `haircutMatch`, `groomingCoherence`, `visualPresence`, `mainCharacterEnergy`.
@@ -185,29 +188,35 @@ then **weighted averages that drop `null` categories and redistribute their weig
 > `photoPresentation` feeds the Face aggregate but is **not** shown as its own breakdown trait
 > (it rates the photo, not the face).
 
-### 4.2 Score bias (v3) — femme + recognized icon
+### 4.2 Score bias — femme multiplier + meme-glory floor (v3.1)
 
-A single **multiplicative factor** is applied to every face/outfit rating *before* the weighted
-averages (`biasFactor` → `applyScoreBias`). It composes two independent, gated nudges:
+**Femme multiplier.** `biasFactor` applies one multiplicative nudge to every face/outfit rating
+*before* the weighted averages — **gender only** (icon no longer multiplies):
 
 | Source | Factor | Gate | Constant |
 |---|---|---|---|
 | Confidently **femme** | ×1.07 | `gender === 'femme'` && `genderConfidence ≥ 0.60` | `FEMME_SCORE_BIAS = 0.07`, `FEMME_CONFIDENCE_MIN = 0.60` |
-| Recognized **icon** | ×1.15 | `recognizedIcon != null` && `recognizedConfidence ≥ 0.60` | `ICON_SCORE_BIAS = 0.15`, `ICON_CONFIDENCE_MIN = 0.60` |
 
-```
-biasFactor = (femme gate met ? 1.07 : 1) × (icon gate met ? 1.15 : 1)
-```
+`applyScoreBias(ai, factor)` returns the input **unchanged when `factor === 1`**; otherwise it
+clones the AI output with every rating `round(rating × factor)` clamped 0–100. `expressionStrength`
+and copy are not biased.
 
-`applyScoreBias(ai, factor)` returns the input **unchanged when `factor === 1`** (the common
-case); otherwise it clones the AI output with every rating `round(rating × factor)` clamped to
-0–100. `expressionStrength` and all copy are **not** biased. The bias is applied once, up front,
-so it propagates into the aggregates, the Aura Index, the verdict, the band, and every displayed
-sub-score consistently.
+**Meme glory (v3.1).** Recognition is split by kind (`presentation.recognizedKind`):
+- **`'meme'`** (fictional / comedic / internet-meme character) + `recognizedConfidence ≥
+  ICON_CONFIDENCE_MIN (0.60)` → **glory**: `applyGloryFloor` lifts *every* face/outfit rating up to
+  a **per-category seeded value in [`GLORY_MIN`=75, `GLORY_MAX`=92]** (never lowering a
+  genuinely-high rating; a null rating becomes the floor), applied after the femme multiplier.
+  Because it floors the *ratings*, the aggregates, Aura (lands 75–92), verdict (green), descriptors,
+  and sub-scores all read high and coherent. Content is also forced from the high/elite bank
+  (§5/§6). Seeded → varied across categories + scans, not a flat 90.
+- **`'real_person'`** (real public figure / celebrity) → **no boost**. Honest read: a handsome
+  celeb scores high on merit, a plain one scores plainly.
 
-> **Tuning note.** `FEMME_SCORE_BIAS` is documented as tunable in the 0.05–0.10 range. Because
-> the bias shifts the *input* to `pickVerdict` (§4.4), changing it also shifts the green/normie/red
-> split for biased scans — calibrate the two together against real photos.
+> This replaces the v3 flat ×1.15 icon multiplier (`ICON_SCORE_BIAS`, removed), which trashed
+> beloved memes (McLovin → Red Flag) — +15% on a low read is still low. See dev-log 045.
+
+> **Tuning note.** `FEMME_SCORE_BIAS` (0.05–0.10) shifts the verdict split for femme scans —
+> recalibrate `pickVerdict` (§4.5) alongside it. `GLORY_MIN`/`GLORY_MAX` set how legendary memes feel.
 
 ### 4.3 Aura Index
 
@@ -500,9 +509,9 @@ Receipt also carries: `generationId` (`0x….` hash of scanId), the punchline as
 
 ## 7. Version constants (`constants.ts`)
 
-- `SOLO_SCAN_SCHEMA_VERSION = 'solo_scan_v3'` — the response contract. Bump on **schema** changes
+- `SOLO_SCAN_SCHEMA_VERSION = 'solo_scan_v3_1'` — the response contract. Bump on **schema** changes
   (the model must echo it back; Zod asserts the literal, so a mismatch rejects the scan).
-- `SOLO_SCAN_PROMPT_VERSION = 'v3'` — the prompt/scoring version. Bump when the **system
+- `SOLO_SCAN_PROMPT_VERSION = 'v3_1'` — the prompt/scoring version. Bump when the **system
   instruction or scoring weights change**; it re-seeds display jitter so old saved results stay
   internally consistent and new ones reflect the change.
 
@@ -521,7 +530,7 @@ Receipt also carries: `generationId` (`0x….` hash of scanId), the punchline as
 |---|---|---|
 | Make **captions/archetypes/punchlines funnier or add new ones** | `content-bank.ts` (add to bank) **and** `gemini.ts` allowlist | Must add to both, or the model can't pick it. Tag with `gender: 'masc' \| 'femme'` (omit for neutral). The model's candidate list drives the pick (§5). |
 | **Bias content toward a meme** (e.g. force GOAT/CHAD for a recognized face) | `gemini.ts` SYSTEM_INSTRUCTION — instructions on when to nominate which candidates | Selection is candidate-driven; band is fallback only. The icon *score* bias (§4.2) is separate from which line you get. |
-| Tune the **femme / icon score bias** | `FEMME_SCORE_BIAS` / `ICON_SCORE_BIAS` (+ their `*_CONFIDENCE_MIN` gates) in `scoring.ts` | Femme is documented tunable 0.05–0.10. Changing it shifts the verdict split for biased scans — recalibrate §4.5. |
+| Tune the **femme bias** or **meme-glory level** | `FEMME_SCORE_BIAS` / `GLORY_MIN`+`GLORY_MAX` in `scoring.ts` | Femme tunable 0.05–0.10 (recalibrate §4.5 with it). Glory range sets how legendary recognized memes feel; real people are unaffected (honest read). |
 | Change **when a recognized name appears in copy** | `ICON_NAME_CONFIDENCE_MIN` in `scoring.ts` (default 0.85) | Bias kicks in at 0.60 (`ICON_CONFIDENCE_MIN`); the *name* in the receipt summary only at 0.85. |
 | Make **verdict explanations / roasts funnier, less formal** | `gemini.ts` VOICE block + BANNED list | `faceCopy`/`outfitCopy` are model-authored. Extend the banned-phrase list to kill new AI tells. |
 | Shift the **green / normie / red split** | `pickVerdict` thresholds in `scoring.ts` (70 / 45) | Bump `PROMPT_VERSION`, retest, redeploy. **Open follow-up: not yet calibrated against the v3 bias.** |
@@ -533,5 +542,5 @@ Receipt also carries: `generationId` (`0x….` hash of scanId), the punchline as
 
 ---
 
-*Last updated for `prompt v3 / schema solo_scan_v3`. Update this doc whenever you change a
+*Last updated for `prompt v3_1 / schema solo_scan_v3_1`. Update this doc whenever you change a
 weight, threshold, bias constant, bank entry, or the prompt.*

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { soloScanSchema, sampleAIOutput } from '@fitaura/shared';
 
 describe('soloScanSchema', () => {
-  it('accepts a well-formed solo_scan_v3 object', () => {
+  it('accepts a well-formed solo_scan_v3_1 object', () => {
     const parsed = soloScanSchema.safeParse(sampleAIOutput());
     expect(parsed.success).toBe(true);
   });

@@ -7,7 +7,7 @@ import { VERDICT_LABEL } from '../verdict.ts';
 import type { SoloScanAIOutput, RubricRating } from './schema.ts';
 import {
   scoreFromRating, faceScore, outfitScore, auraIndex, displayScore, percent, pickVerdict,
-  biasFactor, applyScoreBias, ICON_NAME_CONFIDENCE_MIN,
+  biasFactor, applyScoreBias, isMemeGlory, applyGloryFloor, ICON_NAME_CONFIDENCE_MIN,
 } from './scoring.ts';
 import { pickFaceArchetype, pickOutfitCaption, pickPunchline, scoreBand } from './content-bank.ts';
 
@@ -52,7 +52,11 @@ export function assembleResult(
   promptVersion: string,
 ): FullGenerationResult {
   const factor = biasFactor(ai.presentation);
-  const b = applyScoreBias(ai, factor);          // biased clone (or ai itself when factor===1)
+  const glory = isMemeGlory(ai.presentation);
+  // Femme bias (gender read) first; then, for a confident meme icon, the glory floor lifts
+  // every rating into the legend range so aura / sub-scores / verdict all read high.
+  let b = applyScoreBias(ai, factor);            // biased clone (or ai itself when factor===1)
+  if (glory) b = applyGloryFloor(b, scanId);
   const confidentlyFemme = ai.presentation.gender === 'femme'
     && ai.presentation.genderConfidence >= 0.60;
   const contentGender = confidentlyFemme ? 'femme' : 'masc';
@@ -69,9 +73,11 @@ export function assembleResult(
   const band = scoreBand(aura);
   const d = (s: number, key: string) => displayScore(s, scanId, key, promptVersion);
 
-  const archetype = pickFaceArchetype(ai.contentSelection.faceArchetypeCandidates, band, scanId, contentGender);
-  const caption = pickOutfitCaption(ai.contentSelection.outfitCaptionCandidates, band, scanId, contentGender);
-  const punchline = pickPunchline(ai.receiptContent.punchlineCandidates, band, scanId, contentGender);
+  // For a recognized meme, ignore the model's (often low) candidates and pull legend-tier
+  // content from the now high/elite band pool.
+  const archetype = pickFaceArchetype(glory ? undefined : ai.contentSelection.faceArchetypeCandidates, band, scanId, contentGender);
+  const caption = pickOutfitCaption(glory ? undefined : ai.contentSelection.outfitCaptionCandidates, band, scanId, contentGender);
+  const punchline = pickPunchline(glory ? undefined : ai.receiptContent.punchlineCandidates, band, scanId, contentGender);
 
   const fa = b.faceAnalysis;
   const oa = b.outfitAnalysis;

@@ -52,8 +52,9 @@ const RESPONSE_SCHEMA = {
         expressionStrength: { type: 'INTEGER' },
         recognizedIcon: { type: 'STRING', nullable: true },
         recognizedConfidence: { type: 'NUMBER' },
+        recognizedKind: { type: 'STRING', enum: ['meme', 'real_person'], nullable: true },
       },
-      required: ['gender', 'genderConfidence', 'expressionStrength', 'recognizedIcon', 'recognizedConfidence'],
+      required: ['gender', 'genderConfidence', 'expressionStrength', 'recognizedIcon', 'recognizedConfidence', 'recognizedKind'],
     },
     faceAnalysis: objOf(FACE_KEYS),
     outfitAnalysis: objOf(OUTFIT_KEYS),
@@ -72,7 +73,7 @@ Return only JSON matching the provided schema. The result is entertainment-orien
 GENDER PRESENTATION: Classify the subject's apparent gender presentation as "femme", "masc", or "unsure" with genderConfidence 0-1, for entertainment styling only. This is a read of presentation, NOT a claim about identity, and may be wrong; use "unsure" when genuinely ambiguous. Set expressionStrength 0-100 for how strongly the look reads as that presentation (a vanity stat, not attractiveness).
 Do not infer ethnicity, nationality, religion, sexuality, health, disability, wealth, criminality, real trustworthiness, real personality, or romantic compatibility.
 
-ICON RECOGNITION: You MAY recognize widely-known public figures or popular fictional/meme characters and set recognizedIcon to the name with recognizedConfidence 0-1. NEVER attempt to identify a private or ordinary individual; if the subject is not a widely-known public figure or meme character, set recognizedIcon to null. A resemblance is entertainment, not a factual identity claim.
+ICON RECOGNITION: You MAY recognize widely-known public figures or popular fictional/meme characters and set recognizedIcon to the name with recognizedConfidence 0-1. Also set recognizedKind: "meme" for a fictional, cartoon, comedic, or internet-meme character (e.g. McLovin), or "real_person" for a real public figure or celebrity (athlete, actor, musician, etc.). NEVER attempt to identify a private or ordinary individual; if the subject is not a widely-known public figure or meme character, set recognizedIcon to null and recognizedKind to null. A resemblance is entertainment, not a factual identity claim.
 
 If an attribute cannot be assessed reliably, return a null rating and explain why briefly.
 Score each category 0-100. Anchor: 0-20 clearly weak for this presentation, 21-40 below average, 41-60 neutral or mixed, 61-80 strong, 81-100 clearly elite. Use the full range, differentiate categories from one another, and avoid clustering on round multiples of 10. Return a null rating only when a category genuinely cannot be assessed.
@@ -95,7 +96,7 @@ punchlineCandidates:
   FEMME: punchline.mother_mothered, punchline.slay, punchline.it_girl, punchline.girlboss_trio, punchline.drama_queen_crowned.
 
 Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment. Do not write the recognized icon's name into the copy; the backend decides whether to surface it.
-Set schemaVersion to "solo_scan_v3".`;
+Set schemaVersion to "solo_scan_v3_1".`;
 
 export interface InlineImage {
   mimeType: string;

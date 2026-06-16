@@ -12,18 +12,20 @@ export function scoreFromRating(rating: number | null): number | null {
 /** Femme score bias: ×(1+FEMME_SCORE_BIAS) when confidently femme. Tunable 0.05–0.10. */
 export const FEMME_SCORE_BIAS = 0.07;
 export const FEMME_CONFIDENCE_MIN = 0.60;
-/** Recognized-icon score bias: ×(1+ICON_SCORE_BIAS) when confidently recognized. */
-export const ICON_SCORE_BIAS = 0.15;
+/** Recognition confidence gate — shared by the meme-glory floor and surfacing the name. */
 export const ICON_CONFIDENCE_MIN = 0.60;
 /** Only surface the recognized icon's name in copy at/above this confidence. */
 export const ICON_NAME_CONFIDENCE_MIN = 0.85;
+/** Meme/fictional icon "glory" (v3.1): every rating is lifted into this seeded range, so a
+ * recognized legend (e.g. McLovin) reads high. Real public figures are NOT boosted — they
+ * get the honest read (a handsome celeb scores high on merit). Tunable. */
+export const GLORY_MIN = 75;
+export const GLORY_MAX = 92;
 
-/** Combined multiplicative score bias from gender + icon recognition (rules doc §, v3).
- * 1.0 when neither gate is met. */
+/** Multiplicative score bias — gender only (v3.1). Recognized memes are handled by the glory
+ * floor (applyGloryFloor); real people are read truthfully. 1.0 when the femme gate isn't met. */
 export function biasFactor(p: Presentation): number {
-  const femme = p.gender === 'femme' && p.genderConfidence >= FEMME_CONFIDENCE_MIN ? 1 + FEMME_SCORE_BIAS : 1;
-  const icon = p.recognizedIcon != null && p.recognizedConfidence >= ICON_CONFIDENCE_MIN ? 1 + ICON_SCORE_BIAS : 1;
-  return femme * icon;
+  return p.gender === 'femme' && p.genderConfidence >= FEMME_CONFIDENCE_MIN ? 1 + FEMME_SCORE_BIAS : 1;
 }
 
 /** Apply a bias factor to a single rating, clamped 0..100. null stays null. */
@@ -41,6 +43,35 @@ export function applyScoreBias(ai: SoloScanAIOutput, factor: number): SoloScanAI
     return out as T;
   };
   return { ...ai, faceAnalysis: biasCat(ai.faceAnalysis), outfitAnalysis: biasCat(ai.outfitAnalysis) };
+}
+
+/** A confidently-recognized meme/fictional icon gets "glory" treatment (v3.1).
+ * Real public figures (recognizedKind 'real_person') are read truthfully — no boost. */
+export function isMemeGlory(p: Presentation): boolean {
+  return p.recognizedKind === 'meme'
+    && p.recognizedIcon != null
+    && p.recognizedConfidence >= ICON_CONFIDENCE_MIN;
+}
+
+/** Seeded legend value in [GLORY_MIN, GLORY_MAX]. Tiny modulo bias is fine here. */
+export function gloryFloor(seed: string): number {
+  return GLORY_MIN + (hashSeed(seed) % (GLORY_MAX - GLORY_MIN + 1));
+}
+
+/** Lift every face/outfit rating up to a per-category seeded legend value (75–92) so the whole
+ * card reads high. Never lowers a genuinely-high rating; a null rating becomes the floor (a
+ * legend has no "not assessable" weak spots). Stays varied across categories + scans. */
+export function applyGloryFloor(ai: SoloScanAIOutput, scanId: string): SoloScanAIOutput {
+  const floorCat = <T extends Record<string, RubricRating>>(o: T, group: string): T => {
+    const out = {} as Record<string, RubricRating>;
+    for (const k of Object.keys(o)) {
+      const f = gloryFloor(`${scanId}:glory:${group}:${k}`);
+      const r = o[k].rating;
+      out[k] = { ...o[k], rating: r == null ? f : Math.max(r, f) };
+    }
+    return out as T;
+  };
+  return { ...ai, faceAnalysis: floorCat(ai.faceAnalysis, 'face'), outfitAnalysis: floorCat(ai.outfitAnalysis, 'outfit') };
 }
 
 export interface Weighted {

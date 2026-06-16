@@ -4,6 +4,7 @@ import {
   scoreFromRating, weightedAverage, jitter, displayScore,
   pickVerdict, percent,
   biasFactor, biasedRating, applyScoreBias, faceScore,
+  isMemeGlory, gloryFloor, applyGloryFloor, GLORY_MIN, GLORY_MAX,
   sampleAIOutput,
 } from '@fitaura/shared';
 
@@ -69,14 +70,14 @@ describe('bias', () => {
     expect(biasFactor({ ...base(), gender: 'femme', genderConfidence: 0.4 })).toBe(1); // below gate
   });
 
-  it('applies the icon factor only when confidently recognized', () => {
-    expect(biasFactor({ ...base(), recognizedIcon: 'McLovin', recognizedConfidence: 0.9 })).toBeCloseTo(1.15);
-    expect(biasFactor({ ...base(), recognizedIcon: 'McLovin', recognizedConfidence: 0.3 })).toBe(1);
+  it('does not multiply for a recognized icon (memes use the glory floor; real people read honestly)', () => {
+    expect(biasFactor({ ...base(), gender: 'masc', recognizedIcon: 'McLovin', recognizedConfidence: 0.9, recognizedKind: 'meme' })).toBe(1);
+    expect(biasFactor({ ...base(), gender: 'masc', recognizedIcon: 'Lewis Hamilton', recognizedConfidence: 0.9, recognizedKind: 'real_person' })).toBe(1);
   });
 
-  it('stacks femme and icon', () => {
-    const f = biasFactor({ ...base(), gender: 'femme', genderConfidence: 0.9, recognizedIcon: 'X', recognizedConfidence: 0.9 });
-    expect(f).toBeCloseTo(1.07 * 1.15);
+  it('femme still applies regardless of icon', () => {
+    const f = biasFactor({ ...base(), gender: 'femme', genderConfidence: 0.9, recognizedIcon: 'X', recognizedConfidence: 0.9, recognizedKind: 'meme' });
+    expect(f).toBeCloseTo(1.07);
   });
 
   it('biasedRating clamps to 100 and passes null through', () => {
@@ -91,5 +92,37 @@ describe('bias', () => {
     expect(faceScore(biased)!).toBeGreaterThan(faceScore(ai)!);
     // factor 1 returns the same object untouched
     expect(applyScoreBias(ai, 1)).toBe(ai);
+  });
+});
+
+describe('meme glory (v3.1)', () => {
+  const base = () => sampleAIOutput().presentation;
+
+  it('isMemeGlory: only a confident meme qualifies', () => {
+    expect(isMemeGlory({ ...base(), recognizedIcon: 'McLovin', recognizedConfidence: 0.9, recognizedKind: 'meme' })).toBe(true);
+    expect(isMemeGlory({ ...base(), recognizedIcon: 'McLovin', recognizedConfidence: 0.4, recognizedKind: 'meme' })).toBe(false); // below gate
+    expect(isMemeGlory({ ...base(), recognizedIcon: 'Lewis Hamilton', recognizedConfidence: 0.95, recognizedKind: 'real_person' })).toBe(false);
+    expect(isMemeGlory({ ...base(), recognizedIcon: null, recognizedConfidence: 0, recognizedKind: null })).toBe(false);
+  });
+
+  it('gloryFloor stays within [GLORY_MIN, GLORY_MAX] and is deterministic', () => {
+    for (const s of ['a', 'b', 'scan:glory:face:jawPresence', 'zzz']) {
+      const v = gloryFloor(s);
+      expect(v).toBeGreaterThanOrEqual(GLORY_MIN);
+      expect(v).toBeLessThanOrEqual(GLORY_MAX);
+    }
+    expect(gloryFloor('same')).toBe(gloryFloor('same'));
+  });
+
+  it('applyGloryFloor lifts low/null ratings into the legend range and keeps high ones', () => {
+    const ai = sampleAIOutput();
+    ai.faceAnalysis.jawPresence.rating = 12;     // low → lifted
+    ai.faceAnalysis.visualPresence.rating = 99;  // high → kept
+    ai.faceAnalysis.haircutMatch.rating = null;  // null → floored
+    const g = applyGloryFloor(ai, 'scan-glory');
+    expect(g.faceAnalysis.jawPresence.rating!).toBeGreaterThanOrEqual(GLORY_MIN);
+    expect(g.faceAnalysis.visualPresence.rating).toBe(99);
+    expect(g.faceAnalysis.haircutMatch.rating!).toBeGreaterThanOrEqual(GLORY_MIN);
+    expect(faceScore(g)!).toBeGreaterThan(faceScore(ai)!);
   });
 });
