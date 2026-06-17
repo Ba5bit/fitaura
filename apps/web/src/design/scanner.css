@@ -291,6 +291,17 @@
   color:var(--gold); background:transparent; border:1px solid color-mix(in oklab,var(--gold) 55%,var(--hair)); transition:.2s; }
 .reveal .go:hover{ background:color-mix(in oklab,var(--gold) 10%,transparent); border-color:var(--gold); transform:translateY(-1px); }
 .reveal .go svg{ width:18px;height:18px; }
+/* error/retry variant of the primary action (matches the red "scan hiccup" stamp) */
+.reveal .go.retry{ color:var(--red); border-color:color-mix(in oklab,var(--red) 55%,var(--hair)); }
+.reveal .go.retry:hover{ background:color-mix(in oklab,var(--red) 10%,transparent); border-color:var(--red); }
+/* inline error note shown under the reveal CTA (e.g. a guest's failed reveal) */
+.reveal-err{ display:flex; gap:9px; align-items:flex-start; text-align:left; margin-top:18px; max-width:420px;
+  padding:12px 15px; border-radius:12px; background:color-mix(in oklab,var(--red) 8%,transparent);
+  border:1px solid color-mix(in oklab,var(--red) 30%,var(--hair));
+  font-family:"Hanken Grotesk"; font-size:14px; line-height:1.5; color:var(--ink-dim); }
+.reveal-err svg{ width:16px;height:16px; color:var(--red); flex:none; margin-top:1px; }
+.reveal .linkbtn{ background:none; border:0; padding:0; font:inherit; color:var(--gold); text-decoration:underline; cursor:pointer; }
+.reveal .linkbtn:hover{ color:#fff; }
 .reveal h2{ opacity:1; }
 .sa:not(.rm) .reveal h2{ animation:revealPop .55s cubic-bezier(.22,1,.36,1) both; }
 @keyframes revealPop{ 0%{ transform:translateY(10px) scale(.96) } 100%{ transform:none } }
