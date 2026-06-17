@@ -69,3 +69,33 @@ describe('gendered content', () => {
     expect(a.line).not.toEqual(['IT', 'GIRL']);
   });
 });
+
+const NEW_MID_OUTFIT = [
+  'PLAYS IT SAFE', 'DRESSED, NOT DRIPPING', "SHOWS UP, DOESN'T SHOW OFF",
+  'DECENT, NOT DANGEROUS', 'RESPECTABLE, NOT REMARKABLE', 'ROOM TO GROW',
+];
+
+describe('content-bank v3_4 edits', () => {
+  it('renames milf hunter to POTENTIAL MILF HUNTER', () => {
+    expect(pickFaceArchetype(['face_archetype.milf_hunter'], 'mid', 's', 'masc').line)
+      .toEqual(['POTENTIAL', 'MILF HUNTER']);
+  });
+  it('renames the locked-in outfit caption to LOCKED IN', () => {
+    expect(pickOutfitCaption(['outfit_caption.locked_in'], 'elite', 's', 'masc').caption)
+      .toBe('LOCKED IN');
+  });
+  it('renames the npc punchline to PROSPECTIVE NPC', () => {
+    expect(pickPunchline(['punchline.clean_npc_potential'], 'mid', 's', 'masc'))
+      .toBe('PROSPECTIVE NPC');
+  });
+  it('mid-band neutral outfit fallback is one of the new captions', () => {
+    // performative + clean_npc_potential removed → mid neutral pool is exactly the 6 new lines.
+    for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
+      expect(NEW_MID_OUTFIT).toContain(pickOutfitCaption([], 'mid', seed, 'masc').caption);
+    }
+  });
+  it('an invalid (removed) candidate falls back to a band pick, never the removed text', () => {
+    const got = pickFaceArchetype(['face_archetype.plot_relevant'], 'mid', 's', 'masc').line.join(' ');
+    expect(got).not.toBe('CLEAN NPC PLOT RELEVANT');
+  });
+});
