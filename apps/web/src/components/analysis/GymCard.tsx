@@ -10,7 +10,7 @@ const TIER_LABEL = { high: 'HIGH', mid: 'MID', low: 'LOW' } as const;
 /** Word-relevant icons keyed by trait id, overriding the stored geometric icon. */
 const ICON_BY_ID: Record<string, FaceTraitIcon> = {
   jaw: 'face',
-  haircut: 'hair',
+  haircut: 'scissors',
   grooming: 'razor',
 };
 

@@ -99,7 +99,7 @@ export type FaceTraitIcon =
   | 'beard'
   | 'star'
   | 'face'
-  | 'hair'
+  | 'scissors'
   | 'razor';
 
 export interface FaceAnalysisContent {

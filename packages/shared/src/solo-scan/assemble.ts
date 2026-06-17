@@ -92,7 +92,7 @@ export function assembleResult(
         // Apparent age (display-only, no bar) takes the card's 2nd slot; Haircut
         // Match still appears in the score breakdown below.
         {
-          id: 'age', label: 'Age', value: ai.presentation.ageEstimate ?? 0,
+          id: 'age', label: 'Est. Age', value: ai.presentation.ageEstimate ?? 0,
           displayValue: ai.presentation.ageEstimate != null ? `${ai.presentation.ageEstimate} y.o.` : '—',
           noBar: true,
         },

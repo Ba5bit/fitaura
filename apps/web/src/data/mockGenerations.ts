@@ -36,7 +36,7 @@ function score(label: string, value: number, hot = false): ScoreItem {
 
 /** Display-only age stat (no bar) for the face card's 2nd slot. */
 function ageStat(age: number): ScoreItem {
-  return { id: 'age', label: 'Age', value: age, displayValue: `${age} y.o.`, noBar: true };
+  return { id: 'age', label: 'Est. Age', value: age, displayValue: `${age} y.o.`, noBar: true };
 }
 
 const FACE_STICKER = {
