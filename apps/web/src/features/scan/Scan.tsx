@@ -373,19 +373,10 @@ export function Scan() {
                 <h2>
                   Let's try <span className="hl">again</span>
                 </h2>
-                <div className="crop-note warn" style={{ marginTop: 16, maxWidth: 420 }}>
-                  <Icon.alert />
-                  <span>
-                    {genErr}{' '}
-                    <button
-                      className="leave-btn"
-                      style={{ textDecoration: 'underline', width: 'auto', padding: 0 }}
-                      onClick={() => navigate('/scan')}
-                    >
-                      {genState === 'retake' ? 'Replace a photo' : 'Try again'}
-                    </button>
-                  </span>
-                </div>
+                <p className="sub">{genErr}</p>
+                <button className="go retry" onClick={() => navigate('/scan')}>
+                  <Icon.refresh /> {genState === 'retake' ? 'Replace a photo' : 'Try again'}
+                </button>
               </>
             ) : (
               <>
@@ -406,18 +397,14 @@ export function Scan() {
                       : 'Sign up to reveal your verdict'}
                 </button>
                 {scanError && (
-                  <div className="crop-note warn" style={{ marginTop: 16, maxWidth: 420 }}>
+                  <div className="reveal-err">
                     <Icon.alert />
                     <span>
                       {scanError.message}
                       {scanError.kind === 'retake' && (
                         <>
                           {' '}
-                          <button
-                            className="leave-btn"
-                            style={{ textDecoration: 'underline', width: 'auto', padding: 0 }}
-                            onClick={() => navigate('/scan')}
-                          >
+                          <button className="linkbtn" onClick={() => navigate('/scan')}>
                             Replace a photo
                           </button>
                         </>
