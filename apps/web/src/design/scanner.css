@@ -390,8 +390,8 @@
 .sa[data-mobile="true"] .spec-frame .scrim{ border-radius:0; }
 .sa[data-mobile="true"] .spec-corners span{ /* keep reticle but tuck to safe margins */
   width:22px; height:22px; }
-/* face inset to a corner */
-.sa[data-mobile="true"] .spec-face{ top:auto; bottom:120px; left:14px; --med:84px; }
+/* face inset top-left, just below the header */
+.sa[data-mobile="true"] .spec-face{ top:64px; bottom:auto; left:16px; --med:112px; }
 
 /* readout collapses to a slim translucent bottom strip overlaid on the image */
 .sa[data-mobile="true"] .readout{ position:absolute; left:0; right:0; bottom:0; z-index:10;

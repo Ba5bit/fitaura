@@ -193,7 +193,7 @@ export function Scan() {
   // have no generation in flight, so they finish on the timer (pure teaser).
   useEffect(() => {
     if (!bothPhotosReady) return;
-    const dur = reduced ? 3500 : 9000;
+    const dur = reduced ? 3500 : 6000;
     const frame = (t: number) => {
       if (startRef.current == null) startRef.current = t;
       const rawP = Math.min(100, ((t - startRef.current) / dur) * 100);
