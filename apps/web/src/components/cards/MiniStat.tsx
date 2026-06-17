@@ -10,7 +10,7 @@ interface MiniStatProps {
 export function MiniStat({ stat, run }: MiniStatProps) {
   const value = useCountUp(stat.value, run);
   return (
-    <div className={'mstat' + (stat.hot ? ' hot' : '')}>
+    <div className={'mstat' + (stat.hot ? ' hot' : '') + (stat.noBar ? ' no-bar' : '')}>
       <div className="top">
         <span className="lbl">{stat.label}</span>
         <span className="val">{stat.displayValue ?? value}</span>
