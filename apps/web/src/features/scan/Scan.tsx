@@ -40,20 +40,35 @@ const MARKERS = [
   { st: 'verdict', cls: 'h-tr', label: 'Stamping', ok: false },
 ];
 
-function stageAt(p: number): number {
-  for (let i = 0; i < STAGES.length; i++) {
-    if (p < STAGES[i].boundary || i === STAGES.length - 1) return i;
+function activeStagesFor(parts: { face: boolean; outfit: boolean }): Stage[] {
+  const picked = STAGES.filter(
+    (s) => s.key === 'prep' || s.key === 'aura' || s.key === 'verdict'
+      || (s.key === 'face' && parts.face)
+      || (s.key === 'fit' && parts.outfit),
+  );
+  // Re-space boundaries evenly across the picked stages so the bar still ends at 100.
+  const step = 100 / picked.length;
+  return picked.map((s, i) => ({ ...s, boundary: Math.round(step * (i + 1)) }));
+}
+
+function stageAtIn(stages: Stage[], p: number): number {
+  for (let i = 0; i < stages.length; i++) {
+    if (p < stages[i].boundary || i === stages.length - 1) return i;
   }
   return 0;
 }
 
-function Specimen({ stageKey, faceSrc, outfitSrc }: { stageKey: string; faceSrc: string | null; outfitSrc: string | null }) {
+function Specimen({ stageKey, parts, faceSrc, outfitSrc }: { stageKey: string; parts: { face: boolean; outfit: boolean }; faceSrc: string | null; outfitSrc: string | null }) {
   const cap = (STAGES.find((s) => s.key === stageKey) || STAGES[0]).cap;
+  // outfit fills the frame when present; otherwise the face does. The circular face
+  // inset only makes sense when BOTH exist (face over outfit).
+  const frameSrc = parts.outfit ? outfitSrc : faceSrc;
+  const showCircle = parts.face && parts.outfit;
   return (
     <div className="specimen ignite">
       <div className="spec-aura" />
       <div className="spec-frame">
-        <CardImage src={outfitSrc} shape="rect" placeholder="outfit" />
+        <CardImage src={frameSrc} shape="rect" placeholder={parts.outfit ? 'outfit' : 'face'} />
         <div className="scrim" />
         <div className="spec-ov">
           <div className="spec-grid-ov" />
@@ -71,12 +86,14 @@ function Specimen({ stageKey, faceSrc, outfitSrc }: { stageKey: string; faceSrc:
           <span className="txt">{cap}</span>
         </div>
       </div>
-      <div className="spec-face">
-        <div className="ring" />
-        <CardImage src={faceSrc} shape="circle" placeholder="face" />
-        <span className="tick t1" />
-        <span className="tick t2" />
-      </div>
+      {showCircle && (
+        <div className="spec-face">
+          <div className="ring" />
+          <CardImage src={faceSrc} shape="circle" placeholder="face" />
+          <span className="tick t1" />
+          <span className="tick t2" />
+        </div>
+      )}
       {MARKERS.map((m, i) => (
         <span key={i} className={'hud ' + m.cls} data-on={m.st === stageKey}>
           <span className="hd" />
@@ -88,10 +105,10 @@ function Specimen({ stageKey, faceSrc, outfitSrc }: { stageKey: string; faceSrc:
   );
 }
 
-function Rail({ idx }: { idx: number }) {
+function Rail({ stages, idx }: { stages: Stage[]; idx: number }) {
   return (
     <div className="rail">
-      {STAGES.map((s, i) => {
+      {stages.map((s, i) => {
         const state = i < idx ? 'done' : i === idx ? 'active' : 'todo';
         return (
           <div className="rail-step" key={s.key} data-state={state}>
@@ -107,7 +124,7 @@ function Rail({ idx }: { idx: number }) {
 
 export function Scan() {
   const navigate = useNavigate();
-  const { face, outfit, result, bothPhotosReady, runGeneration, hydrated } = useGeneration();
+  const { face, outfit, result, canScanPhotos, runGeneration, hydrated } = useGeneration();
   const { signedIn, openAuth, canScan, spendForScan, openPaywall, refundScan } = useAccount();
   // Set when a guest hit "reveal" — once they sign in, the effect below finishes
   // the reveal. The verdict is only generated after authentication.
@@ -144,8 +161,8 @@ export function Scan() {
   // Guard: a scan needs both confirmed photos (after hydration, so a reload here
   // doesn't bounce to the upload page before IndexedDB loads).
   useEffect(() => {
-    if (hydrated && !bothPhotosReady) navigate('/scan', { replace: true });
-  }, [hydrated, bothPhotosReady, navigate]);
+    if (hydrated && !canScanPhotos) navigate('/scan', { replace: true });
+  }, [hydrated, canScanPhotos, navigate]);
 
   // Guard: once a result exists for these photos, the scan route is a dead end —
   // send the user to the verdict they already have instead of re-running the scan.
@@ -154,8 +171,10 @@ export function Scan() {
     if (hydrated && alreadyScanned) navigate('/result#face', { replace: true });
   }, [hydrated, alreadyScanned, navigate]);
 
-  const idx = stageAt(progress);
-  const stage = STAGES[idx];
+  const parts = { face: !!face, outfit: !!outfit };
+  const stages = activeStagesFor(parts);
+  const idx = stageAtIn(stages, progress);
+  const stage = stages[idx];
 
   // Kick off the real generation immediately for a signed-in user, so the AI
   // works WHILE the animation plays (Task 3 sync). A credit is spent up front; on
@@ -163,7 +182,7 @@ export function Scan() {
   // sign up at the reveal (Task 2). Runs exactly once (startedRef + StrictMode).
   useEffect(() => {
     if (!hydrated) return;
-    if (!bothPhotosReady || startedRef.current) return;
+    if (!canScanPhotos || startedRef.current) return;
     // These photos already have a verdict — never re-spend. The redirect effect
     // above sends the user to it; here we just make sure no scan kicks off.
     if (alreadyScanned) {
@@ -205,13 +224,13 @@ export function Scan() {
         navigate('/scan');
       }
     })();
-  }, [hydrated, bothPhotosReady, alreadyScanned, signedIn, canScan, spendForScan, runGeneration, refundScan, openPaywall, navigate]);
+  }, [hydrated, canScanPhotos, alreadyScanned, signedIn, canScan, spendForScan, runGeneration, refundScan, openPaywall, navigate]);
 
   // Progress driver. For a signed-in scan the animation HOLDS near the end until
   // the real generation settles, so the wait is synced to the actual AI. Guests
   // have no generation in flight, so they finish on the timer (pure teaser).
   useEffect(() => {
-    if (!bothPhotosReady) return;
+    if (!canScanPhotos) return;
     const dur = reduced ? 3500 : 6000;
     const frame = (t: number) => {
       if (startRef.current == null) startRef.current = t;
@@ -228,7 +247,7 @@ export function Scan() {
     };
     rafRef.current = requestAnimationFrame(frame);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [bothPhotosReady, reduced, signedIn]);
+  }, [canScanPhotos, reduced, signedIn]);
 
   // Microcopy rotation.
   useEffect(() => {
@@ -327,13 +346,13 @@ export function Scan() {
 
         {phase === 'scanning' && (
           <div className="sa-stage">
-            <Specimen stageKey={stage.key} faceSrc={faceSrc} outfitSrc={outfitSrc} />
+            <Specimen stageKey={stage.key} parts={parts} faceSrc={faceSrc} outfitSrc={outfitSrc} />
             <div className="readout">
               <div className="ro-stage">
                 <span className="ro-code">
                   {stage.code} · {stage.key.toUpperCase()}
                 </span>
-                <span className="ro-of">Stage {idx + 1} of 5</span>
+                <span className="ro-of">Stage {idx + 1} of {stages.length}</span>
               </div>
               <h2 className="ro-title">
                 {stage.title[0]}
@@ -354,7 +373,7 @@ export function Scan() {
                   <div className="fill" style={{ width: `${progress}%` }} />
                 </div>
               </div>
-              <Rail idx={idx} />
+              <Rail stages={stages} idx={idx} />
               <div className="ro-foot">
                 <Icon.shield /> Processed for this scan only · for the bit, not science
               </div>
