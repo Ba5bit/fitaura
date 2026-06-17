@@ -99,7 +99,7 @@ faceArchetypeCandidates:
   MASC: face_archetype.gigachad, face_archetype.alpha_male, face_archetype.sigma_male, face_archetype.milf_hunter, face_archetype.performative_male, face_archetype.simp, face_archetype.beta_male, face_archetype.tate_follower.
   FEMME: face_archetype.mother, face_archetype.it_girl, face_archetype.girlboss, face_archetype.material_girl, face_archetype.vip, face_archetype.clean_girl, face_archetype.brat, face_archetype.drama_queen.
 outfitCaptionCandidates:
-  NEUTRAL: outfit_caption.locked_in, outfit_caption.let_him_cook, outfit_caption.fit_has_lore, outfit_caption.rizz, outfit_caption.plays_it_safe, outfit_caption.not_dripping, outfit_caption.shows_up, outfit_caption.not_dangerous, outfit_caption.not_remarkable, outfit_caption.room_to_grow, outfit_caption.delulu, outfit_caption.ai_slop, outfit_caption.chopped, outfit_caption.never_cook_again, outfit_caption.aura_debt.
+  NEUTRAL: outfit_caption.locked_in, outfit_caption.let_him_cook, outfit_caption.rizz, outfit_caption.plays_it_safe, outfit_caption.not_dripping, outfit_caption.shows_up, outfit_caption.not_dangerous, outfit_caption.not_remarkable, outfit_caption.room_to_grow, outfit_caption.delulu, outfit_caption.ai_slop, outfit_caption.chopped, outfit_caption.never_cook_again, outfit_caption.aura_debt.
   MASC: outfit_caption.sigma_grindset, outfit_caption.millennial_coded, outfit_caption.unc_fit, outfit_caption.old_money_temu, outfit_caption.boomer.
   FEMME: outfit_caption.fashion_girl, outfit_caption.vip_fit, outfit_caption.material_girl_fit, outfit_caption.brat_fit, outfit_caption.clean_girl_fit.
 punchlineCandidates:

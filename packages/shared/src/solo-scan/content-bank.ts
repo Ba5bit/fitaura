@@ -120,7 +120,6 @@ interface OutfitEntry extends OutfitCaption, Banded { femme?: string; }
 const OUTFIT_BANK: Record<string, OutfitEntry> = {
   'outfit_caption.locked_in': { caption: 'LOCKED IN', stickerId: 'locked-in', band: 'elite' },
   'outfit_caption.let_him_cook': { caption: 'LET HIM COOK', stickerId: 'let-him-cook', band: 'elite', femme: 'LET HER COOK' },
-  'outfit_caption.fit_has_lore': { caption: 'THE FIT HAS LORE', stickerId: 'fit-has-lore', band: 'high' },
   'outfit_caption.rizz': { caption: 'RIZZ ON SIGHT', stickerId: 'rizz', band: 'high' },
   'outfit_caption.plays_it_safe': { caption: 'PLAYS IT SAFE', stickerId: 'buffering', band: 'mid' },
   'outfit_caption.not_dripping': { caption: 'DRESSED, NOT DRIPPING', stickerId: 'buffering', band: 'mid' },
