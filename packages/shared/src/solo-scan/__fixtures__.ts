@@ -31,11 +31,13 @@ export function sampleAIOutput(): SoloScanAIOutput {
       strongestPoint: 'The haircut frames the face cleanly.',
       improvement: 'A more direct angle would add presence.',
       summary: 'Strong base presentation with room for a sharper angle.',
+      verdictLine: { lead: 'JAW DID', punch: 'THE TALKING' },
     },
     outfitCopy: {
       works: 'The jacket adds structure through the shoulders.',
       hurts: 'The trouser break shortens the silhouette.',
       verdict: 'Good base, but the proportions can be sharper.',
+      captionLine: 'STRUCTURE OVER FLASH',
     },
     contentSelection: {
       faceArchetypeCandidates: ['face_archetype.main_character'],
@@ -46,6 +48,7 @@ export function sampleAIOutput(): SoloScanAIOutput {
     receiptContent: {
       metricCandidates: ['metric.lover_boy_probability'],
       punchlineCandidates: ['punchline.certified_lover_boy'],
+      punchlineText: 'QUIET CONFIDENCE',
     },
   };
 }

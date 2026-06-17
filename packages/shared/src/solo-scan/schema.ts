@@ -69,11 +69,13 @@ export const soloScanSchema = z
       strongestPoint: z.string().max(200),
       improvement: z.string().max(200),
       summary: z.string().max(200),
+      verdictLine: z.object({ lead: z.string().max(40), punch: z.string().max(40) }),
     }),
     outfitCopy: z.object({
       works: z.string().max(200),
       hurts: z.string().max(200),
       verdict: z.string().max(200),
+      captionLine: z.string().max(80),
     }),
     contentSelection: z.object({
       faceArchetypeCandidates: candidates,
@@ -84,6 +86,7 @@ export const soloScanSchema = z
     receiptContent: z.object({
       metricCandidates: candidates,
       punchlineCandidates: candidates,
+      punchlineText: z.string().max(80),
     }),
   })
   .superRefine((val, ctx) => {
