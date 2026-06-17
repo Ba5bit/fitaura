@@ -219,10 +219,6 @@ function Analysis() {
             The full <span className="hl">breakdown</span>
           </h2>
         </div>
-        <p className="ln-lead">
-          Every verdict ships with the in-app read behind it. Aura, fit, and dating score, broken
-          down category by category. The real thing, not a mockup.
-        </p>
       </div>
       <div className="ln-an-tabs" role="tablist">
         {ANALYSIS_TABS.map((t) => (
@@ -450,10 +446,6 @@ function Modes() {
               More ways to test your <span className="hl">aura</span>
             </h2>
           </div>
-          <p className="ln-lead">
-            Solo Scan is live today. Friend vs Friend and Glow Up are next, same Vault, brand-new
-            verdicts. We'll ping you the moment they drop.
-          </p>
         </div>
         <div className="ln-modes">
           {SCAN_MODES.map((m) => {
