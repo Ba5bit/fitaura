@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CREDIT_PACKS, VERDICT_COLOR_VAR } from '@fitaura/shared';
+import { CREDIT_PACKS, VERDICT_COLOR_VAR, VERDICT_LABEL } from '@fitaura/shared';
 import { useGeneration } from '../../state/generation';
 import { FaceCard, OutfitCard, Receipt } from '../../components/cards';
 import { Icon } from '../../lib/icons';
@@ -176,30 +176,50 @@ function Artifacts() {
           />
         </div>
         <div className="ln-distinct-bd">
-          <div className="ln-eyebrow">{bd.eyebrow}</div>
-          <h3 className="ln-distinct-title">{bd.title}</h3>
-          <div className="rs-breakgrid">
-            {bd.blocks.map((b) => (
-              <div
-                className="gym-card"
-                data-tier={front === 'outfit' ? undefined : blockTier(b)}
-                data-accent={front === 'outfit' ? 'blue' : undefined}
-                key={b.label}
-              >
-                <div className="gc-top">
-                  <div className="gc-score">
-                    <span className="num">{b.value}</span>
-                    {b.tag && <span className="tier">{b.tag}</span>}
-                  </div>
+          {front === 'receipt' ? (
+            /* Receipt has no per-metric graphs — show the final verdict summary instead. */
+            <div className="ln-distinct-summary">
+              <div className="ln-eyebrow">RECEIPT · FINAL READING</div>
+              <div className="lds-head">
+                <div className="lds-score">
+                  {HERO.receipt.datingScore}
+                  <span className="u">/10</span>
                 </div>
-                <div className="gc-name">{b.label}</div>
-                <div className="gc-bar">
-                  <i style={{ width: `${b.pct}%` }} />
-                </div>
+                <span className="lds-stamp">{VERDICT_LABEL[HERO.receipt.datingVerdict]}</span>
               </div>
-            ))}
-          </div>
-          <p className="ln-distinct-cap">{bd.cap}</p>
+              <div className="lds-lbl">DATING SCORE</div>
+              <p className="ln-distinct-cap">
+                <span className="hl">{HERO.receipt.finalPunchline}.</span> {HERO.receipt.summary}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="ln-eyebrow">{bd.eyebrow}</div>
+              <h3 className="ln-distinct-title">{bd.title}</h3>
+              <div className="rs-breakgrid">
+                {bd.blocks.map((b) => (
+                  <div
+                    className="gym-card"
+                    data-tier={front === 'outfit' ? undefined : blockTier(b)}
+                    data-accent={front === 'outfit' ? 'blue' : undefined}
+                    key={b.label}
+                  >
+                    <div className="gc-top">
+                      <div className="gc-score">
+                        <span className="num">{b.value}</span>
+                        {b.tag && <span className="tier">{b.tag}</span>}
+                      </div>
+                    </div>
+                    <div className="gc-name">{b.label}</div>
+                    <div className="gc-bar">
+                      <i style={{ width: `${b.pct}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="ln-distinct-cap">{bd.cap}</p>
+            </>
+          )}
         </div>
       </div>
     </section>

@@ -455,6 +455,17 @@ body { overflow-y: auto; }
 .ln-distinct-bd .ln-distinct-title { font-family:"Anton",sans-serif; font-weight:400; text-transform:uppercase;
   font-size:22px; color:#fff; margin:6px 0 14px; }
 .ln-distinct-cap { margin-top:14px; font-family:"Hanken Grotesk"; font-size:13.5px; line-height:1.5; color:var(--ink-dim); max-width:440px; }
+/* receipt front: a single compact verdict-summary block (no per-metric graphs) */
+.ln-distinct-summary .lds-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:10px; }
+.ln-distinct-summary .lds-score { font-family:"Anton",sans-serif; font-weight:400; font-size:54px; line-height:.88; color:#fff;
+  text-shadow:0 0 28px color-mix(in oklab,var(--verdict) 45%,transparent); }
+.ln-distinct-summary .lds-score .u { font-size:22px; color:var(--ink-faint); margin-left:2px; }
+.ln-distinct-summary .lds-lbl { font-family:"Space Mono",monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink-faint); margin-top:6px; }
+.ln-distinct-summary .lds-stamp { font-family:"Anton",sans-serif; font-size:22px; letter-spacing:.02em; color:var(--verdict);
+  border:2.5px solid var(--verdict); border-radius:9px; padding:8px 15px; transform:rotate(-2deg); white-space:nowrap;
+  text-shadow:0 0 16px color-mix(in oklab,var(--verdict) 45%,transparent); box-shadow:0 0 26px -10px var(--verdict); }
+.ln-distinct-summary .ln-distinct-cap { margin-top:18px; }
+.ln-distinct-summary .ln-distinct-cap .hl { color:#fff; font-weight:800; }
 @media (max-width: 760px){
   .ln-distinct { grid-template-columns:1fr; gap:26px; }
   /* match the hero's larger mobile fan scales */
