@@ -197,12 +197,10 @@ body::before{
   transition:opacity .3s ease, transform .35s cubic-bezier(.34,1.56,.64,1);
   border:2px solid #0a0c11;
 }
-/* former blue/accent stickers recolored to brand lime — no blue stickers */
-.sticker.accent{ background:var(--lime); color:var(--accent-ink); }
+/* no blue stickers — accent tone renders as silver/chrome (red is reserved for warn) */
+.sticker.accent{ background:var(--chrome); color:#15181f; border-color:#fff; }
 .sticker.warn{ background:var(--red); color:#fff; }
 .sticker.chrome{ background:var(--chrome); color:#15181f; border-color:#fff; }
-/* on GREEN FLAG cards the verdict is already green — use gold, not green-on-green */
-[data-verdict="green_flag"] .sticker.accent{ background:var(--gold); color:var(--accent-ink); }
 .sticker.hidden{ opacity:0; transform:rotate(-7deg) scale(.6); pointer-events:none; }
 .sticker.pop{ animation:stickpop .5s cubic-bezier(.34,1.56,.64,1); }
 .sticker--face{ bottom:0; right:-14px; }

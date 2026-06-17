@@ -120,7 +120,6 @@ function Hero() {
         <div className="ln-fan">
           <div
             className="ln-fan-stage"
-            data-verdict={DEFAULT_VERDICT}
             style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
           >
             <div className="ln-fan-card left"><FaceCard content={HERO_CHARACTERS[2].content} roast={HERO_CHARACTERS[2].roast} run /></div>
@@ -165,7 +164,7 @@ function Artifacts() {
           <span>Scan a face, a fit, or both — get the cards that fit.</span>
         </div>
       </div>
-      <div className="ln-distinct" data-verdict={DEFAULT_VERDICT} style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}>
+      <div className="ln-distinct" style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}>
         <div className="ln-distinct-fan">
           <CardFan
             onFrontChange={(i) => setFront(KIND[i])}
