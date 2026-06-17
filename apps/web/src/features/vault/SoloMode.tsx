@@ -41,12 +41,17 @@ function OutfitThumb({ r, onOpen }: { r: GenerationResult; onOpen: (r: Generatio
         <span className="d" />
         {VERDICT_LABEL[r.verdict]}
       </span>
-      {r.outfit && (
+      {r.outfit ? (
         <div className="badge">
           <span className="num">{r.outfit.card.overallScore}</span>
           <span className="sub">FIT</span>
         </div>
-      )}
+      ) : r.face ? (
+        <div className="badge">
+          <span className="num">{r.face.analysis.aura}</span>
+          <span className="sub">AURA</span>
+        </div>
+      ) : null}
       {r.outfit && <div className="cap">{r.outfit.card.caption}</div>}
     </div>
   );
@@ -71,15 +76,19 @@ function SoloCard({
   return (
     <article className="vlt-card" style={{ ['--vc']: vc } as CSSProperties}>
       <OutfitThumb r={r} onOpen={onOpen} />
-      <div className="vlt-assets" aria-label="This verdict contains three cards">
-        <span className="a on">
-          <span className="gd" />
-          Face
-        </span>
-        <span className="a on">
-          <span className="gd" />
-          Outfit
-        </span>
+      <div className="vlt-assets" aria-label="What this verdict contains">
+        {r.face && (
+          <span className="a on">
+            <span className="gd" />
+            Face
+          </span>
+        )}
+        {r.outfit && (
+          <span className="a on">
+            <span className="gd" />
+            Outfit
+          </span>
+        )}
         <span className="a on">
           <span className="gd" />
           Receipt
