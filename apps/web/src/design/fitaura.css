@@ -234,7 +234,7 @@ body::before{
   font-size:38px; letter-spacing:0.005em; text-transform:uppercase; text-wrap:balance;
   color:#fff; text-shadow:0 0 26px color-mix(in oklab,var(--verdict) 55%,transparent); }
 .fc-line .hl{ color:var(--verdict); }
-.fc-roast{ margin:10px 0 0; font-family:"Space Mono",monospace; font-weight:700; font-size:15px; line-height:1.5;
+.fc-roast{ margin:10px 0 0; font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif; font-weight:700; font-size:15px; line-height:1.5;
   letter-spacing:0.02em; text-transform:uppercase; color:#fff; text-wrap:balance;
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 /* face card: centre the roast and sit it midway between the verdict and the stats
