@@ -273,9 +273,9 @@ body::before{
 .caption-bar{ position:absolute; left:18px; bottom:18px; right:18px; z-index:4; }
 .caption-bar .cap{ font-family:"Anton",sans-serif; font-size:30px; line-height:.95; text-transform:uppercase;
   color:#fff; text-shadow:0 2px 18px #000; }
-.oc-body{ padding:12px 22px 20px; display:flex; flex-direction:column; flex:1; }
-/* outfit roast: sit close under the verdict caption, with clear space before the stats */
-.oc-body .fc-roast{ margin:2px 0 18px; font-size:15px; }
+/* outfit roast sits on the photo, stuck right under the verdict caption (one unit) */
+.caption-bar .fc-roast{ margin:7px 0 0; font-size:15px; text-shadow:0 2px 14px #000, 0 0 6px #000; }
+.oc-body{ padding:16px 22px 20px; display:flex; flex-direction:column; flex:1; }
 .oc-stats{ display:grid; grid-template-columns:1fr 1fr; gap:13px 22px; }
 .oc-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:16px; border-top:1px solid var(--hair-soft); }
 

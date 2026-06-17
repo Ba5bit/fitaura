@@ -34,10 +34,10 @@ export function OutfitCard({ content, stickerOn = true, run = true, roast }: Out
         <Sticker sticker={content.sticker} hidden={!stickerOn} kind="outfit" />
         <div className="caption-bar">
           <div className="cap">{content.caption}</div>
+          {roast && <p className="fc-roast">{roast}</p>}
         </div>
       </div>
       <div className="oc-body">
-        {roast && <p className="fc-roast">{roast}</p>}
         <div className="oc-stats">
           {content.scores.map((stat) => (
             <MiniStat key={stat.id} stat={stat} run={run} />
