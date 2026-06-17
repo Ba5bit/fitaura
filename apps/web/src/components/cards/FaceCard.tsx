@@ -43,8 +43,8 @@ export function FaceCard({ content, stickerOn = true, run = true, roast }: FaceC
         <h2 className="fc-line">
           {content.verdict[0]} <span className="hl">{content.verdict[1]}</span>
         </h2>
-        {roast && <p className="fc-roast">{roast}</p>}
       </div>
+      {roast && <p className="fc-roast">{roast}</p>}
       <div className="fc-stats">
         {content.scores.map((stat) => (
           <MiniStat key={stat.id} stat={stat} run={run} />
