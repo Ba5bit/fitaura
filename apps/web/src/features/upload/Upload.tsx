@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { useGeneration } from '../../state/generation';
+import { resultMatchesPhotos } from '../scan/scanGuards';
 import { useAccount } from '../account/AccountContext';
 import { useMediaQuery } from '../../lib/useMediaQuery';
 import { UploadZone } from './UploadZone';
@@ -14,12 +15,29 @@ import '../../design/upload.css';
  */
 export function Upload() {
   const navigate = useNavigate();
-  const { face, outfit, setFace, setOutfit } = useGeneration();
+  const { face, outfit, result, setFace, setOutfit, startNewScan, hydrated } = useGeneration();
   const { signedIn, credits, canScan } = useAccount();
   // Guests can still run the teaser scan; generation is gated at the reveal step.
   const guest = !signedIn;
   const mobile = useMediaQuery('(max-width: 760px)');
   const [attempted, setAttempted] = useState(false);
+
+  // A completed scan's photos persist in the session, but the upload zones always
+  // render empty. So any path back here that doesn't reset the scan — the browser
+  // back button, the post-checkout "Start scanning" button — would leave the prior
+  // face/outfit live but invisible and silently scan it again, producing a card for
+  // a modality the user never uploaded (e.g. outfit-only upload → 3 cards reusing the
+  // last face). If we arrive carrying the exact photos that already produced the
+  // current verdict, start fresh. (A retake/edit keeps its photos: they have no
+  // matching verdict yet, so resultMatchesPhotos is false.)
+  const clearedStale = useRef(false);
+  useEffect(() => {
+    if (!hydrated || clearedStale.current) return;
+    if (resultMatchesPhotos(result, face, outfit)) {
+      clearedStale.current = true;
+      startNewScan();
+    }
+  }, [hydrated, result, face, outfit, startNewScan]);
 
   // The action bar is fixed to the viewport bottom (always-reachable CTA while
   // the tall cards scroll). Measure its height so the scroll content reserves
