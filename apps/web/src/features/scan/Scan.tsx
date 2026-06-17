@@ -5,6 +5,7 @@ import { CardImage } from '../../components/cards';
 import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
 import { useMediaQuery } from '../../lib/useMediaQuery';
+import { resultMatchesPhotos } from './scanGuards';
 import '../../design/scanner.css';
 
 interface Stage {
@@ -106,7 +107,7 @@ function Rail({ idx }: { idx: number }) {
 
 export function Scan() {
   const navigate = useNavigate();
-  const { face, outfit, bothPhotosReady, runGeneration, hydrated } = useGeneration();
+  const { face, outfit, result, bothPhotosReady, runGeneration, hydrated } = useGeneration();
   const { signedIn, openAuth, canScan, spendForScan, openPaywall, refundScan } = useAccount();
   // Set when a guest hit "reveal" — once they sign in, the effect below finishes
   // the reveal. The verdict is only generated after authentication.
@@ -135,11 +136,23 @@ export function Scan() {
   // Guards against a double-tap double-spend before `revealing` disables the button.
   const revealingRef = useRef(false);
 
+  // These exact photos already have a verdict (e.g. the user hit browser-back from
+  // the result page). Re-scanning here would spend another credit, so we treat the
+  // scan as already done — the kickoff below skips and the effect redirects back.
+  const alreadyScanned = resultMatchesPhotos(result, face, outfit);
+
   // Guard: a scan needs both confirmed photos (after hydration, so a reload here
   // doesn't bounce to the upload page before IndexedDB loads).
   useEffect(() => {
     if (hydrated && !bothPhotosReady) navigate('/scan', { replace: true });
   }, [hydrated, bothPhotosReady, navigate]);
+
+  // Guard: once a result exists for these photos, the scan route is a dead end —
+  // send the user to the verdict they already have instead of re-running the scan.
+  // `replace` keeps the unreachable animation out of the back stack.
+  useEffect(() => {
+    if (hydrated && alreadyScanned) navigate('/result#face', { replace: true });
+  }, [hydrated, alreadyScanned, navigate]);
 
   const idx = stageAt(progress);
   const stage = STAGES[idx];
@@ -151,6 +164,12 @@ export function Scan() {
   useEffect(() => {
     if (!hydrated) return;
     if (!bothPhotosReady || startedRef.current) return;
+    // These photos already have a verdict — never re-spend. The redirect effect
+    // above sends the user to it; here we just make sure no scan kicks off.
+    if (alreadyScanned) {
+      startedRef.current = true;
+      return;
+    }
     if (!signedIn) {
       startedRef.current = true; // guest teaser — generation deferred to post-sign-up
       return;
@@ -186,7 +205,7 @@ export function Scan() {
         navigate('/scan');
       }
     })();
-  }, [hydrated, bothPhotosReady, signedIn, canScan, spendForScan, runGeneration, refundScan, openPaywall, navigate]);
+  }, [hydrated, bothPhotosReady, alreadyScanned, signedIn, canScan, spendForScan, runGeneration, refundScan, openPaywall, navigate]);
 
   // Progress driver. For a signed-in scan the animation HOLDS near the end until
   // the real generation settles, so the wait is synced to the actual AI. Guests
@@ -277,6 +296,10 @@ export function Scan() {
   const faceSrc = face?.url ?? null;
   const outfitSrc = outfit?.url ?? null;
   const dataStage = phase === 'done' ? 'verdict' : stage.key;
+
+  // Verdict already exists for these photos — render nothing while the redirect
+  // effect navigates to it, so the scanner never flashes back into view.
+  if (alreadyScanned) return <div className="scan-page" />;
 
   return (
     <div className="scan-page">
