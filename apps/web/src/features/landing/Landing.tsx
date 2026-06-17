@@ -96,8 +96,7 @@ function Hero() {
             EVERY AURA HAS A <span className="hl">VERDICT</span>
           </h1>
           <p className="ln-hero-sub">
-            Scan yourself, a friend, or your glow-up. FitAura reads your aura and hands back a verdict
-            built to post.
+            Scan yourself, a friend, or your glow-up. Get a verdict built to post.
           </p>
           <div className="ln-hero-actions">
             <Link className="ln-btn primary lg" to="/vault">
@@ -278,16 +277,16 @@ function Analysis() {
 
 function How() {
   const steps = [
-    { n: 'STEP 01', ic: <Icon.upload />, h: 'Upload two photos', p: "A selfie and a full outfit shot. Crop and reframe until it's right." },
+    { n: 'STEP 01', ic: <Icon.upload />, h: 'Upload your photos', p: "A selfie, an outfit, or both — crop till it's right." },
     { n: 'STEP 02', ic: <Icon.scan />, h: 'Run the scan', p: 'We read your face, aura and fit, then score how they play together.' },
-    { n: 'STEP 03', ic: <Icon.receipt />, h: 'Get the verdict', p: 'Three finished cards land at once, ready to screenshot and post.' },
+    { n: 'STEP 03', ic: <Icon.receipt />, h: 'Get the verdict', p: 'Your cards land ready to screenshot and post.' },
   ];
   return (
     <section className="ln-section alt" id="how">
       <div className="ln-wrap">
         <span className="ln-eyebrow">HOW IT WORKS</span>
         <h2 className="ln-h2">
-          From two photos to <span className="hl">posted</span> in under a minute
+          From photo to <span className="hl">posted</span> in under a minute
         </h2>
         <div className="ln-steps">
           {steps.map((s) => (
@@ -322,8 +321,7 @@ function Credits() {
               First scan's <span className="hl">on us</span>
             </h2>
             <p className="ln-lead">
-              Your first verdict is free. After that, top up with credits whenever you want another.
-              Friends, exes, celebrities, all fair game.
+              Your first verdict is free. After that, top up whenever. Friends, exes, celebrities — all fair game.
             </p>
           </div>
           <span className="free-pill" style={{ alignSelf: 'center' }}>
@@ -351,7 +349,7 @@ function Credits() {
           ))}
         </div>
         <p className="ln-packs-foot">
-          Credits never expire. One credit always returns the full three-card verdict.
+          Credits never expire. One credit = one verdict.
         </p>
       </div>
     </section>
@@ -374,10 +372,7 @@ function Privacy() {
         <div>
           <h3>We don't keep your source photos</h3>
           <p>
-            We use your face and outfit photos to build your verdict, then drop them. They're{' '}
-            <b style={{ color: 'var(--ink)' }}>never permanently stored on our servers</b>. Your finished
-            cards, receipts, and history live on your device. Close the tab and we no longer have the
-            originals.
+            We use your photos to build your verdict, then drop them — <b style={{ color: 'var(--ink)' }}>never stored on our servers</b>. Your cards and history live on your device.
           </p>
           <div className="ln-privacy-points">
             <span className="pp">Source photos not server-stored</span>
@@ -553,7 +548,7 @@ function FinalCTA() {
           UPLOAD SCAN <span className="hl">GET POSTED</span>
         </h2>
         <p>
-          Two photos, one credit, three cards your group chat won't let go of. First one's free.
+          One scan, one credit, cards your group chat won't let go of. First one's free.
         </p>
         <div className="ln-hero-actions">
           <Link className="ln-btn primary lg" to="/vault">
