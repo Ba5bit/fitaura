@@ -235,8 +235,8 @@ body::before{
   font-size:38px; letter-spacing:0.005em; text-transform:uppercase; text-wrap:balance;
   color:#fff; text-shadow:0 0 26px color-mix(in oklab,var(--verdict) 55%,transparent); }
 .fc-line .hl{ color:var(--verdict); }
-.fc-roast{ margin:10px 0 0; font-family:"Hanken Grotesk",system-ui,sans-serif; font-weight:800; font-size:20px; line-height:1.28;
-  letter-spacing:0.05em; text-transform:uppercase; color:#fff; text-wrap:balance;
+.fc-roast{ margin:10px 0 0; font-family:Arial,"Helvetica Neue",Helvetica,sans-serif; font-weight:700; font-size:20px; line-height:1.3;
+  letter-spacing:0.04em; text-transform:uppercase; color:#fff; text-wrap:balance;
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 /* face card: keep the roast tight under the verdict (reads as one unit); the stats
    stay anchored at the bottom, so a one-line verdict's extra room sits below. */
@@ -361,6 +361,8 @@ body::before{
 .receipt[data-style="thermal"][data-verdict="green_flag"]{ --verdict:#0d6b2f; }
 .receipt[data-style="thermal"][data-verdict="normie"]{ --verdict:#0c6f7d; }
 .receipt[data-style="thermal"][data-verdict="red_flag"]{ --verdict:#c01c2b; }
+/* the black (neon) receipt keeps the neon cyan for normie, even though cards now use the main blue */
+.receipt[data-style="neon"][data-verdict="normie"]{ --verdict:var(--cyan); }
 .receipt[data-style="thermal"] .r-head .logo,
 .receipt[data-style="thermal"] .r-punch .big{ color:#16181d; }
 .receipt[data-style="thermal"] .receipt-inner{ background-image:linear-gradient(180deg, rgba(0,0,0,0.015), transparent 6%, transparent 94%, rgba(0,0,0,0.02)); }

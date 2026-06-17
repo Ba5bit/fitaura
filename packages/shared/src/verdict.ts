@@ -25,7 +25,7 @@ export const VERDICT_LABEL: Record<DatingVerdict, string> = {
  */
 export const VERDICT_COLOR_VAR: Record<DatingVerdict, string> = {
   green_flag: 'var(--lime)',
-  normie: 'var(--cyan)',
+  normie: 'var(--icy)',
   red_flag: 'var(--red)',
 };
 
