@@ -160,7 +160,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         aura: 92,
         explanation:
           'Everything cooperated at once. Symmetry, structure and aura all showed up to the same meeting and, shockingly, agreed.',
-        roast: 'Annoyingly well-assembled. No notes — which is itself a little suspicious.',
+        roast: 'Annoyingly well-assembled. Zero notes, deeply suspicious.',
         breakdown: [
           { id: 'jaw', label: 'Jaw Presence', value: 88, descriptor: 'Carved', icon: 'jaw' },
           { id: 'harmony', label: 'Face Harmony', value: 90, descriptor: 'Balanced', icon: 'harmony' },
