@@ -50,7 +50,6 @@ export const STICKER_BANK: {
     { id: 'drama-queen', label: 'DRAMA QUEEN', tone: 'warn', rotation: -7 },
   ],
   outfit: [
-    { id: 'fit-has-lore', label: 'FIT HAS LORE', tone: 'chrome', rotation: 7 },
     { id: 'let-him-cook', label: 'LET HIM COOK', tone: 'chrome', rotation: 7 },
     { id: 'never-cook-again', label: 'NEVER COOK AGAIN', tone: 'warn', rotation: 7 },
     { id: 'buffering', label: 'BUFFERING', tone: 'chrome', rotation: 7 },

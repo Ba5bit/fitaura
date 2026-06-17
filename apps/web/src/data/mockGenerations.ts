@@ -45,10 +45,11 @@ const FACE_STICKER = {
   green_flag: stickerFromPreset(STICKER_BANK.face[2]), // AURA FARMER
 } satisfies Record<DatingVerdict, ReturnType<typeof stickerFromPreset>>;
 
+const outfitSticker = (id: string) => stickerFromPreset(STICKER_BANK.outfit.find((s) => s.id === id)!);
 const OUTFIT_STICKER = {
-  red_flag: stickerFromPreset(STICKER_BANK.outfit[0]), // FIT HAS LORE
-  normie: stickerFromPreset(STICKER_BANK.outfit[3]), // BUFFERING
-  green_flag: stickerFromPreset(STICKER_BANK.outfit[1]), // LET HIM COOK
+  red_flag: outfitSticker('never-cook-again'),
+  normie: outfitSticker('buffering'),
+  green_flag: outfitSticker('let-him-cook'),
 } satisfies Record<DatingVerdict, ReturnType<typeof stickerFromPreset>>;
 
 export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
