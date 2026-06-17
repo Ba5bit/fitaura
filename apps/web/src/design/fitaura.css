@@ -197,7 +197,8 @@ body::before{
   transition:opacity .3s ease, transform .35s cubic-bezier(.34,1.56,.64,1);
   border:2px solid #0a0c11;
 }
-.sticker.accent{ background:var(--accent); color:var(--accent-ink); }
+/* former blue/accent stickers recolored to brand lime — no blue stickers */
+.sticker.accent{ background:var(--lime); color:var(--accent-ink); }
 .sticker.warn{ background:var(--red); color:#fff; }
 .sticker.chrome{ background:var(--chrome); color:#15181f; border-color:#fff; }
 .sticker.hidden{ opacity:0; transform:rotate(-7deg) scale(.6); pointer-events:none; }
