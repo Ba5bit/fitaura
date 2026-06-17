@@ -234,7 +234,7 @@ body::before{
   font-size:38px; letter-spacing:0.005em; text-transform:uppercase; text-wrap:balance;
   color:#fff; text-shadow:0 0 26px color-mix(in oklab,var(--verdict) 55%,transparent); }
 .fc-line .hl{ color:var(--verdict); }
-.fc-roast{ margin:10px 0 0; font:600 16px/1.4 "Hanken Grotesk",system-ui; color:var(--ink);
+.fc-roast{ margin:10px 0 0; font:600 17px/1.4 "Hanken Grotesk",system-ui; color:var(--ink);
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .fc-roast .q{ color:var(--accent); font-weight:800; margin-right:2px; }
 .fc-stats{ margin-top:auto; display:grid; grid-template-columns:1fr 1fr; gap:16px 24px; position:relative; z-index:2; padding-top:18px; }
@@ -260,7 +260,9 @@ body::before{
 .caption-bar{ position:absolute; left:18px; bottom:18px; right:18px; z-index:4; }
 .caption-bar .cap{ font-family:"Anton",sans-serif; font-size:30px; line-height:.95; text-transform:uppercase;
   color:#fff; text-shadow:0 2px 18px #000; }
-.oc-body{ padding:18px 22px 20px; display:flex; flex-direction:column; flex:1; }
+.oc-body{ padding:12px 22px 20px; display:flex; flex-direction:column; flex:1; }
+/* outfit roast: sit close under the verdict caption, with clear space before the stats */
+.oc-body .fc-roast{ margin:2px 0 18px; }
 .oc-stats{ display:grid; grid-template-columns:1fr 1fr; gap:13px 22px; }
 .oc-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:auto; padding-top:16px; border-top:1px solid var(--hair-soft); }
 
