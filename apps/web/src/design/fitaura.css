@@ -234,12 +234,12 @@ body::before{
   font-size:38px; letter-spacing:0.005em; text-transform:uppercase; text-wrap:balance;
   color:#fff; text-shadow:0 0 26px color-mix(in oklab,var(--verdict) 55%,transparent); }
 .fc-line .hl{ color:var(--verdict); }
-.fc-roast{ margin:10px 0 0; font-family:"Hanken Grotesk",system-ui,sans-serif; font-weight:800; font-size:18px; line-height:1.32;
+.fc-roast{ margin:10px 0 0; font-family:"Hanken Grotesk",system-ui,sans-serif; font-weight:800; font-size:20px; line-height:1.28;
   letter-spacing:0.05em; text-transform:uppercase; color:#fff; text-wrap:balance;
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
-/* face card: centre the roast and sit it midway between the verdict and the stats
-   (its margin-top:auto + the stats' margin-top:auto split the free space evenly) */
-.facecard .fc-roast{ margin:auto 0 0; text-align:center; padding:0 4px; z-index:2; }
+/* face card: keep the roast tight under the verdict (reads as one unit); the stats
+   stay anchored at the bottom, so a one-line verdict's extra room sits below. */
+.facecard .fc-roast{ margin:14px 0 0; text-align:center; padding:0 4px; z-index:2; }
 .fc-stats{ margin-top:auto; display:grid; grid-template-columns:1fr 1fr; gap:16px 24px; position:relative; z-index:2; padding-top:14px; }
 /* face card has the room — slightly larger stats; keep the no-bar Age value snug to its label */
 .fc-stats .mstat .top{ margin-bottom:6px; }
