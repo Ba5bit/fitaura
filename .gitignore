@@ -13,3 +13,6 @@ coverage/
 
 # agent worktrees (created by background subagents)
 .claude/worktrees/
+
+# Visual-companion brainstorm mockups
+.superpowers/
