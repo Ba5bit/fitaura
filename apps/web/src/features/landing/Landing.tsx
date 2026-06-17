@@ -124,13 +124,13 @@ function Hero() {
             style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
           >
             <div className="ln-fan-card left">
-              <OutfitCard content={HERO.outfit.card} run />
+              <OutfitCard content={HERO.outfit!.card} run />
             </div>
             <div className="ln-fan-card right">
               <Receipt content={HERO.receipt} paper="neon" />
             </div>
             <div className="ln-fan-card mid">
-              <FaceCard content={HERO.face.card} run />
+              <FaceCard content={HERO.face!.card} run />
             </div>
           </div>
         </div>
@@ -167,7 +167,7 @@ function Artifacts() {
       <div className="ln-arts" style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}>
         <div className="ln-art">
           <div className="ln-art-stage">
-            <FaceCard content={HERO.face.card} run={seen} />
+            <FaceCard content={HERO.face!.card} run={seen} />
           </div>
           <div className="ln-art-num">{arts[0].n}</div>
           <div className="ln-art-name">{arts[0].name}</div>
@@ -175,7 +175,7 @@ function Artifacts() {
         </div>
         <div className="ln-art">
           <div className="ln-art-stage">
-            <OutfitCard content={HERO.outfit.card} run={seen} />
+            <OutfitCard content={HERO.outfit!.card} run={seen} />
           </div>
           <div className="ln-art-num">{arts[1].n}</div>
           <div className="ln-art-name">{arts[1].name}</div>
@@ -239,8 +239,8 @@ function Analysis() {
         className="ln-an-panel rs-analysis"
         style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
       >
-        {tab === 'face' && <FaceAnalysisBlock face={HERO.face} verdict={DEFAULT_VERDICT} run={seen} />}
-        {tab === 'outfit' && <OutfitAnalysisBlock outfit={HERO.outfit} run={seen} />}
+        {tab === 'face' && <FaceAnalysisBlock face={HERO.face!} verdict={DEFAULT_VERDICT} run={seen} />}
+        {tab === 'outfit' && <OutfitAnalysisBlock outfit={HERO.outfit!} run={seen} />}
         {tab === 'receipt' && (
           <>
             <section className="rs-block hero rs-summary">

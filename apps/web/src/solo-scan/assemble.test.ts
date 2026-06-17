@@ -11,16 +11,16 @@ describe('assembleResult', () => {
   });
 
   it('fills the face card with 4 scores and a sticker', () => {
-    expect(result.face.card.scores).toHaveLength(4);
-    expect(result.face.card.verdict).toHaveLength(2);
-    expect(result.face.card.sticker.label.length).toBeGreaterThan(0);
-    expect(result.face.card.imageUrl).toBeNull();
+    expect(result.face!.card.scores).toHaveLength(4);
+    expect(result.face!.card.verdict).toHaveLength(2);
+    expect(result.face!.card.sticker.label.length).toBeGreaterThan(0);
+    expect(result.face!.card.imageUrl).toBeNull();
   });
 
   it('fills the outfit card and skips not_assessable supporting stats', () => {
-    expect(result.outfit.card.scores).toHaveLength(4);
+    expect(result.outfit!.card.scores).toHaveLength(4);
     // accessories is null in the fixture → excluded from supporting
-    expect(result.outfit.analysis.supporting?.some((s) => s.label === 'Accessories')).toBe(false);
+    expect(result.outfit!.analysis.supporting?.some((s) => s.label === 'Accessories')).toBe(false);
   });
 
   it('builds a receipt with a dating score in range and a punchline', () => {
@@ -33,7 +33,7 @@ describe('assembleResult', () => {
 
   it('is deterministic for the same scanId', () => {
     const again = assembleResult(sampleAIOutput(), 'scan-test-1', 'v2', { face: true, outfit: true });
-    expect(again.face.card.scores[0].value).toBe(result.face.card.scores[0].value);
+    expect(again.face!.card.scores[0].value).toBe(result.face!.card.scores[0].value);
     expect(again.verdict).toBe(result.verdict);
     expect(again.receipt.generationId).toBe(result.receipt.generationId);
     expect(again.receipt.auraValue).toBe(result.receipt.auraValue);
@@ -51,15 +51,15 @@ describe('assembleResult', () => {
 describe('assembleResult v3', () => {
   it('face card shows aura, haircut, gender index, main character', () => {
     const r = assembleResult(sampleAIOutput(), 'scan-v3', 'v3', { face: true, outfit: true });
-    expect(r.face.card.scores.map((s) => s.id)).toEqual(['aura', 'haircut-match', 'gender-index', 'main-character']);
-    expect(r.face.card.scores[2].label).toBe('Masculinity Index'); // masc fixture
+    expect(r.face!.card.scores.map((s) => s.id)).toEqual(['aura', 'haircut-match', 'gender-index', 'main-character']);
+    expect(r.face!.card.scores[2].label).toBe('Masculinity Index'); // masc fixture
   });
 
   it('labels the index Femininity Index for confident femme', () => {
     const ai = sampleAIOutput();
     ai.presentation = { ...ai.presentation, gender: 'femme', genderConfidence: 0.9 };
     const r = assembleResult(ai, 'scan-v3', 'v3', { face: true, outfit: true });
-    expect(r.face.card.scores[2].label).toBe('Femininity Index');
+    expect(r.face!.card.scores[2].label).toBe('Femininity Index');
   });
 
   it('femme bias raises the aura vs the same scan read as masc', () => {
@@ -67,12 +67,12 @@ describe('assembleResult v3', () => {
     const ai = sampleAIOutput();
     ai.presentation = { ...ai.presentation, gender: 'femme', genderConfidence: 0.9 };
     const femme = assembleResult(ai, 'scan-cmp', 'v3', { face: true, outfit: true });
-    expect(femme.face.analysis.aura).toBeGreaterThan(masc.face.analysis.aura);
+    expect(femme.face!.analysis.aura).toBeGreaterThan(masc.face!.analysis.aura);
   });
 
   it('keeps jaw presence + face harmony in the breakdown', () => {
     const r = assembleResult(sampleAIOutput(), 'scan-v3', 'v3', { face: true, outfit: true });
-    const ids = r.face.analysis.breakdown.map((t) => t.id);
+    const ids = r.face!.analysis.breakdown.map((t) => t.id);
     expect(ids).toContain('jaw');
     expect(ids).toContain('harmony');
   });
@@ -100,7 +100,7 @@ describe('assembleResult v3.1 — meme glory vs honest celebrity', () => {
     const ai = lowRead();
     ai.presentation = { ...ai.presentation, recognizedIcon: 'McLovin', recognizedConfidence: 0.95, recognizedKind: 'meme' };
     const r = assembleResult(ai, 'scan-meme', 'v3_1', { face: true, outfit: true });
-    expect(r.face.analysis.aura).toBeGreaterThanOrEqual(75);
+    expect(r.face!.analysis.aura).toBeGreaterThanOrEqual(75);
     expect(r.verdict).toBe('green_flag');
   });
 
@@ -108,7 +108,7 @@ describe('assembleResult v3.1 — meme glory vs honest celebrity', () => {
     const ai = lowRead();
     ai.presentation = { ...ai.presentation, recognizedIcon: 'Some Athlete', recognizedConfidence: 0.95, recognizedKind: 'real_person' };
     const r = assembleResult(ai, 'scan-celeb', 'v3_1', { face: true, outfit: true });
-    expect(r.face.analysis.aura).toBeLessThan(40);
+    expect(r.face!.analysis.aura).toBeLessThan(40);
     expect(r.verdict).toBe('red_flag');
   });
 });

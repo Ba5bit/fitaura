@@ -281,8 +281,8 @@ export function Result() {
     navigate('/scan');
   };
 
-  const faceContent = { ...result.face.card, sticker: faceSticker };
-  const outfitContent = { ...result.outfit.card, sticker: outfitSticker };
+  const faceContent = { ...result.face!.card, sticker: faceSticker };
+  const outfitContent = { ...result.outfit!.card, sticker: outfitSticker };
 
   // Visible asset (built-in sticker/seal off — the editable layer renders it).
   const assetEl =
@@ -322,9 +322,9 @@ export function Result() {
   const animKey = `${kind}-${result.verdict}`;
   const analysisEl =
     kind === 'face' ? (
-      <FaceAnalysisBlock key={animKey} face={result.face} verdict={result.verdict} run />
+      <FaceAnalysisBlock key={animKey} face={result.face!} verdict={result.verdict} run />
     ) : kind === 'outfit' ? (
-      <OutfitAnalysisBlock key={animKey} outfit={result.outfit} run />
+      <OutfitAnalysisBlock key={animKey} outfit={result.outfit!} run />
     ) : (
       <ReceiptSummaryBlock
         key={animKey}

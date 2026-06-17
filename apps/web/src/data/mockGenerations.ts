@@ -46,6 +46,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
   red_flag: {
     verdict: 'red_flag',
     chip: 'VERDICT · RED FLAG',
+    parts: { face: true, outfit: true },
     face: {
       card: {
         imageUrl: null,
@@ -131,6 +132,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
   green_flag: {
     verdict: 'green_flag',
     chip: 'VERDICT · GREEN FLAG',
+    parts: { face: true, outfit: true },
     face: {
       card: {
         imageUrl: EXAMPLE_FACE,
@@ -216,6 +218,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
   normie: {
     verdict: 'normie',
     chip: 'VERDICT · NORMIE',
+    parts: { face: true, outfit: true },
     face: {
       card: {
         imageUrl: null,

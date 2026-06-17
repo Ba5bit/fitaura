@@ -20,7 +20,7 @@ const FILTERS: { id: 'all' | DatingVerdict; label: string }[] = [
 
 /** Outfit-led preview thumbnail for one saved Solo verdict. */
 function OutfitThumb({ r, onOpen }: { r: GenerationResult; onOpen: (r: GenerationResult) => void }) {
-  const img = r.outfit.card.imageUrl;
+  const img = r.outfit?.card.imageUrl ?? r.face?.card.imageUrl ?? null;
   return (
     <div
       className="vlt-thumb"
@@ -41,11 +41,13 @@ function OutfitThumb({ r, onOpen }: { r: GenerationResult; onOpen: (r: Generatio
         <span className="d" />
         {VERDICT_LABEL[r.verdict]}
       </span>
-      <div className="badge">
-        <span className="num">{r.outfit.card.overallScore}</span>
-        <span className="sub">FIT</span>
-      </div>
-      <div className="cap">{r.outfit.card.caption}</div>
+      {r.outfit && (
+        <div className="badge">
+          <span className="num">{r.outfit.card.overallScore}</span>
+          <span className="sub">FIT</span>
+        </div>
+      )}
+      {r.outfit && <div className="cap">{r.outfit.card.caption}</div>}
     </div>
   );
 }
