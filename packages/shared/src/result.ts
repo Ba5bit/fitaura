@@ -97,7 +97,10 @@ export type FaceTraitIcon =
   | 'eye'
   | 'brow'
   | 'beard'
-  | 'star';
+  | 'star'
+  | 'face'
+  | 'hair'
+  | 'razor';
 
 export interface FaceAnalysisContent {
   /** Aura score driving the ring (0–100). */
