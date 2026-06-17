@@ -10,15 +10,15 @@ export interface CreditPack {
 }
 
 export const CREDIT_PACKS: CreditPack[] = [
-  { id: 'starter', tier: 'Starter', credits: 10, price: '$4.99', perScan: '$0.50 / scan' },
+  { id: 'starter', tier: 'Starter', credits: 10, price: '$3.99', perScan: '$0.40 / scan' },
   {
     id: 'regular',
     tier: 'Regular',
     credits: 30,
-    price: '$11.99',
-    perScan: '$0.40 / scan',
+    price: '$9.99',
+    perScan: '$0.33 / scan',
     featured: true,
     badge: 'Most picked',
   },
-  { id: 'group', tier: 'Group chat', credits: 80, price: '$19.99', perScan: '$0.25 / scan' },
+  { id: 'group', tier: 'Group chat', credits: 80, price: '$14.99', perScan: '$0.19 / scan' },
 ];
