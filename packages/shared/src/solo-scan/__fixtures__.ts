@@ -1,4 +1,5 @@
 // packages/shared/src/solo-scan/__fixtures__.ts
+import { SOLO_SCAN_SCHEMA_VERSION } from './constants.ts';
 import type { SoloScanAIOutput } from './schema.ts';
 
 const r = (rating: number | null, confidence = 0.8, evidence = 'Visible in the image.') =>
@@ -7,7 +8,7 @@ const r = (rating: number | null, confidence = 0.8, evidence = 'Visible in the i
 /** A deterministic, schema-valid AI output for tests. */
 export function sampleAIOutput(): SoloScanAIOutput {
   return {
-    schemaVersion: 'solo_scan_v3_1',
+    schemaVersion: SOLO_SCAN_SCHEMA_VERSION,
     inputQuality: {
       usable: true, faceUsable: true, outfitUsable: true,
       samePersonLikely: true, issues: [], retakeInstruction: null,

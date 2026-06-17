@@ -67,13 +67,15 @@ const RESPONSE_SCHEMA = {
 };
 
 const SYSTEM_INSTRUCTION = `You are FitAura's Solo Scan visual classification engine.
-Analyze the supplied FACE PHOTO and OUTFIT PHOTO using only visible, presentation-related evidence.
+Analyze the supplied photo(s) using only visible, presentation-related evidence. You may receive a FACE PHOTO, an OUTFIT PHOTO, or both.
 Return only JSON matching the provided schema. The result is entertainment-oriented styling feedback. Do not present subjective judgments as scientific, biometric, medical, or psychological facts.
 
 GENDER PRESENTATION: Classify the subject's apparent gender presentation as "femme", "masc", or "unsure" with genderConfidence 0-1, for entertainment styling only. This is a read of presentation, NOT a claim about identity, and may be wrong; use "unsure" when genuinely ambiguous. Set expressionStrength 0-100 for how strongly the look reads as that presentation (a vanity stat, not attractiveness).
 Do not infer ethnicity, nationality, religion, sexuality, health, disability, wealth, criminality, real trustworthiness, real personality, or romantic compatibility.
 
 ICON RECOGNITION: You MAY recognize widely-known public figures or popular fictional/meme characters and set recognizedIcon to the name with recognizedConfidence 0-1. Also set recognizedKind: "meme" for a fictional, cartoon, comedic, or internet-meme character (e.g. McLovin), or "real_person" for a real public figure or celebrity (athlete, actor, musician, etc.). NEVER attempt to identify a private or ordinary individual; if the subject is not a widely-known public figure or meme character, set recognizedIcon to null and recognizedKind to null. A resemblance is entertainment, not a factual identity claim.
+
+SINGLE IMAGE: If only one photo is provided, score only that modality. For the absent modality, set EVERY rating in its analysis block to null (confidence 0, brief evidence "not provided"). Do NOT add an input issue for the absent modality and do NOT request a retake because it is missing. Set the absent modality's *Usable flag to false but keep inputQuality.usable true as long as the provided photo(s) are usable.
 
 If an attribute cannot be assessed reliably, return a null rating and explain why briefly.
 Score each category 0-100. Anchor: 0-20 clearly weak for this presentation, 21-40 below average, 41-60 neutral or mixed, 61-80 strong, 81-100 clearly elite. Use the full range, differentiate categories from one another, and avoid clustering on round multiples of 10. Return a null rating only when a category genuinely cannot be assessed.
@@ -96,7 +98,7 @@ punchlineCandidates:
   FEMME: punchline.mother_mothered, punchline.slay, punchline.it_girl, punchline.girlboss_trio, punchline.drama_queen_crowned.
 
 Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment. Do not write the recognized icon's name into the copy; the backend decides whether to surface it.
-Set schemaVersion to "solo_scan_v3_1".`;
+Set schemaVersion to "solo_scan_v3_2".`;
 
 export interface InlineImage {
   mimeType: string;
@@ -111,8 +113,8 @@ export interface GeminiCallResult {
 interface GeminiOpts {
   apiKey: string;
   model: string;
-  face: InlineImage;
-  outfit: InlineImage;
+  face?: InlineImage;
+  outfit?: InlineImage;
 }
 
 /** Error carrying a `transient` flag so the caller's one-retry policy is type-safe. */
@@ -127,20 +129,19 @@ class GeminiError extends Error {
   }
 }
 
-function buildBody(face: InlineImage, outfit: InlineImage) {
+function buildBody(face?: InlineImage, outfit?: InlineImage) {
+  const parts: Array<Record<string, unknown>> = [];
+  if (face) {
+    parts.push({ text: 'IMAGE: FACE PHOTO' });
+    parts.push({ inlineData: { mimeType: face.mimeType, data: face.data } });
+  }
+  if (outfit) {
+    parts.push({ text: 'IMAGE: OUTFIT PHOTO' });
+    parts.push({ inlineData: { mimeType: outfit.mimeType, data: outfit.data } });
+  }
   return {
     systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          { text: 'IMAGE 1: FACE PHOTO' },
-          { inlineData: { mimeType: face.mimeType, data: face.data } },
-          { text: 'IMAGE 2: OUTFIT PHOTO' },
-          { inlineData: { mimeType: outfit.mimeType, data: outfit.data } },
-        ],
-      },
-    ],
+    contents: [{ role: 'user', parts }],
     generationConfig: {
       temperature: 0.3,
       maxOutputTokens: 2500,
