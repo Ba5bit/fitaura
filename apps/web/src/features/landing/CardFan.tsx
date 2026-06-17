@@ -17,10 +17,14 @@ export function CardFan({ items, onFrontChange }: CardFanProps) {
     setOrder(next);
     onFrontChange?.(next[0]);
   };
-  // Jump straight to a card (dot click): bring it to the front, keep the rest in order.
-  const goTo = (itemIdx: number) => {
+  // Bring a card to the centre by SWAPPING it with the current front card — the
+  // clicked card and the centre trade places, the third card stays put. This reads
+  // as a clean swap rather than a confusing 3-card rotation.
+  const swapToFront = (itemIdx: number) => {
     if (itemIdx === front) return;
-    const next = [itemIdx, ...order.filter((x) => x !== itemIdx)];
+    const i = order.indexOf(itemIdx);
+    const next = order.slice();
+    [next[0], next[i]] = [next[i], next[0]];
     setOrder(next);
     onFrontChange?.(itemIdx);
   };
@@ -29,8 +33,8 @@ export function CardFan({ items, onFrontChange }: CardFanProps) {
     <div className="cardfan-wrap">
       <div className="cardfan">
         {order.map((itemIdx, stackPos) => {
-          // Front card cycles; a side card jumps itself to the front.
-          const act = () => (stackPos === 0 ? advance() : goTo(itemIdx));
+          // Front card cycles to the next; a side card swaps into the centre.
+          const act = () => (stackPos === 0 ? advance() : swapToFront(itemIdx));
           return (
             <div
               key={itemIdx}
@@ -56,7 +60,7 @@ export function CardFan({ items, onFrontChange }: CardFanProps) {
             aria-selected={i === front}
             aria-label={`Card ${i + 1}`}
             className={'cardfan-dot' + (i === front ? ' active' : '')}
-            onClick={() => goTo(i)}
+            onClick={() => swapToFront(i)}
           />
         ))}
       </div>
