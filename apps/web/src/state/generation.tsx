@@ -23,7 +23,6 @@ interface GenerationContextValue {
   face: UploadedPhoto | null;
   outfit: UploadedPhoto | null;
   result: GenerationResult | null;
-  bothPhotosReady: boolean;
   canScanPhotos: boolean;
   /** Recent on-device results for the current account (newest first). */
   history: GenerationResult[];
@@ -120,7 +119,6 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     persistSession({ outfit: photo });
   }, [persistSession]);
 
-  const bothPhotosReady = !!face && !!outfit;
   const canScanPhotos = !!face || !!outfit;
 
   const runGeneration = useCallback<GenerationContextValue['runGeneration']>(async () => {
@@ -197,10 +195,10 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<GenerationContextValue>(
     () => ({
-      face, outfit, result, bothPhotosReady, canScanPhotos, history, hydrated,
+      face, outfit, result, canScanPhotos, history, hydrated,
       setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult,
     }),
-    [face, outfit, result, bothPhotosReady, canScanPhotos, history, hydrated, setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult],
+    [face, outfit, result, canScanPhotos, history, hydrated, setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult],
   );
 
   return <GenerationContext.Provider value={value}>{children}</GenerationContext.Provider>;

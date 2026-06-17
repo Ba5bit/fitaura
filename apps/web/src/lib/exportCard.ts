@@ -1,4 +1,3 @@
-import { snapdom } from '@zumer/snapdom';
 import { type DatingVerdict } from '@fitaura/shared';
 
 /**
@@ -101,7 +100,9 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
 
   // Rasterize the card 1:1 with snapdom. Transparent background so the card's
   // rounded corners reveal the poster glow behind it. Edit-only overlays are
-  // dropped from the snapshot.
+  // dropped from the snapshot. snapdom is loaded on demand (only when a user
+  // actually exports) so it stays out of the initial bundle.
+  const { snapdom } = await import('@zumer/snapdom');
   const cardCanvas = await snapdom.toCanvas(el, {
     scale: 3,
     embedFonts: true,
