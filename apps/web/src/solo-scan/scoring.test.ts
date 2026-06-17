@@ -5,7 +5,7 @@ import {
   pickVerdict, percent,
   biasFactor, biasedRating, applyScoreBias, faceScore,
   isMemeGlory, gloryFloor, applyGloryFloor, GLORY_MIN, GLORY_MAX,
-  sampleAIOutput,
+  sampleAIOutput, auraIndex,
 } from '@fitaura/shared';
 
 describe('scoring', () => {
@@ -124,5 +124,28 @@ describe('meme glory (v3.1)', () => {
     expect(g.faceAnalysis.visualPresence.rating).toBe(99);
     expect(g.faceAnalysis.haircutMatch.rating!).toBeGreaterThanOrEqual(GLORY_MIN);
     expect(faceScore(g)!).toBeGreaterThan(faceScore(ai)!);
+  });
+});
+
+describe('auraIndex (parts-aware)', () => {
+  // minimal AI stub: only visualPresence is read by auraIndex
+  const ai = (vp: number | null) =>
+    ({ faceAnalysis: { visualPresence: { rating: vp, confidence: 1, evidence: '' } } } as any);
+
+  it('both: face*0.45 + outfit*0.45 + vp*0.10', () => {
+    expect(auraIndex(ai(80), { face: 60, outfit: 40 }, { face: true, outfit: true }))
+      .toBe(Math.round(60 * 0.45 + 40 * 0.45 + 80 * 0.10));
+  });
+  it('face-only: face*0.90 + vp*0.10', () => {
+    expect(auraIndex(ai(70), { face: 60, outfit: null }, { face: true, outfit: false }))
+      .toBe(Math.round(60 * 0.90 + 70 * 0.10));
+  });
+  it('face-only falls back to face when vp is null', () => {
+    expect(auraIndex(ai(null), { face: 60, outfit: null }, { face: true, outfit: false }))
+      .toBe(Math.round(60 * 0.90 + 60 * 0.10));
+  });
+  it('outfit-only: outfit*1.0', () => {
+    expect(auraIndex(ai(null), { face: null, outfit: 40 }, { face: false, outfit: true }))
+      .toBe(40);
   });
 });

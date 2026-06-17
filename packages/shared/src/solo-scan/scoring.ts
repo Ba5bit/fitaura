@@ -1,5 +1,6 @@
 // packages/shared/src/solo-scan/scoring.ts
 import type { DatingVerdict } from '../verdict.ts';
+import type { ScanParts } from '../result.ts';
 import type { SoloScanAIOutput, Presentation, RubricRating } from './schema.ts';
 import { FACE_KEYS, OUTFIT_KEYS } from './schema.ts';
 
@@ -112,13 +113,23 @@ export function outfitScore(ai: SoloScanAIOutput): number | null {
 }
 
 /**
- * Aura Index = Face×0.45 + Outfit×0.45 + normalizedVisualPresence×0.10 (rules doc §17).
- * `face`/`outfit` must be the non-null results of `faceScore`/`outfitScore` — the
- * caller (see `assembleResult`) guards for null and rejects the scan first.
+ * Aura Index, redistributing a missing modality's weight (spec §1.2).
+ *   both        → face*0.45 + outfit*0.45 + vp*0.10
+ *   face-only   → face*0.90 + vp*0.10
+ *   outfit-only → outfit*1.0   (visual presence is a face metric, so it drops out)
+ * The present modality scores must be non-null (the caller guards and rejects first).
  */
-export function auraIndex(ai: SoloScanAIOutput, face: number, outfit: number): number {
+export function auraIndex(
+  ai: SoloScanAIOutput,
+  scores: { face: number | null; outfit: number | null },
+  parts: ScanParts,
+): number {
+  const face = scores.face ?? 0;
+  const outfit = scores.outfit ?? 0;
   const vp = scoreFromRating(ai.faceAnalysis.visualPresence.rating) ?? face;
-  return Math.round(face * 0.45 + outfit * 0.45 + vp * 0.10);
+  if (parts.face && parts.outfit) return Math.round(face * 0.45 + outfit * 0.45 + vp * 0.10);
+  if (parts.face) return Math.round(face * 0.90 + vp * 0.10);
+  return Math.round(outfit);
 }
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
