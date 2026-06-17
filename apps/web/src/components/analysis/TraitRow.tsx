@@ -1,6 +1,6 @@
 import type { ScoreItem } from '@fitaura/shared';
 
-function capFor(v: number): string {
+export function capFor(v: number): string {
   if (v >= 88) return 'ELITE';
   if (v >= 78) return 'STRONG';
   if (v >= 66) return 'SOLID';
