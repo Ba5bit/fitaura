@@ -424,13 +424,19 @@ body { overflow-y: auto; }
 /* ── CardFan: tappable stacked card fan ─────────────────────────────────── */
 /* Same symmetric fan + sizing as the hero (.ln-fan-card), but tappable/cycling. */
 .cardfan-wrap { display:flex; flex-direction:column; align-items:center; }
-.cardfan { position:relative; width:360px; height:460px; margin:0 auto; }
+.cardfan { position:relative; width:500px; max-width:100%; height:460px; margin:0 auto; }
+/* invisible left/right click zones above the cards — a click always rotates the
+   right way regardless of how the (overlapping) cards stack. */
+.cf-zone { position:absolute; top:0; bottom:0; z-index:6; padding:0; border:0; background:transparent; cursor:pointer; }
+.cf-zone.prev { left:0; width:42%; }
+.cf-zone.next { right:0; width:58%; }
+.cf-zone:focus-visible { outline:2px solid var(--accent); outline-offset:-6px; border-radius:18px; }
 .cardfan-dots { display:flex; gap:9px; margin-top:12px; }
 .cardfan-dot { width:9px; height:9px; padding:0; border:0; border-radius:50%; cursor:pointer;
   background:rgba(255,255,255,.26); transition:transform .2s, background .2s, box-shadow .2s; }
 .cardfan-dot:hover { background:rgba(255,255,255,.5); }
 .cardfan-dot.active { background:#fff; box-shadow:0 0 10px rgba(255,255,255,.6); transform:scale(1.2); }
-.cardfan-item { position:absolute; inset:0; margin:auto; width:360px; height:640px; cursor:pointer;
+.cardfan-item { position:absolute; inset:0; margin:auto; width:360px; height:640px; pointer-events:none;
   transform-origin:center center;
   transition:transform .5s cubic-bezier(.22,1,.36,1), opacity .5s ease;
   filter:drop-shadow(0 50px 80px rgba(0,0,0,.7)); }
