@@ -28,24 +28,24 @@ export function CardFan({ items, onFrontChange }: CardFanProps) {
   return (
     <div className="cardfan-wrap">
       <div className="cardfan">
-        {order.map((itemIdx, stackPos) => (
-          <div
-            key={itemIdx}
-            className={'cardfan-item ' + (POSE[stackPos] || 'backLeft')}
-            style={{ zIndex: items.length - stackPos }}
-            role="button"
-            tabIndex={stackPos === 0 ? 0 : -1}
-            aria-hidden={stackPos !== 0}
-            onClick={stackPos === 0 ? advance : undefined}
-            onKeyDown={
-              stackPos === 0
-                ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); advance(); } }
-                : undefined
-            }
-          >
-            {items[itemIdx]}
-          </div>
-        ))}
+        {order.map((itemIdx, stackPos) => {
+          // Front card cycles; a side card jumps itself to the front.
+          const act = () => (stackPos === 0 ? advance() : goTo(itemIdx));
+          return (
+            <div
+              key={itemIdx}
+              className={'cardfan-item ' + (POSE[stackPos] || 'backLeft')}
+              style={{ zIndex: items.length - stackPos }}
+              role="button"
+              tabIndex={0}
+              aria-label={stackPos === 0 ? 'Next card' : 'Bring this card to the front'}
+              onClick={act}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } }}
+            >
+              {items[itemIdx]}
+            </div>
+          );
+        })}
       </div>
       <div className="cardfan-dots" role="tablist" aria-label="Select a card">
         {items.map((_, i) => (
