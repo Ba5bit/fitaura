@@ -50,11 +50,12 @@ const RESPONSE_SCHEMA = {
         gender: { type: 'STRING', enum: ['femme', 'masc', 'unsure'] },
         genderConfidence: { type: 'NUMBER' },
         expressionStrength: { type: 'INTEGER' },
+        ageEstimate: { type: 'INTEGER', nullable: true },
         recognizedIcon: { type: 'STRING', nullable: true },
         recognizedConfidence: { type: 'NUMBER' },
         recognizedKind: { type: 'STRING', enum: ['meme', 'real_person'], nullable: true },
       },
-      required: ['gender', 'genderConfidence', 'expressionStrength', 'recognizedIcon', 'recognizedConfidence', 'recognizedKind'],
+      required: ['gender', 'genderConfidence', 'expressionStrength', 'ageEstimate', 'recognizedIcon', 'recognizedConfidence', 'recognizedKind'],
     },
     faceAnalysis: objOf(FACE_KEYS),
     outfitAnalysis: objOf(OUTFIT_KEYS),
@@ -71,6 +72,7 @@ Analyze the supplied photo(s) using only visible, presentation-related evidence.
 Return only JSON matching the provided schema. The result is entertainment-oriented styling feedback. Do not present subjective judgments as scientific, biometric, medical, or psychological facts.
 
 GENDER PRESENTATION: Classify the subject's apparent gender presentation as "femme", "masc", or "unsure" with genderConfidence 0-1, for entertainment styling only. This is a read of presentation, NOT a claim about identity, and may be wrong; use "unsure" when genuinely ambiguous. Set expressionStrength 0-100 for how strongly the look reads as that presentation (a vanity stat, not attractiveness).
+AGE: Set ageEstimate to the subject's apparent age in years (integer, ~13-90) for entertainment only — a playful guess from the visible face, NOT a factual claim. Use null only if no face is provided or age genuinely cannot be guessed.
 Do not infer ethnicity, nationality, religion, sexuality, health, disability, wealth, criminality, real trustworthiness, real personality, or romantic compatibility.
 
 ICON RECOGNITION: You MAY recognize widely-known public figures or popular fictional/meme characters and set recognizedIcon to the name with recognizedConfidence 0-1. Also set recognizedKind: "meme" for a fictional, cartoon, comedic, or internet-meme character (e.g. McLovin), or "real_person" for a real public figure or celebrity (athlete, actor, musician, etc.). NEVER attempt to identify a private or ordinary individual; if the subject is not a widely-known public figure or meme character, set recognizedIcon to null and recognizedKind to null. A resemblance is entertainment, not a factual identity claim.
@@ -98,7 +100,7 @@ punchlineCandidates:
   FEMME: punchline.mother_mothered, punchline.slay, punchline.it_girl, punchline.girlboss_trio, punchline.drama_queen_crowned.
 
 Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment. Do not write the recognized icon's name into the copy; the backend decides whether to surface it.
-Set schemaVersion to "solo_scan_v3_2".`;
+Set schemaVersion to "solo_scan_v3_3".`;
 
 export interface InlineImage {
   mimeType: string;

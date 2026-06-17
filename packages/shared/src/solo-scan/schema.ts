@@ -16,6 +16,7 @@ export const presentationSchema = z.object({
   gender: z.enum(['femme', 'masc', 'unsure']),
   genderConfidence: z.number().min(0).max(1),
   expressionStrength: z.number().int().min(0).max(100), // masc/fem index; display-only
+  ageEstimate: z.number().int().min(0).max(120).nullable(), // apparent age (y.o.), entertainment-only; null if not assessable
   recognizedIcon: z.string().max(60).nullable(),
   recognizedConfidence: z.number().min(0).max(1),
   recognizedKind: z.enum(['meme', 'real_person']).nullable(), // meme/fictional vs real public figure

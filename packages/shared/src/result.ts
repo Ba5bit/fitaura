@@ -58,6 +58,8 @@ export interface ScoreItem {
   displayValue?: string;
   /** Flags a "watch this" stat — rendered with the warning treatment. */
   hot?: boolean;
+  /** Hide the fill bar (for non-0–100 stats like an age estimate). */
+  noBar?: boolean;
 }
 
 /* ------------------------------------------------------------------ */

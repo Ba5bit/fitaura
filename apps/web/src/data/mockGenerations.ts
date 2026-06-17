@@ -34,6 +34,11 @@ function score(label: string, value: number, hot = false): ScoreItem {
   return { id: label.toLowerCase().replace(/[^a-z0-9]+/g, '-'), label, value, hot };
 }
 
+/** Display-only age stat (no bar) for the face card's 2nd slot. */
+function ageStat(age: number): ScoreItem {
+  return { id: 'age', label: 'Age', value: age, displayValue: `${age} y.o.`, noBar: true };
+}
+
 const FACE_STICKER = {
   red_flag: stickerFromPreset(STICKER_BANK.face[0]), // HEAR ME OUT
   normie: stickerFromPreset(STICKER_BANK.face[1]), // PLOT RELEVANT
@@ -59,7 +64,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         index: 'AURA INDEX 71',
         scores: [
           score('Aura', 71),
-          score('Haircut Match', 70),
+          ageStat(26),
           score('Masculinity', 66),
           score('Main Character', 55, true),
         ],
@@ -145,7 +150,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         index: 'AURA INDEX 92',
         scores: [
           score('Aura', 92),
-          score('Haircut Match', 89),
+          ageStat(27),
           score('Masculinity', 86),
           score('Main Character', 94),
         ],
@@ -231,7 +236,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         index: 'AURA INDEX 58',
         scores: [
           score('Aura', 58),
-          score('Haircut Match', 60),
+          ageStat(24),
           score('Masculinity', 62),
           score('Main Character', 57),
         ],
@@ -340,7 +345,9 @@ function tierTag(v: number): string {
 export function fanBreakdown(kind: FanKind): FanBreakdown {
   const h = MOCK_GENERATIONS[DEFAULT_VERDICT];
   if (kind === 'face') {
-    const s = h.face!.card.scores.slice(0, 4);
+    // Use the real breakdown traits (proper 0–100 scores incl. haircut) — the
+    // card's own scores now include a no-bar age stat that shouldn't render here.
+    const s = h.face!.analysis.breakdown.slice(0, 4);
     return {
       eyebrow: 'FACE · SCORE BREAKDOWN',
       title: h.face!.card.verdict.join(' '),
@@ -380,7 +387,7 @@ export const HERO_CHARACTERS: { content: FaceCardContent; roast: string }[] = [
       index: 'AURA INDEX 99',
       scores: [
         score('Aura', 99),
-        score('Haircut Match', 96),
+        ageStat(28),
         score('Masculinity', 98),
         score('Main Character', 97, true),
       ],
@@ -396,7 +403,7 @@ export const HERO_CHARACTERS: { content: FaceCardContent; roast: string }[] = [
       index: 'AURA INDEX 93',
       scores: [
         score('Aura', 93),
-        score('Haircut Match', 95),
+        ageStat(27),
         score('Masculinity', 94),
         score('Main Character', 90, true),
       ],
@@ -412,7 +419,7 @@ export const HERO_CHARACTERS: { content: FaceCardContent; roast: string }[] = [
       index: 'AURA INDEX 84',
       scores: [
         score('Aura', 84),
-        score('Haircut Match', 72),
+        ageStat(18),
         score('Masculinity', 70),
         score('Main Character', 95, true),
       ],
