@@ -153,7 +153,7 @@ function CreateTile({ onScan }: { onScan: () => void }) {
         <Icon.plus />
       </span>
       <span className="tt">Run a new scan</span>
-      <span className="sb">1 CREDIT · FACE · OUTFIT · RECEIPT</span>
+      <span className="sb">1 CREDIT · ONE VERDICT</span>
     </button>
   );
 }
@@ -319,7 +319,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
           </span>
           <div className="et">No verdicts yet</div>
           <div className="es">
-            Drop a face photo and an outfit photo. FitAura returns your full three-part verdict. First scan is free.
+            Drop a photo and get your verdict. First scan's free.
           </div>
           <div className="outs">
             {mode.outputs.map((o) => (

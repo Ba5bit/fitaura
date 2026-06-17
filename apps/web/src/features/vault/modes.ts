@@ -26,7 +26,7 @@ export const SCAN_MODES: ScanMode[] = [
     status: 'live',
     icon: 'scan',
     blurb:
-      'Upload your face and fit. Get your full three-part verdict: Face Card, Outfit Check and Dating Score Receipt.',
+      'Scan a face, a fit, or both — get the cards that fit.',
     outputs: ['Face Card', 'Outfit Card', 'Dating Receipt'],
   },
   {
