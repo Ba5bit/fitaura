@@ -37,7 +37,7 @@ export function OutfitCard({ content, stickerOn = true, run = true, roast }: Out
         </div>
       </div>
       <div className="oc-body">
-        {roast && <p className="fc-roast"><span className="q">&ldquo;</span>{roast}</p>}
+        {roast && <p className="fc-roast">{roast}</p>}
         <div className="oc-stats">
           {content.scores.map((stat) => (
             <MiniStat key={stat.id} stat={stat} run={run} />
