@@ -74,7 +74,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         aura: 71,
         explanation:
           'Top-tier jaw, mid-tier everything else. The aura is real — it is just renting space on a face that peaks at exactly one angle.',
-        roast: 'Devastating in photos, a structural liability in person. Hear me out.',
+        roast: 'Red flag, god-tier angles.',
         breakdown: [
           { id: 'jaw', label: 'Jaw Presence', value: 84, descriptor: 'Sharp', icon: 'jaw' },
           { id: 'harmony', label: 'Face Harmony', value: 63, descriptor: 'Off-axis', icon: 'harmony' },
@@ -103,7 +103,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
           'Gym bro cosplaying as editorial. The physique match is genuinely unfair — the proportions are a cry for help wearing a nice fit.',
         works: 'The jacket creates a stronger shoulder line.',
         hurts: 'The trouser break shortens the silhouette.',
-        verdict: 'Good base, but the proportions need more intention.',
+        verdict: 'Physique carried the whole fit.',
         tags: [
           { label: 'physique > fit', tone: 'good' },
           { label: 'tried something', tone: 'good' },
@@ -160,7 +160,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         aura: 92,
         explanation:
           'Everything cooperated at once. Symmetry, structure and aura all showed up to the same meeting and, shockingly, agreed.',
-        roast: 'Annoyingly well-assembled. Zero notes, deeply suspicious.',
+        roast: 'Disgustingly photogenic. No notes.',
         breakdown: [
           { id: 'jaw', label: 'Jaw Presence', value: 88, descriptor: 'Carved', icon: 'jaw' },
           { id: 'harmony', label: 'Face Harmony', value: 90, descriptor: 'Balanced', icon: 'harmony' },
@@ -189,7 +189,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
           'Let him cook. Fit, physique and proportions are in a group chat and, for once, they all agree on the plan.',
         works: 'Proportions are locked and the colour story is cohesive.',
         hurts: 'Almost too safe — one more risk would tip it to elite.',
-        verdict: 'A repeat offender. Frame it.',
+        verdict: 'Repeat offender. Frame it.',
         tags: [
           { label: 'cohesive fit', tone: 'good' },
           { label: 'proportions locked', tone: 'good' },
@@ -246,7 +246,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         aura: 58,
         explanation:
           'Clean, balanced, completely unbothered. Nothing misfires — nothing detonates either. The face equivalent of a reliable mid.',
-        roast: 'Would pass a vibe check and be forgotten by the next slide. Respectable buffering.',
+        roast: 'Mid, but immaculately clean.',
         breakdown: [
           { id: 'jaw', label: 'Jaw Presence', value: 64, descriptor: 'Soft', icon: 'jaw' },
           { id: 'harmony', label: 'Face Harmony', value: 70, descriptor: 'Even', icon: 'harmony' },
@@ -275,7 +275,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
           'Safe to the point of stealth. Fits fine, reads fine, and is forgotten by the time the next slide loads. Inoffensive is a choice.',
         works: 'Nothing clashes — the fit is genuinely tidy.',
         hurts: 'Plays it so safe it disappears in the feed.',
-        verdict: 'One bold move away from a re-rate.',
+        verdict: 'One bold move from greatness.',
         tags: [
           { label: 'stealth fit', tone: 'good' },
           { label: 'low risk', tone: 'good' },
@@ -393,7 +393,7 @@ export const HERO_CHARACTERS: { content: FaceCardContent; roast: string }[] = [
       ],
       sticker: FACE_STICKER.green_flag,
     },
-    roast: 'Built different. The jaw alone files taxes.',
+    roast: 'Built different. Case closed.',
   },
   {
     content: {
@@ -409,7 +409,7 @@ export const HERO_CHARACTERS: { content: FaceCardContent; roast: string }[] = [
       ],
       sticker: FACE_STICKER.green_flag,
     },
-    roast: 'Morning routine: 1000 crunches, then your funeral. Flawless.',
+    roast: 'Sigma energy. Slightly unhinged.',
   },
   {
     content: {
@@ -425,6 +425,6 @@ export const HERO_CHARACTERS: { content: FaceCardContent; roast: string }[] = [
       ],
       sticker: FACE_STICKER.normie,
     },
-    roast: 'One fake ID and a whole identity. Respect the hustle.',
+    roast: 'Fake ID, real legend.',
   },
 ];
