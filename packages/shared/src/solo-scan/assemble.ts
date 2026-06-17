@@ -8,9 +8,10 @@ import { VERDICT_LABEL } from '../verdict.ts';
 import type { SoloScanAIOutput, RubricRating } from './schema.ts';
 import {
   scoreFromRating, faceScore, outfitScore, auraIndex, displayScore, percent, pickVerdict,
-  biasFactor, applyScoreBias, isMemeGlory, applyGloryFloor, ICON_NAME_CONFIDENCE_MIN,
+  biasFactor, applyScoreBias, isMemeGlory, applyGloryFloor,
 } from './scoring.ts';
 import { pickFaceArchetype, pickOutfitCaption, pickPunchline, scoreBand } from './content-bank.ts';
+import { acceptWritten, scrubName } from './copyFilter.ts';
 
 /** Display value for a rubric category that is null (not assessable). */
 const UNSCORED_DISPLAY = 50;
@@ -70,9 +71,11 @@ export function assembleResult(
   const aura = auraIndex(b, { face, outfit }, parts);
   const verdict = pickVerdict(aura, scanId);
   const band = scoreBand(aura);
+  const iconName = ai.presentation.recognizedIcon;
   const d = (s: number, key: string) => displayScore(s, scanId, key, promptVersion);
 
-  const punchline = pickPunchline(glory ? undefined : ai.receiptContent.punchlineCandidates, band, scanId, contentGender);
+  const bankedPunchline = pickPunchline(glory ? undefined : ai.receiptContent.punchlineCandidates, band, scanId, contentGender);
+  const punchline = acceptWritten(ai.receiptContent.punchlineText, 26, iconName) ?? bankedPunchline;
 
   const fa = b.faceAnalysis;
   const oa = b.outfitAnalysis;
@@ -82,10 +85,19 @@ export function assembleResult(
   let faceResult = null as FullGenerationResult['face'];
   if (parts.face) {
     const archetype = pickFaceArchetype(glory ? undefined : ai.contentSelection.faceArchetypeCandidates, band, scanId, contentGender);
+    // Written line wins if both halves pass the filter and the line isn't the icon
+    // name (incl. when split across lead/punch — compare with spaces stripped).
+    const wl = ai.faceCopy.verdictLine;
+    const lead = acceptWritten(wl.lead, 18, iconName);
+    const punch = acceptWritten(wl.punch, 18, iconName);
+    const nameInLine = iconName
+      ? `${wl.lead}${wl.punch}`.replace(/\s/g, '').toLowerCase().includes(iconName.replace(/\s/g, '').toLowerCase())
+      : false;
+    const verdictLine: [string, string] = lead && punch && !nameInLine ? [lead, punch] : archetype.line;
     const faceCard = {
       imageUrl: null,
       eyebrow: 'FACE VERDICT',
-      verdict: archetype.line,
+      verdict: verdictLine,
       index: `AURA INDEX ${aura}`,
       scores: [
         score('aura', 'Aura', aura),
@@ -117,9 +129,10 @@ export function assembleResult(
   let outfitResult = null as FullGenerationResult['outfit'];
   if (parts.outfit) {
     const caption = pickOutfitCaption(glory ? undefined : ai.contentSelection.outfitCaptionCandidates, band, scanId, contentGender);
+    const captionText = acceptWritten(ai.outfitCopy.captionLine, 30, iconName) ?? caption.caption;
     const outfitCard = {
       imageUrl: null,
-      caption: caption.caption,
+      caption: captionText,
       overallScore: d(outfit as number, 'outfit-overall'),
       scores: [
         score('silhouette', 'Silhouette', sc(oa.silhouette, 'silhouette')),
@@ -168,12 +181,9 @@ export function assembleResult(
     rows.push({ id: 'main-char', label: 'Main-Char Energy', value: `${percent(scanId, 'mce', scoreFromRating(fa.mainCharacterEnergy.rating) ?? 50)}%`, tone: 'default' });
   }
 
-  const faceSummary = parts.face ? ai.faceCopy.summary : '';
-  const outfitSummary = parts.outfit ? ai.outfitCopy.verdict : '';
-  const baseSummary = [faceSummary, outfitSummary].filter(Boolean).join(' ');
-  const summary = ai.presentation.recognizedIcon && ai.presentation.recognizedConfidence >= ICON_NAME_CONFIDENCE_MIN
-    ? `Giving ${ai.presentation.recognizedIcon} energy. ${baseSummary}`.trim()
-    : baseSummary;
+  const faceSummary = parts.face ? scrubName(ai.faceCopy.summary, iconName) : '';
+  const outfitSummary = parts.outfit ? scrubName(ai.outfitCopy.verdict, iconName) : '';
+  const summary = [faceSummary, outfitSummary].filter(Boolean).join(' ').trim();
 
   return {
     verdict,

@@ -79,13 +79,13 @@ describe('assembleResult v3', () => {
     expect(ids).toContain('harmony');
   });
 
-  it('surfaces a recognized icon name only above the confidence gate', () => {
-    const hi = sampleAIOutput();
-    hi.presentation = { ...hi.presentation, recognizedIcon: 'McLovin', recognizedConfidence: 0.9 };
-    const lo = sampleAIOutput();
-    lo.presentation = { ...lo.presentation, recognizedIcon: 'McLovin', recognizedConfidence: 0.5 };
-    expect(assembleResult(hi, 'scan-icon', 'v3', { face: true, outfit: true }).receipt.summary).toContain('McLovin');
-    expect(assembleResult(lo, 'scan-icon', 'v3', { face: true, outfit: true }).receipt.summary).not.toContain('McLovin');
+  it('never writes a recognized icon name into the summary (scrubbed)', () => {
+    const ai = sampleAIOutput();
+    ai.presentation = { ...ai.presentation, recognizedIcon: 'McLovin', recognizedConfidence: 0.95 };
+    ai.faceCopy = { ...ai.faceCopy, summary: 'Pure McLovin presence on the brow.' };
+    const r = assembleResult(ai, 'scan-icon', 'v3', { face: true, outfit: true });
+    expect(r.receipt.summary).not.toContain('McLovin');
+    expect(r.receipt.summary).not.toContain('Giving');
   });
 });
 
@@ -149,5 +149,37 @@ describe('assembleResult (partial)', () => {
     expect(() => assembleResult(blank, 'x', 'v3_2', { face: false, outfit: true })).toThrow('insufficient_signal');
     expect(() => assembleResult(blank, 'x', 'v3_2', { face: true, outfit: true })).toThrow('insufficient_signal');
     expect(() => assembleResult(blank, 'x', 'v3_2', { face: true, outfit: false })).not.toThrow();
+  });
+});
+
+describe('assembleResult v3.4 — written copy with fallback', () => {
+  it('uses the written line, caption and punchline when valid', () => {
+    const r = assembleResult(sampleAIOutput(), 'scan-w', 'v3_4', { face: true, outfit: true });
+    expect(r.face!.card.verdict).toEqual(['JAW DID', 'THE TALKING']);
+    expect(r.outfit!.card.caption).toBe('STRUCTURE OVER FLASH');
+    expect(r.receipt.finalPunchline).toBe('QUIET CONFIDENCE');
+  });
+
+  it('falls back to the banked phrase when the written line is cliché/empty', () => {
+    const ai = sampleAIOutput();
+    ai.faceCopy.verdictLine = { lead: 'GIVING', punch: 'ENERGY' }; // cliché
+    ai.outfitCopy.captionLine = '';                               // empty
+    ai.receiptContent.punchlineText = 'this written punchline is far too long to ever fit'; // too long
+    const r = assembleResult(ai, 'scan-w', 'v3_4', { face: true, outfit: true });
+    expect(r.face!.card.verdict).not.toEqual(['GIVING', 'ENERGY']);
+    expect(r.face!.card.verdict).toHaveLength(2);
+    expect(r.outfit!.card.caption.length).toBeGreaterThan(0);
+    expect(r.receipt.finalPunchline.length).toBeGreaterThan(0);
+    // sticker + scores untouched by the fallback
+    expect(r.face!.card.sticker.label.length).toBeGreaterThan(0);
+    expect(r.face!.card.scores).toHaveLength(4);
+  });
+
+  it('falls back when the written line is only the icon name', () => {
+    const ai = sampleAIOutput();
+    ai.presentation = { ...ai.presentation, recognizedIcon: 'McLovin', recognizedConfidence: 0.9 };
+    ai.faceCopy.verdictLine = { lead: 'MC', punch: 'LOVIN' }; // combines to the name
+    const r = assembleResult(ai, 'scan-w', 'v3_4', { face: true, outfit: true });
+    expect(r.face!.card.verdict.join(' ')).not.toContain('LOVIN');
   });
 });
