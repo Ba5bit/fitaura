@@ -8,7 +8,7 @@ import { useInView } from '../../lib/useInView';
 import { useAccount } from '../account/AccountContext';
 import { AccountEntry } from '../account/AccountChrome';
 import { SCAN_MODES, type ScanModeId } from '../vault/modes';
-import { MOCK_GENERATIONS, DEFAULT_VERDICT } from '../../data/mockGenerations';
+import { MOCK_GENERATIONS, DEFAULT_VERDICT, HERO_CHARACTERS } from '../../data/mockGenerations';
 import '../../design/landing.css';
 import '../../design/result-shell.css';
 
@@ -121,15 +121,9 @@ function Hero() {
             className="ln-fan-stage"
             style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
           >
-            <div className="ln-fan-card left">
-              <OutfitCard content={HERO.outfit!.card} run />
-            </div>
-            <div className="ln-fan-card right">
-              <Receipt content={HERO.receipt} paper="neon" />
-            </div>
-            <div className="ln-fan-card mid">
-              <FaceCard content={HERO.face!.card} run />
-            </div>
+            <div className="ln-fan-card left"><FaceCard content={HERO_CHARACTERS[2].content} roast={HERO_CHARACTERS[2].roast} run /></div>
+            <div className="ln-fan-card right"><FaceCard content={HERO_CHARACTERS[1].content} roast={HERO_CHARACTERS[1].roast} run /></div>
+            <div className="ln-fan-card mid"><FaceCard content={HERO_CHARACTERS[0].content} roast={HERO_CHARACTERS[0].roast} run /></div>
           </div>
         </div>
       </div>

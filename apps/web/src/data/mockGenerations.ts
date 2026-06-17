@@ -2,11 +2,15 @@ import {
   STICKER_BANK,
   stickerFromPreset,
   type DatingVerdict,
+  type FaceCardContent,
   type FullGenerationResult,
   type ScoreItem,
 } from '@fitaura/shared';
 import exampleFace from '../assets/example-face.jpg';
 import exampleFit from '../assets/example-fit.jpg';
+import gigachad from '../assets/example-face.jpg';
+import mclovin from '../assets/hero-mclovin.jpg';
+import bateman from '../assets/hero-bateman.jpg';
 
 /**
  * Example demo photos baked into the mock so the Landing's example Face/Outfit
@@ -305,3 +309,59 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
 /** The featured demo lands on GREEN FLAG — the example photos sit with the
  * highest scores (aura 92, dating 9.1, "Certified Main Character / Lover Boy"). */
 export const DEFAULT_VERDICT: DatingVerdict = 'green_flag';
+
+/**
+ * Static character face cards used in the Landing hero fan.
+ * Three meme-famous faces ordered [McLovin, Bateman, GigaChad] so that
+ * Hero renders left=McLovin, right=Bateman, mid=GigaChad (front/center).
+ */
+export const HERO_CHARACTERS: { content: FaceCardContent; roast: string }[] = [
+  {
+    content: {
+      imageUrl: gigachad,
+      eyebrow: 'FACE VERDICT',
+      verdict: ['CERTIFIED', 'GIGACHAD'],
+      index: 'AURA INDEX 99',
+      scores: [
+        score('Aura', 99),
+        score('Haircut Match', 96),
+        score('Masculinity', 98),
+        score('Main Character', 97, true),
+      ],
+      sticker: FACE_STICKER.green_flag,
+    },
+    roast: 'Built different. The jaw alone files taxes.',
+  },
+  {
+    content: {
+      imageUrl: bateman,
+      eyebrow: 'FACE VERDICT',
+      verdict: ['CERTIFIED', 'SIGMA'],
+      index: 'AURA INDEX 93',
+      scores: [
+        score('Aura', 93),
+        score('Haircut Match', 95),
+        score('Masculinity', 94),
+        score('Main Character', 90, true),
+      ],
+      sticker: FACE_STICKER.green_flag,
+    },
+    roast: 'Morning routine: 1000 crunches, then your funeral. Flawless.',
+  },
+  {
+    content: {
+      imageUrl: mclovin,
+      eyebrow: 'FACE VERDICT',
+      verdict: ['HONORABLE', 'MENTION'],
+      index: 'AURA INDEX 84',
+      scores: [
+        score('Aura', 84),
+        score('Haircut Match', 72),
+        score('Masculinity', 70),
+        score('Main Character', 95, true),
+      ],
+      sticker: FACE_STICKER.normie,
+    },
+    roast: 'One fake ID and a whole identity. Respect the hustle.',
+  },
+];
