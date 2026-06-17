@@ -8,7 +8,8 @@ import { useInView } from '../../lib/useInView';
 import { useAccount } from '../account/AccountContext';
 import { AccountEntry } from '../account/AccountChrome';
 import { SCAN_MODES, type ScanModeId } from '../vault/modes';
-import { MOCK_GENERATIONS, DEFAULT_VERDICT, HERO_CHARACTERS } from '../../data/mockGenerations';
+import { MOCK_GENERATIONS, DEFAULT_VERDICT, HERO_CHARACTERS, fanBreakdown, type FanKind } from '../../data/mockGenerations';
+import { CardFan } from './CardFan';
 import '../../design/landing.css';
 import '../../design/result-shell.css';
 
@@ -131,18 +132,27 @@ function Hero() {
   );
 }
 
+/** Map a breakdown block to result-shell.css's tier (drives bar + tag color). */
+function blockTier(b: { tag: string; pct: number }): 'high' | 'mid' | 'low' {
+  const v = b.tag ? (b.tag === 'ELITE' || b.tag === 'HIGH' ? 90 : b.tag === 'SOLID' ? 70 : 40) : b.pct;
+  return v >= 78 ? 'high' : v >= 60 ? 'mid' : 'low';
+}
+
+/**
+ * Two-column "distinct cards" block: a tappable CardFan (Face → Outfit →
+ * Receipt) on the left, and a 2×2 breakdown grid that re-renders to whichever
+ * card is currently front. One HERO mock backs all three faces + the breakdown.
+ */
 function Artifacts() {
   const [ref, seen] = useInView<HTMLElement>();
-  const arts = [
-    { n: '01', name: 'Face Card', desc: "Your selfie, your aura read, one verdict you'll want to repost." },
-    { n: '02', name: 'Outfit Check', desc: 'How the fit lands on your build: silhouette, proportions, score.' },
-    { n: '03', name: 'Dating Receipt', desc: 'The final cheque. One verdict: green flag, normie, or red flag.' },
-  ];
+  const [front, setFront] = useState<FanKind>('face');
+  const KIND: FanKind[] = ['face', 'outfit', 'receipt'];
+  const bd = fanBreakdown(front);
   return (
     <section className="ln-section ln-wrap" id="outputs" ref={ref}>
       <div className="ln-artifacts-head">
         <div>
-          <span className="ln-eyebrow">ONE SCAN, THREE ARTIFACTS</span>
+          <span className="ln-eyebrow">ONE SCAN, DISTINCT CARDS</span>
           <h2 className="ln-h2">
             Distinct cards
             <br />
@@ -151,35 +161,45 @@ function Artifacts() {
         </div>
         <div className="ln-bundle-note">
           <Icon.bolt />
-          <span>
-            Every scan returns <b>all three</b>, not one card at a time.
-          </span>
+          <span>Scan a face, a fit, or both — get the cards that fit.</span>
         </div>
       </div>
-      <div className="ln-arts" style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}>
-        <div className="ln-art">
-          <div className="ln-art-stage">
-            <FaceCard content={HERO.face!.card} run={seen} />
-          </div>
-          <div className="ln-art-num">{arts[0].n}</div>
-          <div className="ln-art-name">{arts[0].name}</div>
-          <p className="ln-art-desc">{arts[0].desc}</p>
+      <div className="ln-distinct" style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}>
+        <div className="ln-distinct-fan">
+          <CardFan
+            onFrontChange={(i) => setFront(KIND[i])}
+            items={[
+              <FaceCard key="f" content={HERO.face!.card} roast={HERO.face!.analysis.roast} run={seen} />,
+              <OutfitCard key="o" content={HERO.outfit!.card} roast={HERO.outfit!.analysis.verdict} run={seen} />,
+              <Receipt key="r" content={HERO.receipt} paper="neon" />,
+            ]}
+          />
         </div>
-        <div className="ln-art">
-          <div className="ln-art-stage">
-            <OutfitCard content={HERO.outfit!.card} run={seen} />
+        <div className="ln-distinct-bd">
+          <div className="ln-eyebrow">{bd.eyebrow}</div>
+          <h3 className="ln-distinct-title">{bd.title}</h3>
+          <div className="rs-breakgrid">
+            {bd.blocks.map((b) => (
+              <div
+                className="gym-card"
+                data-tier={front === 'outfit' ? undefined : blockTier(b)}
+                data-accent={front === 'outfit' ? 'blue' : undefined}
+                key={b.label}
+              >
+                <div className="gc-top">
+                  <div className="gc-score">
+                    <span className="num">{b.value}</span>
+                    {b.tag && <span className="tier">{b.tag}</span>}
+                  </div>
+                </div>
+                <div className="gc-name">{b.label}</div>
+                <div className="gc-bar">
+                  <i style={{ width: `${b.pct}%` }} />
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="ln-art-num">{arts[1].n}</div>
-          <div className="ln-art-name">{arts[1].name}</div>
-          <p className="ln-art-desc">{arts[1].desc}</p>
-        </div>
-        <div className="ln-art">
-          <div className="ln-art-stage">
-            <Receipt content={HERO.receipt} paper="neon" />
-          </div>
-          <div className="ln-art-num">{arts[2].n}</div>
-          <div className="ln-art-name">{arts[2].name}</div>
-          <p className="ln-art-desc">{arts[2].desc}</p>
+          <p className="ln-distinct-cap">{bd.cap}</p>
         </div>
       </div>
     </section>

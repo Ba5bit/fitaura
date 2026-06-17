@@ -430,3 +430,22 @@ body { overflow-y: auto; }
 .cardfan-item.backLeft  { transform:translateX(-8px) translateY(30px) rotate(-9deg) scale(.82); opacity:.45; }
 .cardfan-item.front:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
 @media (prefers-reduced-motion: reduce) { .cardfan-item { transition:none; } }
+
+/* ── Distinct cards: tappable fan (left) + synced 2×2 breakdown (right) ──── */
+.ln-distinct { display:grid; grid-template-columns:.9fr 1.1fr; gap:30px; align-items:center; margin-top:18px; }
+.ln-distinct-fan { display:flex; justify-content:center; }
+/* The real cards are 360×640 (.asset / .receipt, absolutely centered). Give the
+   fan a natural-size box so the front card centers, then scale the whole fan
+   down to fit the column. The pose transforms on .cardfan-item still apply. */
+/* Scale leaves the layout box at full 640px; transform-origin keeps the card at
+   the top, so reclaim the unused bottom (~38% of 640px) with a negative margin. */
+.ln-distinct-fan .cardfan { width:360px; height:640px; transform:scale(.62); transform-origin:top center; margin:0 0 -244px; }
+.ln-distinct-fan .cardfan-item .asset,
+.ln-distinct-fan .cardfan-item .receipt { position:absolute; inset:0; margin:auto; }
+.ln-distinct-bd .ln-distinct-title { font-family:"Anton",sans-serif; font-weight:400; text-transform:uppercase;
+  font-size:22px; color:#fff; margin:6px 0 14px; }
+.ln-distinct-cap { margin-top:14px; font-family:"Hanken Grotesk"; font-size:13.5px; line-height:1.5; color:var(--ink-dim); max-width:440px; }
+@media (max-width: 760px){
+  .ln-distinct { grid-template-columns:1fr; gap:26px; }
+  .ln-distinct-fan .cardfan { transform:scale(.56); margin:0 0 -282px; }
+}

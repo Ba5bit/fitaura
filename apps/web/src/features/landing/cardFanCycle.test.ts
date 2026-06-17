@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cycleOrder } from './cardFan';
+import { cycleOrder } from './cardFanCycle';
 
 describe('cycleOrder', () => {
   it('moves the front item to the back', () => {

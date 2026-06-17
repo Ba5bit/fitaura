@@ -311,6 +311,62 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
 export const DEFAULT_VERDICT: DatingVerdict = 'green_flag';
 
 /**
+ * Landing "distinct cards" fan → synced 2×2 breakdown.
+ *
+ * One HERO mock (the DEFAULT_VERDICT generation) feeds three faces of the same
+ * verdict: the Face Card, the Outfit Card and the Receipt. `fanBreakdown(kind)`
+ * returns the right-column copy + four breakdown blocks for whichever card is
+ * front in the fan, all sourced from that single HERO generation.
+ */
+export type FanKind = 'face' | 'outfit' | 'receipt';
+export interface FanBlock {
+  label: string;
+  value: string;
+  tag: string;
+  pct: number;
+}
+export interface FanBreakdown {
+  eyebrow: string;
+  title: string;
+  blocks: FanBlock[];
+  cap: string;
+}
+
+/** Playful tier label from a 0–100 score — drives the corner tag + bar color. */
+function tierTag(v: number): string {
+  return v >= 88 ? 'ELITE' : v >= 78 ? 'HIGH' : v >= 60 ? 'SOLID' : 'LOW';
+}
+
+export function fanBreakdown(kind: FanKind): FanBreakdown {
+  const h = MOCK_GENERATIONS[DEFAULT_VERDICT];
+  if (kind === 'face') {
+    const s = h.face!.card.scores.slice(0, 4);
+    return {
+      eyebrow: 'FACE · SCORE BREAKDOWN',
+      title: h.face!.card.verdict.join(' '),
+      blocks: s.map((x) => ({ label: x.label, value: String(x.value), tag: tierTag(x.value), pct: x.value })),
+      cap: h.face!.analysis.roast,
+    };
+  }
+  if (kind === 'outfit') {
+    const s = h.outfit!.card.scores.slice(0, 4);
+    return {
+      eyebrow: 'OUTFIT · FIT & PHYSIQUE',
+      title: h.outfit!.card.caption,
+      blocks: s.map((x) => ({ label: x.label, value: String(x.value), tag: tierTag(x.value), pct: x.value })),
+      cap: h.outfit!.analysis.verdict,
+    };
+  }
+  const rows = h.receipt.rows.slice(0, 4);
+  return {
+    eyebrow: 'RECEIPT · VERDICT',
+    title: 'Dating verdict',
+    blocks: rows.map((r) => ({ label: r.label, value: String(r.value), tag: '', pct: 80 })),
+    cap: h.receipt.summary,
+  };
+}
+
+/**
  * Static character face cards used in the Landing hero fan.
  * Three meme-famous faces ordered [McLovin, Bateman, GigaChad] so that
  * Hero renders left=McLovin, right=Bateman, mid=GigaChad (front/center).
