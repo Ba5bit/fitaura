@@ -101,7 +101,7 @@ function Hero() {
           </p>
           <div className="ln-hero-actions">
             <Link className="ln-btn primary lg" to="/vault">
-              Scan me, it's free
+              Scan me
             </Link>
             <a className="ln-btn lg ghost" href="#modes">
               Explore the modes
