@@ -468,6 +468,12 @@ body { overflow-y: auto; }
 .ln-distinct-summary .ln-distinct-cap .hl { color:#fff; font-weight:800; }
 @media (max-width: 760px){
   .ln-distinct { grid-template-columns:1fr; gap:26px; }
+  /* The fan's fixed 500px width was blowing out the single-column grid track on
+     phones (track auto-min = the fan's min-content), pushing the front card off
+     to the right where it got clipped. Let the cell shrink and the fan fill it so
+     the front card stays centred in the viewport. */
+  .ln-distinct-fan { display:block; min-width:0; }
+  .cardfan { width:100%; }
   /* match the hero's larger mobile fan scales */
   .cardfan { height:500px; }
   .cardfan-item.front     { transform:scale(0.76); }
