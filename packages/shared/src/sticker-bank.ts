@@ -37,7 +37,7 @@ export const STICKER_BANK: {
     { id: 'beta', label: 'BETA MALE', tone: 'warn', rotation: -8 },
     { id: 'tate', label: 'TATE DROPOUT', tone: 'warn', rotation: -6 },
     { id: 'milf-hunter', label: 'MILF HUNTER', tone: 'chrome', rotation: -7 },
-    { id: 'simp', label: 'CERTIFIED SIMP', tone: 'warn', rotation: -8 },
+    { id: 'simp', label: 'SIMP', tone: 'warn', rotation: -8 },
     { id: 'performative-male', label: 'PERFORMATIVE MALE', tone: 'chrome', rotation: -6 },
     { id: 'mother', label: 'MOTHER', tone: 'chrome', rotation: -7 },
     { id: 'femme-fatale', label: 'FEMME FATALE', tone: 'chrome', rotation: -6 },

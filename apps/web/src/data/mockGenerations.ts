@@ -146,7 +146,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
       card: {
         imageUrl: EXAMPLE_FACE,
         eyebrow: 'FACE VERDICT',
-        verdict: ['CERTIFIED', 'MAIN CHARACTER'],
+        verdict: ['MAIN', 'CHARACTER'],
         index: 'AURA INDEX 92',
         scores: [
           score('Aura', 92),
@@ -312,7 +312,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
 };
 
 /** The featured demo lands on GREEN FLAG — the example photos sit with the
- * highest scores (aura 92, dating 9.1, "Certified Main Character / Lover Boy"). */
+ * highest scores (aura 92, dating 9.1, "Main Character / Certified Lover Boy"). */
 export const DEFAULT_VERDICT: DatingVerdict = 'green_flag';
 
 /**
@@ -383,7 +383,7 @@ export const HERO_CHARACTERS: { content: FaceCardContent; roast: string }[] = [
     content: {
       imageUrl: gigachad,
       eyebrow: 'FACE VERDICT',
-      verdict: ['CERTIFIED', 'GIGACHAD'],
+      verdict: ['GIGA', 'CHAD'],
       index: 'AURA INDEX 99',
       scores: [
         score('Aura', 99),
@@ -399,7 +399,7 @@ export const HERO_CHARACTERS: { content: FaceCardContent; roast: string }[] = [
     content: {
       imageUrl: bateman,
       eyebrow: 'FACE VERDICT',
-      verdict: ['CERTIFIED', 'SIGMA'],
+      verdict: ['SIGMA', 'MALE'],
       index: 'AURA INDEX 93',
       scores: [
         score('Aura', 93),

@@ -26,7 +26,7 @@ describe('content bank', () => {
 
   it('respects a valid AI candidate over the band pool', () => {
     const a = pickFaceArchetype(['face_archetype.aura_farmer'], 'dire', 'scan-a');
-    expect(a.line).toEqual(['CERTIFIED', 'AURA FARMER']);
+    expect(a.line).toEqual(['AURA', 'FARMER']);
   });
 
   it('is deterministic for the same scan + band', () => {
