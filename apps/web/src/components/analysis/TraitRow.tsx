@@ -8,23 +8,6 @@ export function capFor(v: number): string {
   return 'NEEDS WORK';
 }
 
-/** Thin labelled bar row used in the outfit fit/physique read. Design's `TraitRow`. */
-export function TraitRow({ stat }: { stat: ScoreItem }) {
-  return (
-    <div className={'rs-trait' + (stat.hot ? ' hot' : '')}>
-      <div className="top">
-        <span className="nm">
-          {stat.label} <span className="cap">· {capFor(stat.value)}</span>
-        </span>
-        <span className="val">{stat.value}</span>
-      </div>
-      <div className="track">
-        <div className="fill" style={{ width: `${stat.value}%` }} />
-      </div>
-    </div>
-  );
-}
-
 /** Returns the highest and lowest scored stat — used for Best/Watch tags. */
 export function bestWorst(stats: ScoreItem[]): { best: ScoreItem; worst: ScoreItem } {
   let best = stats[0];
