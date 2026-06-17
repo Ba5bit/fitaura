@@ -21,25 +21,30 @@ export function dataUrlToInline(dataUrl: string): InlineImage {
   return { mimeType: m[1], data: m[2] };
 }
 
-/** Invoke the `solo-scan` Edge Function for one face + outfit data URL pair. */
-export async function runSoloScan(faceDataUrl: string, outfitDataUrl: string): Promise<SoloScanOutcome> {
-  let face: InlineImage;
-  let outfit: InlineImage;
+/** Invoke the `solo-scan` Edge Function with a face url, an outfit url, or both. */
+export async function runSoloScan(
+  faceDataUrl: string | null,
+  outfitDataUrl: string | null,
+): Promise<SoloScanOutcome> {
+  let face: InlineImage | undefined;
+  let outfit: InlineImage | undefined;
   try {
-    face = dataUrlToInline(faceDataUrl);
-    outfit = dataUrlToInline(outfitDataUrl);
+    if (faceDataUrl) face = dataUrlToInline(faceDataUrl);
+    if (outfitDataUrl) outfit = dataUrlToInline(outfitDataUrl);
   } catch {
     return { kind: 'error', message: 'bad_image' };
   }
+  if (!face && !outfit) return { kind: 'error', message: 'bad_image' };
 
   const scanId = crypto.randomUUID();
-  const { data, error } = await supabase.functions.invoke('solo-scan', {
-    body: { scanId, face, outfit },
-  });
+  const body: Record<string, unknown> = { scanId };
+  if (face) body.face = face;
+  if (outfit) body.outfit = outfit;
+
+  const { data, error } = await supabase.functions.invoke('solo-scan', { body });
 
   if (error || !data) return { kind: 'error', message: error?.message ?? 'no_response' };
   if (data.ok) {
-    // Success must carry a result; an empty success means server-side schema drift.
     if (data.result) return { kind: 'result', result: data.result as FullGenerationResult };
     return { kind: 'error', message: 'missing_result' };
   }
