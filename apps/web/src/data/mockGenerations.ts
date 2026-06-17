@@ -56,7 +56,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         scores: [
           score('Aura', 71),
           score('Haircut Match', 70),
-          score('Masculinity Index', 66),
+          score('Masculinity', 66),
           score('Main Character', 55, true),
         ],
         sticker: FACE_STICKER.red_flag,
@@ -142,7 +142,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         scores: [
           score('Aura', 92),
           score('Haircut Match', 89),
-          score('Masculinity Index', 86),
+          score('Masculinity', 86),
           score('Main Character', 94),
         ],
         sticker: FACE_STICKER.green_flag,
@@ -228,7 +228,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         scores: [
           score('Aura', 58),
           score('Haircut Match', 60),
-          score('Masculinity Index', 62),
+          score('Masculinity', 62),
           score('Main Character', 57),
         ],
         sticker: FACE_STICKER.normie,

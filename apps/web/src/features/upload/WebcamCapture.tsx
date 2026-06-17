@@ -37,7 +37,10 @@ export function WebcamCapture({ onCapture, onCancel }: WebcamCaptureProps) {
     c.width = v.videoWidth; c.height = v.videoHeight;
     const ctx = c.getContext('2d');
     if (!ctx) return;
-    ctx.drawImage(v, 0, 0, c.width, c.height); // un-mirrored (preview is CSS-mirrored only)
+    // Mirror the capture so the saved photo matches the selfie (CSS-mirrored) preview.
+    ctx.translate(c.width, 0);
+    ctx.scale(-1, 1);
+    ctx.drawImage(v, 0, 0, c.width, c.height);
     c.toBlob((blob) => {
       if (!blob) return;
       onCapture(new File([blob], 'webcam.jpg', { type: 'image/jpeg' }));

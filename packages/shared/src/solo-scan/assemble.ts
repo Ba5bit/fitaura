@@ -90,7 +90,7 @@ export function assembleResult(
       scores: [
         score('aura', 'Aura', aura),
         score('haircut-match', 'Haircut Match', sc(fa.haircutMatch, 'haircut')),
-        score('gender-index', confidentlyFemme ? 'Femininity Index' : 'Masculinity Index',
+        score('gender-index', confidentlyFemme ? 'Femininity' : 'Masculinity',
           d(ai.presentation.expressionStrength, 'gender-index')),
         score('main-character', 'Main Character', sc(fa.mainCharacterEnergy, 'mainchar'), true),
       ],

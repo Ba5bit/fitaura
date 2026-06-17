@@ -52,14 +52,14 @@ describe('assembleResult v3', () => {
   it('face card shows aura, haircut, gender index, main character', () => {
     const r = assembleResult(sampleAIOutput(), 'scan-v3', 'v3', { face: true, outfit: true });
     expect(r.face!.card.scores.map((s) => s.id)).toEqual(['aura', 'haircut-match', 'gender-index', 'main-character']);
-    expect(r.face!.card.scores[2].label).toBe('Masculinity Index'); // masc fixture
+    expect(r.face!.card.scores[2].label).toBe('Masculinity'); // masc fixture
   });
 
-  it('labels the index Femininity Index for confident femme', () => {
+  it('labels the index Femininity for confident femme', () => {
     const ai = sampleAIOutput();
     ai.presentation = { ...ai.presentation, gender: 'femme', genderConfidence: 0.9 };
     const r = assembleResult(ai, 'scan-v3', 'v3', { face: true, outfit: true });
-    expect(r.face!.card.scores[2].label).toBe('Femininity Index');
+    expect(r.face!.card.scores[2].label).toBe('Femininity');
   });
 
   it('femme bias raises the aura vs the same scan read as masc', () => {
