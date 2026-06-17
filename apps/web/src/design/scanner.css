@@ -159,7 +159,15 @@
 .hud.h-br{ bottom:60px; right:12px; }
 .hud.h-bl{ bottom:60px; left:12px; }
 .hud.h-l{ top:36%; left:12px; }
-.sa[data-mobile="true"] .hud{ font-size:8px; padding:4px 7px; }
+/* full-bleed mobile scan: the HUD callouts sit on a large photo, so the tiny
+   desktop-grid sizing read as specks — bump them to a legible chip size. */
+.sa[data-mobile="true"] .hud{ font-size:11px; padding:6px 11px; border-radius:9px; gap:8px; }
+.sa[data-mobile="true"] .hud .hd{ width:6px; height:6px; }
+/* keep the chips in the photo's mid-band: clear of the top header and the taller
+   bottom readout strip (the desktop bottom:60px anchors land inside the strip). */
+.sa[data-mobile="true"] .hud.h-tr{ top:62px; }
+.sa[data-mobile="true"] .hud.h-bl{ top:52%; bottom:auto; }
+.sa[data-mobile="true"] .hud.h-br{ top:60%; bottom:auto; }
 .sa.rm .hud{ transition:none; }
 
 /* ============================ READOUT COLUMN ============================ */
@@ -302,6 +310,9 @@
 .reveal-err svg{ width:16px;height:16px; color:var(--red); flex:none; margin-top:1px; }
 .reveal .linkbtn{ background:none; border:0; padding:0; font:inherit; color:var(--gold); text-decoration:underline; cursor:pointer; }
 .reveal .linkbtn:hover{ color:#fff; }
+/* exact failure code under the friendly error copy (e.g. "Reason: schema_invalid") */
+.scan-reason{ display:block; margin-top:8px; font-family:"Space Mono",monospace; font-size:10px;
+  letter-spacing:0.1em; text-transform:uppercase; color:var(--ink-faint); }
 /* mobile: keep the reveal + error readable and tappable (no tiny fonts, full-width CTA) */
 .sa[data-mobile="true"] .reveal{ padding:24px 20px calc(24px + env(safe-area-inset-bottom)); }
 .sa[data-mobile="true"] .reveal .sub{ font-size:16px; max-width:none; margin-top:14px; }
@@ -411,8 +422,9 @@
 
 /* readout collapses to a slim translucent bottom strip overlaid on the image */
 .sa[data-mobile="true"] .readout{ position:absolute; left:0; right:0; bottom:0; z-index:10;
-  gap:8px; padding:14px 16px calc(14px + env(safe-area-inset-bottom));
-  background:linear-gradient(0deg, rgba(8,10,14,0.86) 60%, transparent); }
-.sa[data-mobile="true"] .ro-title{ font-size:22px; }
+  gap:11px; padding:20px 18px calc(30px + env(safe-area-inset-bottom));
+  background:linear-gradient(0deg, rgba(8,10,14,0.9) 64%, transparent); }
+/* lift the title off the very bottom and give it more presence on the big photo */
+.sa[data-mobile="true"] .ro-title{ font-size:28px; }
 .sa[data-mobile="true"] .rail{ display:none; }       /* rail hidden on full-bleed */
 .sa[data-mobile="true"] .ro-foot{ display:none; }     /* drop the long privacy line on mobile */

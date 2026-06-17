@@ -130,11 +130,14 @@ export function Scan() {
   // the reveal. The verdict is only generated after authentication.
   const [pendingReveal, setPendingReveal] = useState(false);
   const [revealing, setRevealing] = useState(false);
-  const [scanError, setScanError] = useState<{ kind: 'retake' | 'error'; message: string } | null>(null);
+  const [scanError, setScanError] = useState<{ kind: 'retake' | 'error'; message: string; reason?: string } | null>(null);
   // Signed-in generation lifecycle — the AI runs DURING the scan animation (synced).
   // Guests stay 'idle' (teaser only) and generate after they sign up at the reveal.
   const [genState, setGenState] = useState<'idle' | 'running' | 'ready' | 'error' | 'retake'>('idle');
   const [genErr, setGenErr] = useState<string | null>(null);
+  // The exact failure code from the service (e.g. `schema_invalid`, `generation_failed`),
+  // shown as a small technical line on the error screen so a failed scan says *why*.
+  const [genReason, setGenReason] = useState<string | null>(null);
   const genStateRef = useRef(genState);
   genStateRef.current = genState;
   // Guards the one-time scan kickoff against React StrictMode's double-invoke
@@ -219,6 +222,7 @@ export function Scan() {
         setGenState('retake');
       } else if (outcome.reason === 'error') {
         setGenErr('That scan did not go through. Your credit was refunded, give it another go.');
+        setGenReason(outcome.message);
         setGenState('error');
       } else {
         navigate('/scan');
@@ -283,7 +287,7 @@ export function Scan() {
     if (outcome.reason === 'retake') {
       setScanError({ kind: 'retake', message: outcome.retake.instruction });
     } else if (outcome.reason === 'error') {
-      setScanError({ kind: 'error', message: 'That scan did not go through. Your credit was refunded, give it another go.' });
+      setScanError({ kind: 'error', message: 'That scan did not go through. Your credit was refunded, give it another go.', reason: outcome.message });
     } else {
       navigate('/scan');
     }
@@ -393,6 +397,7 @@ export function Scan() {
                   Let's try <span className="hl">again</span>
                 </h2>
                 <p className="sub">{genErr}</p>
+                {genReason && <p className="scan-reason">Reason: {genReason}</p>}
                 <button className="go retry" onClick={() => navigate('/scan')}>
                   <Icon.refresh /> {genState === 'retake' ? 'Replace a photo' : 'Try again'}
                 </button>
@@ -420,6 +425,9 @@ export function Scan() {
                     <Icon.alert />
                     <span>
                       {scanError.message}
+                      {scanError.reason && (
+                        <span className="scan-reason">Reason: {scanError.reason}</span>
+                      )}
                       {scanError.kind === 'retake' && (
                         <>
                           {' '}
