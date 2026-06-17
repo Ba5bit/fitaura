@@ -420,3 +420,40 @@ body { overflow-y: auto; }
   .ln-hero .ln-hero-actions { flex-direction: column; align-items: flex-start; }
   .ln-hero .ln-hero-actions .ln-btn { width: 70%; }
 }
+
+/* ── CardFan: tappable stacked card fan ─────────────────────────────────── */
+/* Same symmetric fan + sizing as the hero (.ln-fan-card), but tappable/cycling. */
+.cardfan-wrap { display:flex; flex-direction:column; align-items:center; }
+.cardfan { position:relative; width:360px; height:460px; margin:0 auto; }
+.cardfan-dots { display:flex; gap:9px; margin-top:12px; }
+.cardfan-dot { width:9px; height:9px; padding:0; border:0; border-radius:50%; cursor:pointer;
+  background:rgba(255,255,255,.26); transition:transform .2s, background .2s, box-shadow .2s; }
+.cardfan-dot:hover { background:rgba(255,255,255,.5); }
+.cardfan-dot.active { background:#fff; box-shadow:0 0 10px rgba(255,255,255,.6); transform:scale(1.2); }
+.cardfan-item { position:absolute; inset:0; margin:auto; width:360px; height:640px; cursor:pointer;
+  transform-origin:center center;
+  transition:transform .5s cubic-bezier(.22,1,.36,1), opacity .5s ease;
+  filter:drop-shadow(0 50px 80px rgba(0,0,0,.7)); }
+.cardfan-item > .receipt { margin:0 auto; }
+.cardfan-item.front     { transform:translateY(-6px) scale(0.62); z-index:3; }
+.cardfan-item.backLeft  { transform:translateX(-150px) rotate(-9deg) scale(0.54); z-index:1; }
+.cardfan-item.backRight { transform:translateX(150px) rotate(9deg) scale(0.54); z-index:1; }
+.cardfan-item.front:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+@media (prefers-reduced-motion: reduce) { .cardfan-item { transition:none; } }
+
+/* ── Distinct cards: tappable fan (left) + synced 2×2 breakdown (right) ──── */
+.ln-distinct { display:grid; grid-template-columns:.9fr 1.1fr; gap:30px; align-items:center; margin-top:18px; }
+.ln-distinct-fan { display:flex; justify-content:center; }
+/* The fan uses the same card sizing as the hero (.cardfan-item == .ln-fan-card),
+   so the cards read at hero scale rather than shrunk. */
+.ln-distinct-bd .ln-distinct-title { font-family:"Anton",sans-serif; font-weight:400; text-transform:uppercase;
+  font-size:22px; color:#fff; margin:6px 0 14px; }
+.ln-distinct-cap { margin-top:14px; font-family:"Hanken Grotesk"; font-size:13.5px; line-height:1.5; color:var(--ink-dim); max-width:440px; }
+@media (max-width: 760px){
+  .ln-distinct { grid-template-columns:1fr; gap:26px; }
+  /* match the hero's larger mobile fan scales */
+  .cardfan { height:500px; }
+  .cardfan-item.front     { transform:scale(0.76); }
+  .cardfan-item.backLeft  { transform:translateX(-100px) rotate(-9deg) scale(0.62); }
+  .cardfan-item.backRight { transform:translateX(100px) rotate(9deg) scale(0.62); }
+}

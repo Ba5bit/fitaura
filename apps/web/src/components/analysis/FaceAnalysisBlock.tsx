@@ -26,13 +26,6 @@ export function FaceAnalysisBlock({ face, verdict, run }: FaceAnalysisBlockProps
             <p className="rs-read">{analysis.explanation}</p>
           </div>
         </div>
-        <div className="rs-roast">
-          <span className="q">&ldquo;</span>
-          <div>
-            <div className="re">The roast</div>
-            <p>{analysis.roast}</p>
-          </div>
-        </div>
       </section>
 
       <section className="rs-block glass">

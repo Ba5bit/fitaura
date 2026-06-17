@@ -9,13 +9,15 @@ interface OutfitCardProps {
   content: OutfitCardContent;
   stickerOn?: boolean;
   run?: boolean;
+  /** Optional one-liner roast shown as a borderless quote before the stats row. */
+  roast?: string;
 }
 
 /**
  * Outfit Check — image-led, EXPORTABLE shareable asset.
  * Ported 1:1 from the design's `OutfitCard`.
  */
-export function OutfitCard({ content, stickerOn = true, run = true }: OutfitCardProps) {
+export function OutfitCard({ content, stickerOn = true, run = true, roast }: OutfitCardProps) {
   const score = useCountUp(content.overallScore, run);
   return (
     <div className="asset outfitcard">
@@ -35,6 +37,7 @@ export function OutfitCard({ content, stickerOn = true, run = true }: OutfitCard
         </div>
       </div>
       <div className="oc-body">
+        {roast && <p className="fc-roast">{roast}</p>}
         <div className="oc-stats">
           {content.scores.map((stat) => (
             <MiniStat key={stat.id} stat={stat} run={run} />

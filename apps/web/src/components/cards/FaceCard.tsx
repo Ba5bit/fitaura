@@ -10,6 +10,8 @@ interface FaceCardProps {
   stickerOn?: boolean;
   /** Trigger entrance animations (stat count-up). */
   run?: boolean;
+  /** Optional one-liner roast shown as a borderless quote under the verdict. */
+  roast?: string;
 }
 
 /**
@@ -17,7 +19,7 @@ interface FaceCardProps {
  * Ported 1:1 from the design's `FaceCard`. Detail lives in the analysis block,
  * never on the card itself.
  */
-export function FaceCard({ content, stickerOn = true, run = true }: FaceCardProps) {
+export function FaceCard({ content, stickerOn = true, run = true, roast }: FaceCardProps) {
   return (
     <div className="asset facecard">
       <div className="glow" />
@@ -41,6 +43,7 @@ export function FaceCard({ content, stickerOn = true, run = true }: FaceCardProp
         <h2 className="fc-line">
           {content.verdict[0]} <span className="hl">{content.verdict[1]}</span>
         </h2>
+        {roast && <p className="fc-roast">{roast}</p>}
       </div>
       <div className="fc-stats">
         {content.scores.map((stat) => (

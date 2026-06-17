@@ -15,9 +15,11 @@ export function MiniStat({ stat, run }: MiniStatProps) {
         <span className="lbl">{stat.label}</span>
         <span className="val">{stat.displayValue ?? value}</span>
       </div>
-      <div className="track">
-        <div className="fill" style={{ width: `${stat.value}%` }} />
-      </div>
+      {!stat.noBar && (
+        <div className="track">
+          <div className="fill" style={{ width: `${stat.value}%` }} />
+        </div>
+      )}
     </div>
   );
 }

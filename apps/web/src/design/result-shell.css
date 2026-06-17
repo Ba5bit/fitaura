@@ -284,8 +284,8 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
 .rs-statrow .tag.mid{ color:var(--ink-dim); }
 
 /* ---- gym-app score-breakdown grid ---- */
-.rs-breakgrid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:6px; }
-.gym-card{ position:relative; border-radius:16px; padding:15px 15px 16px; overflow:hidden;
+.rs-breakgrid{ display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-top:6px; }
+.gym-card{ position:relative; border-radius:16px; padding:13px 14px; overflow:hidden;
   background:linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02));
   border:1px solid var(--hair-soft); box-shadow:inset 0 1px 0 rgba(255,255,255,0.06); }
 .gym-card[data-tier="high"]{ border-color:color-mix(in oklab,var(--lime) 38%,var(--hair-soft)); box-shadow:inset 0 1px 0 rgba(255,255,255,0.06), 0 0 32px -18px var(--lime); }
@@ -300,7 +300,7 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
 .gym-card[data-tier="low"]  .gc-ico{ background:color-mix(in oklab,var(--red) 16%,transparent); color:var(--red); }
 
 .gc-score{ text-align:right; line-height:1; }
-.gc-score .num{ font-family:"Anton",sans-serif; font-size:38px; color:#fff; }
+.gc-score .num{ font-family:"Anton",sans-serif; font-size:30px; color:#fff; }
 .gc-score .tier{ display:block; margin-top:6px; font-family:"Space Mono",monospace; font-size:9px;
   letter-spacing:0.14em; padding:2px 0 0; text-transform:uppercase; }
 .gym-card[data-tier="high"] .gc-score .tier{ color:var(--lime); }
@@ -309,11 +309,16 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
 
 .gc-name{ font-family:"Hanken Grotesk"; font-weight:800; font-size:15px; letter-spacing:0.01em; color:var(--ink); margin-top:12px; }
 .gc-desc{ font-size:12.5px; color:var(--ink-dim); margin-top:2px; }
-.gc-bar{ height:6px; border-radius:99px; background:rgba(255,255,255,0.08); margin-top:13px; overflow:hidden; }
+.gc-bar{ height:4px; border-radius:99px; background:rgba(255,255,255,0.08); margin-top:9px; overflow:hidden; }
 .gc-bar i{ display:block; height:100%; border-radius:99px; }
 .gym-card[data-tier="high"] .gc-bar i{ background:linear-gradient(90deg, color-mix(in oklab,var(--lime) 55%,#fff), var(--lime)); box-shadow:0 0 10px -1px var(--lime); }
 .gym-card[data-tier="mid"]  .gc-bar i{ background:linear-gradient(90deg, color-mix(in oklab,var(--gold) 55%,#fff), var(--gold)); box-shadow:0 0 10px -1px var(--gold); }
 .gym-card[data-tier="low"]  .gc-bar i{ background:linear-gradient(90deg, color-mix(in oklab,var(--red) 55%,#fff), var(--red)); box-shadow:0 0 10px -1px var(--red); }
+
+/* blue accent variant (outfit compact blocks) */
+.gym-card[data-accent="blue"] .gc-bar i{ background:var(--accent); }
+.gym-card[data-accent="blue"] .gc-score .tier{ color:var(--accent); }
+.gym-card[data-accent="blue"] .gc-top{ justify-content:flex-end; }
 
 /* final-summary action stack (receipt) */
 .rs-summary .lead{ display:grid; grid-template-columns:auto 1fr; gap:6px 18px; align-items:end; }

@@ -14,7 +14,7 @@ export function sampleAIOutput(): SoloScanAIOutput {
       samePersonLikely: true, issues: [], retakeInstruction: null,
     },
     presentation: {
-      gender: 'masc', genderConfidence: 0.9, expressionStrength: 70,
+      gender: 'masc', genderConfidence: 0.9, expressionStrength: 70, ageEstimate: 27,
       recognizedIcon: null, recognizedConfidence: 0, recognizedKind: null,
     },
     faceAnalysis: {

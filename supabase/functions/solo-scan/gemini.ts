@@ -50,11 +50,12 @@ const RESPONSE_SCHEMA = {
         gender: { type: 'STRING', enum: ['femme', 'masc', 'unsure'] },
         genderConfidence: { type: 'NUMBER' },
         expressionStrength: { type: 'INTEGER' },
+        ageEstimate: { type: 'INTEGER', nullable: true },
         recognizedIcon: { type: 'STRING', nullable: true },
         recognizedConfidence: { type: 'NUMBER' },
         recognizedKind: { type: 'STRING', enum: ['meme', 'real_person'], nullable: true },
       },
-      required: ['gender', 'genderConfidence', 'expressionStrength', 'recognizedIcon', 'recognizedConfidence', 'recognizedKind'],
+      required: ['gender', 'genderConfidence', 'expressionStrength', 'ageEstimate', 'recognizedIcon', 'recognizedConfidence', 'recognizedKind'],
     },
     faceAnalysis: objOf(FACE_KEYS),
     outfitAnalysis: objOf(OUTFIT_KEYS),
@@ -71,6 +72,7 @@ Analyze the supplied photo(s) using only visible, presentation-related evidence.
 Return only JSON matching the provided schema. The result is entertainment-oriented styling feedback. Do not present subjective judgments as scientific, biometric, medical, or psychological facts.
 
 GENDER PRESENTATION: Classify the subject's apparent gender presentation as "femme", "masc", or "unsure" with genderConfidence 0-1, for entertainment styling only. This is a read of presentation, NOT a claim about identity, and may be wrong; use "unsure" when genuinely ambiguous. Set expressionStrength 0-100 for how strongly the look reads as that presentation (a vanity stat, not attractiveness).
+AGE: Set ageEstimate to the subject's apparent age in years (integer, ~13-90) for entertainment only — a playful guess from the visible face, NOT a factual claim. Use null only if no face is provided or age genuinely cannot be guessed.
 Do not infer ethnicity, nationality, religion, sexuality, health, disability, wealth, criminality, real trustworthiness, real personality, or romantic compatibility.
 
 ICON RECOGNITION: You MAY recognize widely-known public figures or popular fictional/meme characters and set recognizedIcon to the name with recognizedConfidence 0-1. Also set recognizedKind: "meme" for a fictional, cartoon, comedic, or internet-meme character (e.g. McLovin), or "real_person" for a real public figure or celebrity (athlete, actor, musician, etc.). NEVER attempt to identify a private or ordinary individual; if the subject is not a widely-known public figure or meme character, set recognizedIcon to null and recognizedKind to null. A resemblance is entertainment, not a factual identity claim.
@@ -80,8 +82,10 @@ SINGLE IMAGE: If only one photo is provided, score only that modality. For the a
 If an attribute cannot be assessed reliably, return a null rating and explain why briefly.
 Score each category 0-100. Anchor: 0-20 clearly weak for this presentation, 21-40 below average, 41-60 neutral or mixed, 61-80 strong, 81-100 clearly elite. Use the full range, differentiate categories from one another, and avoid clustering on round multiples of 10. Return a null rating only when a category genuinely cannot be assessed.
 
-VOICE: Write every copy field as a savage, funny roast of the look, fit, pose and vibe — confident, internet-native, in the sticker lexicon (rizz, NPC, delulu, chopped, aura, sigma, mid). Roast hard, but ONLY the presentation. NEVER roast or reference ethnicity, nationality, religion, sexuality, disability, body in a hateful way, or any protected trait. One short, punchy sentence per field.
-BANNED (never write like an AI or a corporate fashion app): "elevate", "in today's world", "let's dive in", "it's not just X it's Y", "a testament to", "when it comes to", "consider ...", em-dash sermons, hedging, polite filler. Be sharp, plain, human and funny.
+VOICE: Write every copy field as a savage, funny roast of the look, fit, pose and vibe — confident, internet-native, in the sticker lexicon (rizz, NPC, delulu, chopped, aura, sigma, mid). Roast hard, but ONLY the presentation. NEVER roast or reference ethnicity, nationality, religion, sexuality, disability, body in a hateful way, or any protected trait.
+LENGTH: Each copy field is ONE punchy fragment, MAX ~10 words. No preamble, no setup, no explaining the joke. Hit and move on.
+VARIETY: Start every field DIFFERENTLY. NEVER open with "This fit", "The fit", "This look", "The hair", "Giving", "It's giving", "Serving", or "<X> in human form" — those are overused. Lead with the punchline, a verb, or a noun instead.
+BANNED (never write like an AI or a corporate fashion app): "elevate", "in today's world", "let's dive in", "it's not just X it's Y", "a testament to", "when it comes to", "consider ...", "gives the vibe of", "in human form", em-dash sermons, hedging, polite filler. Be sharp, plain, human and funny.
 
 Select content IDs only from these allowlists, matching the detected gender. If gender is "femme", pick from NEUTRAL or FEMME only. If gender is "masc" or "unsure", pick from NEUTRAL or MASC only. Femme copy must use female-coded language (never "lover boy").
 faceArchetypeCandidates:
@@ -98,7 +102,7 @@ punchlineCandidates:
   FEMME: punchline.mother_mothered, punchline.slay, punchline.it_girl, punchline.girlboss_trio, punchline.drama_queen_crowned.
 
 Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment. Do not write the recognized icon's name into the copy; the backend decides whether to surface it.
-Set schemaVersion to "solo_scan_v3_2".`;
+Set schemaVersion to "solo_scan_v3_3".`;
 
 export interface InlineImage {
   mimeType: string;

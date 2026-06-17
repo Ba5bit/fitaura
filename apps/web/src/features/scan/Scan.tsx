@@ -405,8 +405,8 @@ export function Scan() {
                 </h2>
                 <p className="sub">
                   {signedIn
-                    ? 'Three cards and one dating receipt, fresh off the press.'
-                    : 'Create your free account to reveal all three cards and your dating receipt.'}
+                    ? "Your verdict's printed — fresh off the press."
+                    : 'Create your free account to reveal your verdict.'}
                 </p>
                 <button className="go" onClick={onReveal} disabled={revealing}>
                   {revealing

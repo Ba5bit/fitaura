@@ -300,9 +300,9 @@ export function Result() {
   // Visible asset (built-in sticker/seal off — the editable layer renders it).
   const assetEl =
     kind === 'face' ? (
-      <FaceCard content={faceContent!} stickerOn={false} run />
+      <FaceCard content={faceContent!} stickerOn={false} run roast={result.face!.analysis.roast} />
     ) : kind === 'outfit' ? (
-      <OutfitCard content={outfitContent!} stickerOn={false} run />
+      <OutfitCard content={outfitContent!} stickerOn={false} run roast={result.outfit!.analysis.verdict} />
     ) : (
       <Receipt content={result.receipt} paper={paper} sealOn={false} />
     );
@@ -632,7 +632,7 @@ export function Result() {
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         {faceContent && (
         <div className="rs-export-card" ref={exportRefs.face}>
-          <FaceCard content={faceContent} stickerOn={false} run={false} />
+          <FaceCard content={faceContent} stickerOn={false} run={false} roast={result.face!.analysis.roast} />
           {stickerOn && (
             <StaticSticker label={facePreset.label} tone={facePreset.tone} rotation={facePreset.rotation} pos={pos.face} />
           )}
@@ -640,7 +640,7 @@ export function Result() {
         )}
         {outfitContent && (
         <div className="rs-export-card" ref={exportRefs.outfit}>
-          <OutfitCard content={outfitContent} stickerOn={false} run={false} />
+          <OutfitCard content={outfitContent} stickerOn={false} run={false} roast={result.outfit!.analysis.verdict} />
           {stickerOn && (
             <StaticSticker
               label={outfitPreset.label}

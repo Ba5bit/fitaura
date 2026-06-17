@@ -1,6 +1,6 @@
 import type { OutfitResult } from '@fitaura/shared';
 import { useCountUp } from '../../lib/useCountUp';
-import { TraitRow, bestWorst } from './TraitRow';
+import { capFor, bestWorst } from './TraitRow';
 import { SupportingStat } from './SupportingStat';
 
 interface OutfitAnalysisBlockProps {
@@ -51,9 +51,18 @@ export function OutfitAnalysisBlock({ outfit, run }: OutfitAnalysisBlockProps) {
         <h3 className="rs-blocktitle">
           Fit &amp; physique read <span className="n">{outfit.card.scores.length} metrics</span>
         </h3>
-        <div className="rs-traits">
+        <div className="rs-breakgrid">
           {outfit.card.scores.map((stat) => (
-            <TraitRow key={stat.id} stat={stat} />
+            <div className="gym-card" data-accent="blue" key={stat.id}>
+              <div className="gc-top">
+                <div className="gc-score">
+                  <span className="num">{stat.value}</span>
+                  <span className="tier">{capFor(stat.value)}</span>
+                </div>
+              </div>
+              <div className="gc-name">{stat.label}</div>
+              <div className="gc-bar"><i style={{ width: `${stat.value}%` }} /></div>
+            </div>
           ))}
         </div>
 

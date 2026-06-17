@@ -89,7 +89,13 @@ export function assembleResult(
       index: `AURA INDEX ${aura}`,
       scores: [
         score('aura', 'Aura', aura),
-        score('haircut-match', 'Haircut Match', sc(fa.haircutMatch, 'haircut')),
+        // Apparent age (display-only, no bar) takes the card's 2nd slot; Haircut
+        // Match still appears in the score breakdown below.
+        {
+          id: 'age', label: 'Age', value: ai.presentation.ageEstimate ?? 0,
+          displayValue: ai.presentation.ageEstimate != null ? `${ai.presentation.ageEstimate} y.o.` : '—',
+          noBar: true,
+        },
         score('gender-index', confidentlyFemme ? 'Femininity' : 'Masculinity',
           d(ai.presentation.expressionStrength, 'gender-index')),
         score('main-character', 'Main Character', sc(fa.mainCharacterEnergy, 'mainchar'), true),

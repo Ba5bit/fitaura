@@ -1,15 +1,15 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { CREDIT_PACKS, VERDICT_COLOR_VAR, VERDICT_LABEL } from '@fitaura/shared';
+import { CREDIT_PACKS, VERDICT_COLOR_VAR } from '@fitaura/shared';
 import { useGeneration } from '../../state/generation';
 import { FaceCard, OutfitCard, Receipt } from '../../components/cards';
-import { FaceAnalysisBlock, OutfitAnalysisBlock } from '../../components/analysis';
 import { Icon } from '../../lib/icons';
 import { useInView } from '../../lib/useInView';
 import { useAccount } from '../account/AccountContext';
 import { AccountEntry } from '../account/AccountChrome';
 import { SCAN_MODES, type ScanModeId } from '../vault/modes';
-import { MOCK_GENERATIONS, DEFAULT_VERDICT } from '../../data/mockGenerations';
+import { MOCK_GENERATIONS, DEFAULT_VERDICT, HERO_CHARACTERS, fanBreakdown, type FanKind } from '../../data/mockGenerations';
+import { CardFan } from './CardFan';
 import '../../design/landing.css';
 import '../../design/result-shell.css';
 
@@ -96,8 +96,7 @@ function Hero() {
             EVERY AURA HAS A <span className="hl">VERDICT</span>
           </h1>
           <p className="ln-hero-sub">
-            Scan yourself, a friend, or your glow-up. FitAura reads your aura and hands back a verdict
-            built to post.
+            Scan yourself, a friend, or your glow-up. Get a verdict built to post.
           </p>
           <div className="ln-hero-actions">
             <Link className="ln-btn primary lg" to="/vault">
@@ -123,15 +122,9 @@ function Hero() {
             className="ln-fan-stage"
             style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
           >
-            <div className="ln-fan-card left">
-              <OutfitCard content={HERO.outfit!.card} run />
-            </div>
-            <div className="ln-fan-card right">
-              <Receipt content={HERO.receipt} paper="neon" />
-            </div>
-            <div className="ln-fan-card mid">
-              <FaceCard content={HERO.face!.card} run />
-            </div>
+            <div className="ln-fan-card left"><FaceCard content={HERO_CHARACTERS[2].content} roast={HERO_CHARACTERS[2].roast} run /></div>
+            <div className="ln-fan-card right"><FaceCard content={HERO_CHARACTERS[1].content} roast={HERO_CHARACTERS[1].roast} run /></div>
+            <div className="ln-fan-card mid"><FaceCard content={HERO_CHARACTERS[0].content} roast={HERO_CHARACTERS[0].roast} run /></div>
           </div>
         </div>
       </div>
@@ -139,18 +132,27 @@ function Hero() {
   );
 }
 
+/** Map a breakdown block to result-shell.css's tier (drives bar + tag color). */
+function blockTier(b: { tag: string; pct: number }): 'high' | 'mid' | 'low' {
+  const v = b.tag ? (b.tag === 'ELITE' || b.tag === 'HIGH' ? 90 : b.tag === 'SOLID' ? 70 : 40) : b.pct;
+  return v >= 78 ? 'high' : v >= 60 ? 'mid' : 'low';
+}
+
+/**
+ * Two-column "distinct cards" block: a tappable CardFan (Face → Outfit →
+ * Receipt) on the left, and a 2×2 breakdown grid that re-renders to whichever
+ * card is currently front. One HERO mock backs all three faces + the breakdown.
+ */
 function Artifacts() {
   const [ref, seen] = useInView<HTMLElement>();
-  const arts = [
-    { n: '01', name: 'Face Card', desc: "Your selfie, your aura read, one verdict you'll want to repost." },
-    { n: '02', name: 'Outfit Check', desc: 'How the fit lands on your build: silhouette, proportions, score.' },
-    { n: '03', name: 'Dating Receipt', desc: 'The final cheque. One verdict: green flag, normie, or red flag.' },
-  ];
+  const [front, setFront] = useState<FanKind>('face');
+  const KIND: FanKind[] = ['face', 'outfit', 'receipt'];
+  const bd = fanBreakdown(front);
   return (
     <section className="ln-section ln-wrap" id="outputs" ref={ref}>
       <div className="ln-artifacts-head">
         <div>
-          <span className="ln-eyebrow">ONE SCAN, THREE ARTIFACTS</span>
+          <span className="ln-eyebrow">ONE SCAN, DISTINCT CARDS</span>
           <h2 className="ln-h2">
             Distinct cards
             <br />
@@ -159,118 +161,46 @@ function Artifacts() {
         </div>
         <div className="ln-bundle-note">
           <Icon.bolt />
-          <span>
-            Every scan returns <b>all three</b>, not one card at a time.
-          </span>
+          <span>Scan a face, a fit, or both — get the cards that fit.</span>
         </div>
       </div>
-      <div className="ln-arts" style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}>
-        <div className="ln-art">
-          <div className="ln-art-stage">
-            <FaceCard content={HERO.face!.card} run={seen} />
-          </div>
-          <div className="ln-art-num">{arts[0].n}</div>
-          <div className="ln-art-name">{arts[0].name}</div>
-          <p className="ln-art-desc">{arts[0].desc}</p>
+      <div className="ln-distinct" style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}>
+        <div className="ln-distinct-fan">
+          <CardFan
+            onFrontChange={(i) => setFront(KIND[i])}
+            items={[
+              <FaceCard key="f" content={HERO.face!.card} roast={HERO.face!.analysis.roast} run={seen} />,
+              <OutfitCard key="o" content={HERO.outfit!.card} roast={HERO.outfit!.analysis.verdict} run={seen} />,
+              <Receipt key="r" content={HERO.receipt} paper="neon" />,
+            ]}
+          />
         </div>
-        <div className="ln-art">
-          <div className="ln-art-stage">
-            <OutfitCard content={HERO.outfit!.card} run={seen} />
-          </div>
-          <div className="ln-art-num">{arts[1].n}</div>
-          <div className="ln-art-name">{arts[1].name}</div>
-          <p className="ln-art-desc">{arts[1].desc}</p>
-        </div>
-        <div className="ln-art">
-          <div className="ln-art-stage">
-            <Receipt content={HERO.receipt} paper="neon" />
-          </div>
-          <div className="ln-art-num">{arts[2].n}</div>
-          <div className="ln-art-name">{arts[2].name}</div>
-          <p className="ln-art-desc">{arts[2].desc}</p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-const ANALYSIS_TABS = [
-  { id: 'face', n: '01', name: 'Face' },
-  { id: 'outfit', n: '02', name: 'Outfit' },
-  { id: 'receipt', n: '03', name: 'Receipt' },
-] as const;
-type AnalysisTabId = (typeof ANALYSIS_TABS)[number]['id'];
-
-/**
- * Full-analysis showcase — reuses the result page's in-app breakdown blocks
- * (FaceAnalysisBlock / OutfitAnalysisBlock + a trimmed receipt summary) driven
- * by the same HERO mock data. Click-only tabs; conditional render remounts the
- * active block so its score animations replay on each switch (and on scroll-in).
- */
-function Analysis() {
-  const [ref, seen] = useInView<HTMLElement>();
-  const [tab, setTab] = useState<AnalysisTabId>('face');
-  return (
-    <section className="ln-section ln-wrap" id="analysis" ref={ref}>
-      <div className="ln-artifacts-head">
-        <div>
-          <span className="ln-eyebrow">MORE THAN A SCORE</span>
-          <h2 className="ln-h2">
-            The full <span className="hl">breakdown</span>
-          </h2>
-        </div>
-      </div>
-      <div className="ln-an-tabs" role="tablist">
-        {ANALYSIS_TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.id}
-            className={'ln-an-tab' + (tab === t.id ? ' active' : '')}
-            onClick={() => setTab(t.id)}
-          >
-            <span className="n">{t.n}</span>
-            {t.name}
-          </button>
-        ))}
-      </div>
-      <div
-        className="ln-an-panel rs-analysis"
-        style={{ ['--verdict']: VERDICT_COLOR_VAR[DEFAULT_VERDICT] } as CSSProperties}
-      >
-        {tab === 'face' && <FaceAnalysisBlock face={HERO.face!} verdict={DEFAULT_VERDICT} run={seen} />}
-        {tab === 'outfit' && <OutfitAnalysisBlock outfit={HERO.outfit!} run={seen} />}
-        {tab === 'receipt' && (
-          <>
-            <section className="rs-block hero rs-summary">
-              <div className="rs-eyebrow">FINAL SUMMARY</div>
-              <div className="rs-scorehead">
-                <div>
-                  <div className="rs-scorenum">
-                    {HERO.receipt.datingScore}
-                    <span className="u">/10</span>
+        <div className="ln-distinct-bd">
+          <div className="ln-eyebrow">{bd.eyebrow}</div>
+          <h3 className="ln-distinct-title">{bd.title}</h3>
+          <div className="rs-breakgrid">
+            {bd.blocks.map((b) => (
+              <div
+                className="gym-card"
+                data-tier={front === 'outfit' ? undefined : blockTier(b)}
+                data-accent={front === 'outfit' ? 'blue' : undefined}
+                key={b.label}
+              >
+                <div className="gc-top">
+                  <div className="gc-score">
+                    <span className="num">{b.value}</span>
+                    {b.tag && <span className="tier">{b.tag}</span>}
                   </div>
-                  <div className="rs-scorelbl">DATING SCORE</div>
                 </div>
-                <div className="rs-verdictbadge">
-                  <span className="vstamp">{VERDICT_LABEL[HERO.receipt.datingVerdict]}</span>
+                <div className="gc-name">{b.label}</div>
+                <div className="gc-bar">
+                  <i style={{ width: `${b.pct}%` }} />
                 </div>
               </div>
-              <p className="rs-read">
-                <span className="hl">{HERO.receipt.finalPunchline}.</span> {HERO.receipt.summary}
-              </p>
-              <div className="rs-summary-foot">
-                <Icon.lock width={13} height={13} />
-                Photos never stored on our servers · result lives on this device
-              </div>
-            </section>
-            {/* The actual receipt card, filling the right column. */}
-            <div className="ln-art-stage ln-an-receipt">
-              <Receipt content={HERO.receipt} paper="neon" />
-            </div>
-          </>
-        )}
+            ))}
+          </div>
+          <p className="ln-distinct-cap">{bd.cap}</p>
+        </div>
       </div>
     </section>
   );
@@ -278,16 +208,16 @@ function Analysis() {
 
 function How() {
   const steps = [
-    { n: 'STEP 01', ic: <Icon.upload />, h: 'Upload two photos', p: "A selfie and a full outfit shot. Crop and reframe until it's right." },
+    { n: 'STEP 01', ic: <Icon.upload />, h: 'Upload your photos', p: "A selfie, an outfit, or both — crop till it's right." },
     { n: 'STEP 02', ic: <Icon.scan />, h: 'Run the scan', p: 'We read your face, aura and fit, then score how they play together.' },
-    { n: 'STEP 03', ic: <Icon.receipt />, h: 'Get the verdict', p: 'Three finished cards land at once, ready to screenshot and post.' },
+    { n: 'STEP 03', ic: <Icon.receipt />, h: 'Get the verdict', p: 'Your cards land ready to screenshot and post.' },
   ];
   return (
     <section className="ln-section alt" id="how">
       <div className="ln-wrap">
         <span className="ln-eyebrow">HOW IT WORKS</span>
         <h2 className="ln-h2">
-          From two photos to <span className="hl">posted</span> in under a minute
+          From photo to <span className="hl">posted</span> in under a minute
         </h2>
         <div className="ln-steps">
           {steps.map((s) => (
@@ -322,8 +252,7 @@ function Credits() {
               First scan's <span className="hl">on us</span>
             </h2>
             <p className="ln-lead">
-              Your first verdict is free. After that, top up with credits whenever you want another.
-              Friends, exes, celebrities, all fair game.
+              Your first verdict is free. After that, top up whenever. Friends, exes, celebrities — all fair game.
             </p>
           </div>
           <span className="free-pill" style={{ alignSelf: 'center' }}>
@@ -351,7 +280,7 @@ function Credits() {
           ))}
         </div>
         <p className="ln-packs-foot">
-          Credits never expire. One credit always returns the full three-card verdict.
+          Credits never expire. One credit = one verdict.
         </p>
       </div>
     </section>
@@ -374,10 +303,7 @@ function Privacy() {
         <div>
           <h3>We don't keep your source photos</h3>
           <p>
-            We use your face and outfit photos to build your verdict, then drop them. They're{' '}
-            <b style={{ color: 'var(--ink)' }}>never permanently stored on our servers</b>. Your finished
-            cards, receipts, and history live on your device. Close the tab and we no longer have the
-            originals.
+            We use your photos to build your verdict, then drop them — <b style={{ color: 'var(--ink)' }}>never stored on our servers</b>. Your cards and history live on your device.
           </p>
           <div className="ln-privacy-points">
             <span className="pp">Source photos not server-stored</span>
@@ -501,10 +427,9 @@ function Modes() {
 /** Section list the rail tracks; ordered by page position. */
 const RAIL = [
   { id: 'how', n: 1, label: 'How it works' },
-  { id: 'analysis', n: 2, label: 'Full analysis' },
-  { id: 'outputs', n: 3, label: 'The cards' },
-  { id: 'modes', n: 4, label: 'Scan modes' },
-  { id: 'credits', n: 5, label: 'Credits' },
+  { id: 'outputs', n: 2, label: 'The cards' },
+  { id: 'modes', n: 3, label: 'Scan modes' },
+  { id: 'credits', n: 4, label: 'Credits' },
 ];
 
 /** Fixed left scroll-spy rail (desktop ≥1320px; hidden below via CSS). */
@@ -553,7 +478,7 @@ function FinalCTA() {
           UPLOAD SCAN <span className="hl">GET POSTED</span>
         </h2>
         <p>
-          Two photos, one credit, three cards your group chat won't let go of. First one's free.
+          One scan, one credit, cards your group chat won't let go of. First one's free.
         </p>
         <div className="ln-hero-actions">
           <Link className="ln-btn primary lg" to="/vault">
@@ -583,7 +508,6 @@ function Footer() {
             <div className="ln-footer-col">
               <h4>Product</h4>
               <a href="#how">How it works</a>
-              <a href="#analysis">Full analysis</a>
               <a href="#outputs">The cards</a>
               <a href="#modes">Scan modes</a>
               <a href="#credits">Credits</a>
@@ -645,7 +569,6 @@ export function Landing() {
       <Hero />
       <hr className="ln-hr ln-wrap" />
       <How />
-      <Analysis />
       <Artifacts />
       <Modes />
       <Credits />

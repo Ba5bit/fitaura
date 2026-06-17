@@ -49,9 +49,11 @@ describe('assembleResult', () => {
 });
 
 describe('assembleResult v3', () => {
-  it('face card shows aura, haircut, gender index, main character', () => {
+  it('face card shows aura, age, gender index, main character', () => {
     const r = assembleResult(sampleAIOutput(), 'scan-v3', 'v3', { face: true, outfit: true });
-    expect(r.face!.card.scores.map((s) => s.id)).toEqual(['aura', 'haircut-match', 'gender-index', 'main-character']);
+    expect(r.face!.card.scores.map((s) => s.id)).toEqual(['aura', 'age', 'gender-index', 'main-character']);
+    expect(r.face!.card.scores[1].displayValue).toBe('27 y.o.'); // age fixture, no bar
+    expect(r.face!.card.scores[1].noBar).toBe(true);
     expect(r.face!.card.scores[2].label).toBe('Masculinity'); // masc fixture
   });
 
