@@ -149,19 +149,10 @@
 .vlt-tag.local { color: var(--gold); border: 1px solid color-mix(in oklab, var(--gold) 38%, var(--hair)); background: color-mix(in oklab, var(--gold) 9%, transparent); }
 
 /* ============================ GENERATE PANEL ============================ */
-.vlt-gen {
-  position: relative; overflow: hidden; margin-top: 26px;
-  border-radius: 20px; border: 1px solid var(--hair); background: linear-gradient(150deg, var(--bg-2), #0a0c11 86%);
-  box-shadow: var(--shadow-card); padding: 28px 30px;
-  display: flex; align-items: center; justify-content: space-between; gap: 28px; flex-wrap: wrap;
-}
-.vlt-gen::before { content: ""; position: absolute; top: -90px; right: -50px; width: 260px; height: 260px; border-radius: 50%; background: radial-gradient(circle, color-mix(in oklab, var(--accent) 22%, transparent), transparent 70%); }
-.vlt-gen .lhs { position: relative; min-width: 0; }
-.vlt-gen .ttl { font-family: "Anton", sans-serif; font-size: 30px; line-height: 0.96; text-transform: uppercase; color: #fff; letter-spacing: 0.01em; }
-.vlt-gen .outs { display: flex; align-items: center; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-.vlt-gen .out { display: inline-flex; align-items: center; gap: 7px; font-family: "Space Mono", monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); padding: 6px 11px; border-radius: 999px; border: 1px solid var(--hair-soft); background: rgba(255,255,255,.02); }
-.vlt-gen .out .d { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
-.vlt-gen .rhs { position: relative; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+/* mode header — title/blurb on the left, credits + primary action on the right */
+.vlt-head { display: flex; align-items: center; justify-content: space-between; gap: 28px; flex-wrap: wrap; }
+.vlt-head-l { min-width: 0; }
+.vlt-head-r { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
 .vlt-credit { display: inline-flex; align-items: center; gap: 9px; font-family: "Hanken Grotesk"; font-weight: 700; font-size: 13.5px; color: var(--ink); padding: 9px 15px; border-radius: 999px; border: 1px solid var(--hair); background: var(--panel); }
 .vlt-credit .gem { width: 16px; height: 16px; color: var(--accent); display: inline-flex; }
 .vlt-credit b { color: var(--accent); }
@@ -412,8 +403,8 @@
   .vlt-navmid .vlt-navlink span { display: none; }
   .vlt-navlink { padding: 9px 11px; }
   .vlt-navright { gap: 8px; }
-  .vlt-gen { flex-direction: column; align-items: stretch; }
-  .vlt-gen .rhs { align-items: stretch; }
+  .vlt-head { flex-direction: column; align-items: stretch; }
+  .vlt-head-r { align-items: stretch; }
   .vlt-packs { grid-template-columns: 1fr; }
   .vlt-store-cols { grid-template-columns: 1fr; }
   .vlt-unlock ul { grid-template-columns: 1fr; }

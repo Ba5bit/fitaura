@@ -226,26 +226,16 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
 
   return (
     <div>
-      <span className="vlt-eyebrow">SCAN MODE · AVAILABLE</span>
-      <h1 className="vlt-h1">
-        SOLO <span className="hl">SCAN</span>
-      </h1>
-      <p className="vlt-lead">{mode.blurb}</p>
-
-      {/* generate panel — the primary action + how many credits */}
-      <div className="vlt-gen">
-        <div className="lhs">
-          <div className="ttl">Start a Solo Scan</div>
-          <div className="outs">
-            {mode.outputs.map((o) => (
-              <span className="out" key={o}>
-                <span className="d" />
-                {o}
-              </span>
-            ))}
-          </div>
+      {/* mode header — title + blurb on the left, credits + primary action on the right */}
+      <div className="vlt-head">
+        <div className="vlt-head-l">
+          <span className="vlt-eyebrow">SCAN MODE · AVAILABLE</span>
+          <h1 className="vlt-h1">
+            SOLO <span className="hl">SCAN</span>
+          </h1>
+          <p className="vlt-lead">{mode.blurb}</p>
         </div>
-        <div className="rhs">
+        <div className="vlt-head-r">
           {creditChip}
           {!signedIn || canScan ? (
             <button className="vlt-btn primary lg" onClick={onScan}>
