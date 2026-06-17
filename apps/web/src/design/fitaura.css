@@ -234,7 +234,7 @@ body::before{
   font-size:38px; letter-spacing:0.005em; text-transform:uppercase; text-wrap:balance;
   color:#fff; text-shadow:0 0 26px color-mix(in oklab,var(--verdict) 55%,transparent); }
 .fc-line .hl{ color:var(--verdict); }
-.fc-roast{ margin:10px 0 0; font:600 14px/1.45 "Hanken Grotesk",system-ui; color:var(--ink);
+.fc-roast{ margin:10px 0 0; font:600 16px/1.4 "Hanken Grotesk",system-ui; color:var(--ink);
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
 .fc-roast .q{ color:var(--accent); font-weight:800; margin-right:2px; }
 .fc-stats{ margin-top:auto; display:grid; grid-template-columns:1fr 1fr; gap:16px 24px; position:relative; z-index:2; padding-top:18px; }
