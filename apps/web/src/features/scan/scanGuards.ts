@@ -8,17 +8,18 @@ import type { GenerationResult, UploadedPhoto } from '../../state/generation';
  * session, so without this check a remount would kick off a brand-new scan of an
  * image whose verdict already exists. Photo urls are stable baked data URLs, so an
  * exact match is reliable within a session and across reloads.
+ *
+ * Matches on the parts that are present in the result: a face-only result matches a
+ * face-only session, an outfit-only result matches an outfit-only session, and a
+ * both-modality result requires both photos to match.
  */
 export function resultMatchesPhotos(
   result: GenerationResult | null,
   face: UploadedPhoto | null,
   outfit: UploadedPhoto | null,
 ): boolean {
-  return (
-    !!result &&
-    !!face &&
-    !!outfit &&
-    result.face.card.imageUrl === face.url &&
-    result.outfit.card.imageUrl === outfit.url
-  );
+  if (!result) return false;
+  const faceOk = result.face ? !!face && result.face.card.imageUrl === face.url : !face;
+  const outfitOk = result.outfit ? !!outfit && result.outfit.card.imageUrl === outfit.url : !outfit;
+  return faceOk && outfitOk;
 }

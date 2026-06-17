@@ -24,6 +24,7 @@ interface GenerationContextValue {
   outfit: UploadedPhoto | null;
   result: GenerationResult | null;
   bothPhotosReady: boolean;
+  canScanPhotos: boolean;
   /** Recent on-device results for the current account (newest first). */
   history: GenerationResult[];
   /** False until the current account's on-device data has loaded from IndexedDB. */
@@ -120,10 +121,11 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
   }, [persistSession]);
 
   const bothPhotosReady = !!face && !!outfit;
+  const canScanPhotos = !!face || !!outfit;
 
   const runGeneration = useCallback<GenerationContextValue['runGeneration']>(async () => {
     const s = stateRef.current;
-    if (!s.face || !s.outfit) return { ok: false, reason: 'missing_photos' };
+    if (!s.face && !s.outfit) return { ok: false, reason: 'missing_photos' };
 
     // Capture the account identity and photos BEFORE the long await so that an
     // account switch during the scan cannot cause us to persist under the wrong key.
@@ -131,7 +133,7 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     const startedFace = s.face;
     const startedOutfit = s.outfit;
 
-    const outcome = await runSoloScan(startedFace.url, startedOutfit.url);
+    const outcome = await runSoloScan(startedFace?.url ?? null, startedOutfit?.url ?? null);
     if (outcome.kind === 'retake') {
       return { ok: false, reason: 'retake', retake: { faceUsable: outcome.faceUsable, outfitUsable: outcome.outfitUsable, instruction: outcome.instruction } };
     }
@@ -145,8 +147,8 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     const result: GenerationResult = {
       ...base,
       producedAt: now,
-      face: { ...base.face, card: { ...base.face.card, imageUrl: startedFace.url } },
-      outfit: { ...base.outfit, card: { ...base.outfit.card, imageUrl: startedOutfit.url } },
+      face: base.face ? { ...base.face, card: { ...base.face.card, imageUrl: startedFace?.url ?? null } } : null,
+      outfit: base.outfit ? { ...base.outfit, card: { ...base.outfit.card, imageUrl: startedOutfit?.url ?? null } } : null,
       receipt: { ...base.receipt, generatedAt: now },
     };
 
@@ -195,10 +197,10 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<GenerationContextValue>(
     () => ({
-      face, outfit, result, bothPhotosReady, history, hydrated,
+      face, outfit, result, bothPhotosReady, canScanPhotos, history, hydrated,
       setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult,
     }),
-    [face, outfit, result, bothPhotosReady, history, hydrated, setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult],
+    [face, outfit, result, bothPhotosReady, canScanPhotos, history, hydrated, setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult],
   );
 
   return <GenerationContext.Provider value={value}>{children}</GenerationContext.Provider>;

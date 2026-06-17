@@ -15,8 +15,8 @@ const json = (body: unknown, status = 200) =>
 
 interface ReqBody {
   scanId: string;
-  face: InlineImage;
-  outfit: InlineImage;
+  face?: InlineImage;
+  outfit?: InlineImage;
 }
 
 Deno.serve(async (req) => {
@@ -37,15 +37,20 @@ Deno.serve(async (req) => {
   // ~20 MB decoded is Gemini's inline-data ceiling; base64 inflates ~4/3.
   const MAX_B64 = 27_000_000;
   const okImg = (i: InlineImage | undefined) =>
-    i && typeof i.data === 'string' && i.data.length > 0 && i.data.length <= MAX_B64
+    !!i && typeof i.data === 'string' && i.data.length > 0 && i.data.length <= MAX_B64
     && /^image\/(jpeg|png|webp)$/.test(i.mimeType ?? '');
-  if (!scanId || !okImg(face) || !okImg(outfit)) {
+  const parts = { face: okImg(face), outfit: okImg(outfit) };
+  if (!scanId || (!parts.face && !parts.outfit)) {
     return json({ ok: false, kind: 'error', message: 'invalid_images' }, 400);
   }
 
   const started = Date.now();
   try {
-    const { raw, usage } = await callGemini({ apiKey, model, face, outfit });
+    const { raw, usage } = await callGemini({
+      apiKey, model,
+      face: parts.face ? face : undefined,
+      outfit: parts.outfit ? outfit : undefined,
+    });
 
     const parsed = soloScanSchema.safeParse(raw);
     if (!parsed.success) {
@@ -56,19 +61,18 @@ Deno.serve(async (req) => {
 
     if (!ai.inputQuality.usable) {
       console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: 'unusable_input', latency_ms: Date.now() - started }));
-      // 200, not an error status: the client branches on `kind`, not the HTTP code.
       return json({
         ok: false,
         kind: 'retake',
-        faceUsable: ai.inputQuality.faceUsable,
-        outfitUsable: ai.inputQuality.outfitUsable,
-        instruction: ai.inputQuality.retakeInstruction ?? 'Try clearer photos of your face and full outfit.',
+        faceUsable: parts.face ? ai.inputQuality.faceUsable : false,
+        outfitUsable: parts.outfit ? ai.inputQuality.outfitUsable : false,
+        instruction: ai.inputQuality.retakeInstruction ?? 'Try a clearer, well-lit photo.',
       });
     }
 
     let result;
     try {
-      result = assembleResult(ai, scanId, SOLO_SCAN_PROMPT_VERSION);
+      result = assembleResult(ai, scanId, SOLO_SCAN_PROMPT_VERSION, parts);
     } catch {
       return json({
         ok: false, kind: 'retake', faceUsable: true, outfitUsable: true,

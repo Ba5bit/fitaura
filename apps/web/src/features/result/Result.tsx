@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   STICKER_BANK,
@@ -34,15 +34,18 @@ const TABS: { id: number; slug: Kind; name: string; n: string }[] = [
   { id: 2, slug: 'receipt', name: 'RECEIPT', n: '03' },
 ];
 
-function slugToTab(slug: string): number | null {
-  const i = TABS.findIndex((t) => t.slug === slug);
-  return i < 0 ? null : i;
-}
-
 export function Result() {
   const navigate = useNavigate();
   const { result, startNewScan, hydrated } = useGeneration();
   const { credits } = useAccount();
+
+  const tabs = useMemo(
+    () => (result
+      ? TABS.filter((t) => t.slug === 'receipt' || (t.slug === 'face' ? !!result.face : !!result.outfit))
+      : TABS),
+    [result],
+  );
+  const tabIdxForSlug = (slug: string) => tabs.findIndex((t) => t.slug === slug);
 
   // No result yet → back to the start. Wait for hydration so a reload at /result
   // doesn't bounce home before IndexedDB has loaded the current result.
@@ -51,10 +54,10 @@ export function Result() {
   }, [hydrated, result, navigate]);
 
   const initialTab = (() => {
-    const fromHash = slugToTab((location.hash || '').replace('#', ''));
-    if (fromHash != null) return fromHash;
-    const stored = slugToTab(localStorage.getItem('fitaura.tab') || '');
-    return stored != null ? stored : 0;
+    const fromHash = tabIdxForSlug((location.hash || '').replace('#', ''));
+    if (fromHash >= 0) return fromHash;
+    const stored = tabIdxForSlug(localStorage.getItem('fitaura.tab') || '');
+    return stored >= 0 ? stored : 0;
   })();
 
   const [tab, setTabRaw] = useState(initialTab);
@@ -94,14 +97,19 @@ export function Result() {
   }, []);
 
   const setTab = useCallback((next: number) => {
-    const n = Math.max(0, Math.min(TABS.length - 1, next));
+    const n = Math.max(0, Math.min(tabs.length - 1, next));
     setTabRaw(n);
     setEditing(false);
-    const slug = TABS[n].slug;
+    const slug = tabs[n].slug;
     if (location.hash.replace('#', '') !== slug) history.replaceState(null, '', '#' + slug);
     localStorage.setItem('fitaura.tab', slug);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [tabs]);
+
+  // If the visible tab set shrinks (e.g. opening a partial result), keep tab in range.
+  useEffect(() => {
+    if (tab > tabs.length - 1) setTab(tabs.length - 1);
+  }, [tabs, tab, setTab]);
 
   // Apply the verdict color from the result. NB: do NOT set `--receipt-bg` on the
   // document root — the thermal receipt gets its cream paper from the scoped
@@ -174,7 +182,7 @@ export function Result() {
 
   if (!result) return null;
 
-  const tabDef = TABS[tab];
+  const tabDef = tabs[Math.min(tab, tabs.length - 1)];
   const kind = tabDef.slug;
 
   const facePreset = STICKER_BANK.face[stk.face];
@@ -265,13 +273,18 @@ export function Result() {
     ping('Exporting all 3 cards…');
     try {
       await withExportHost(async () => {
-        for (const k of ['face', 'outfit', 'receipt'] as const) {
+        const kinds = [
+          result.face ? 'face' : null,
+          result.outfit ? 'outfit' : null,
+          'receipt',
+        ].filter(Boolean) as Kind[];
+        for (const k of kinds) {
           const out = await captureKind(k);
           if (out) downloadResult(out);
         }
       });
       flashSaved();
-      ping('Saved all 3 cards to device');
+      ping('Saved your cards to device');
     } catch {
       ping('Export failed. Try again');
     }
@@ -281,15 +294,15 @@ export function Result() {
     navigate('/scan');
   };
 
-  const faceContent = { ...result.face.card, sticker: faceSticker };
-  const outfitContent = { ...result.outfit.card, sticker: outfitSticker };
+  const faceContent = result.face ? { ...result.face.card, sticker: faceSticker } : null;
+  const outfitContent = result.outfit ? { ...result.outfit.card, sticker: outfitSticker } : null;
 
   // Visible asset (built-in sticker/seal off — the editable layer renders it).
   const assetEl =
     kind === 'face' ? (
-      <FaceCard content={faceContent} stickerOn={false} run />
+      <FaceCard content={faceContent!} stickerOn={false} run />
     ) : kind === 'outfit' ? (
-      <OutfitCard content={outfitContent} stickerOn={false} run />
+      <OutfitCard content={outfitContent!} stickerOn={false} run />
     ) : (
       <Receipt content={result.receipt} paper={paper} sealOn={false} />
     );
@@ -322,9 +335,9 @@ export function Result() {
   const animKey = `${kind}-${result.verdict}`;
   const analysisEl =
     kind === 'face' ? (
-      <FaceAnalysisBlock key={animKey} face={result.face} verdict={result.verdict} run />
+      <FaceAnalysisBlock key={animKey} face={result.face!} verdict={result.verdict} run />
     ) : kind === 'outfit' ? (
-      <OutfitAnalysisBlock key={animKey} outfit={result.outfit} run />
+      <OutfitAnalysisBlock key={animKey} outfit={result.outfit!} run />
     ) : (
       <ReceiptSummaryBlock
         key={animKey}
@@ -389,27 +402,27 @@ export function Result() {
       {/* NAV */}
       <nav className="rs-nav">
         <div className="rs-tabs" role="tablist">
-          {TABS.map((tb) => (
+          {tabs.map((tb, i) => (
             <button
-              key={tb.id}
+              key={tb.slug}
               className="tab"
               role="tab"
-              aria-selected={tab === tb.id}
-              onClick={() => setTab(tb.id)}
+              aria-selected={tab === i}
+              onClick={() => setTab(i)}
             >
-              <span className="n">{tb.n}</span>
+              <span className="n">{String(i + 1).padStart(2, '0')}</span>
               {tb.name}
             </button>
           ))}
         </div>
         <div className="rs-stepper">
           <span className="rs-count">
-            <b>{tabDef.n}</b> / 03
+            <b>{String(tab + 1).padStart(2, '0')}</b> / {String(tabs.length).padStart(2, '0')}
           </span>
           <button className="rs-arrow" onClick={() => setTab(tab - 1)} disabled={tab === 0} aria-label="Previous">
             <Icon.chevronLeft />
           </button>
-          <button className="rs-arrow" onClick={() => setTab(tab + 1)} disabled={tab === 2} aria-label="Next">
+          <button className="rs-arrow" onClick={() => setTab(tab + 1)} disabled={tab === tabs.length - 1} aria-label="Next">
             <Icon.chevronRight />
           </button>
         </div>
@@ -617,12 +630,15 @@ export function Result() {
           only during an export (see withExportHost) to keep the page light. */}
       {exporting && (
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
+        {faceContent && (
         <div className="rs-export-card" ref={exportRefs.face}>
           <FaceCard content={faceContent} stickerOn={false} run={false} />
           {stickerOn && (
             <StaticSticker label={facePreset.label} tone={facePreset.tone} rotation={facePreset.rotation} pos={pos.face} />
           )}
         </div>
+        )}
+        {outfitContent && (
         <div className="rs-export-card" ref={exportRefs.outfit}>
           <OutfitCard content={outfitContent} stickerOn={false} run={false} />
           {stickerOn && (
@@ -634,6 +650,7 @@ export function Result() {
             />
           )}
         </div>
+        )}
         <div
           className="rs-export-card is-receipt"
           ref={exportRefs.receipt}

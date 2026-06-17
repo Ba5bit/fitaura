@@ -14,6 +14,22 @@ import type { DatingVerdict } from './verdict.ts';
  * detail (the core layout rule of the product).
  */
 
+/** What a scan contains. At least one of the two is always true. */
+export interface ScanParts {
+  face: boolean;
+  outfit: boolean;
+}
+
+/**
+ * Parts of a (possibly legacy) result. Results saved before this feature predate
+ * `parts` and always carried both cards, so a missing `parts` resolves from presence
+ * (which, for those rows, is both).
+ */
+export function partsOf(r: { parts?: ScanParts; face?: unknown; outfit?: unknown }): ScanParts {
+  if (r.parts) return r.parts;
+  return { face: r.face != null, outfit: r.outfit != null };
+}
+
 /** Tone presets a sticker can take — maps to the visual sticker styles. */
 export type StickerTone = 'accent' | 'warn' | 'chrome' | 'lime';
 
@@ -198,7 +214,9 @@ export interface FullGenerationResult {
   verdict: DatingVerdict;
   /** Verdict chip text, e.g. "VERDICT · RED FLAG". */
   chip: string;
-  face: FaceResult;
-  outfit: OutfitResult;
+  /** Which modalities this scan contains. */
+  parts: ScanParts;
+  face: FaceResult | null;
+  outfit: OutfitResult | null;
   receipt: DatingReceiptResult;
 }
