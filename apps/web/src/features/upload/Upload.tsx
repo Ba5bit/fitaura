@@ -37,11 +37,10 @@ export function Upload() {
 
   const faceReady = !!face;
   const outfitReady = !!outfit;
-  const bothReady = faceReady && outfitReady;
-  const missingList = [!faceReady && 'face', !outfitReady && 'outfit'].filter(Boolean) as string[];
+  const anyReady = faceReady || outfitReady;
 
   function onGenerate() {
-    if (!bothReady) {
+    if (!anyReady) {
       setAttempted(true);
       return;
     }
@@ -76,11 +75,11 @@ export function Upload() {
           </div>
 
           <div className="ua-title">
-            <span className="eyebrow">Upload · 2 photos</span>
+            <span className="eyebrow">Upload · 1 or 2 photos</span>
             <h2>
-              Drop your <span className="hl">face</span> &amp; <span className="hl">fit</span>
+              Drop your <span className="hl">face</span>, your <span className="hl">fit</span>, or both
             </h2>
-            <p className="sub">Two photos, one scan. We read your face and outfit, then score your aura.</p>
+            <p className="sub">One photo or two. We score whatever you give us — face, outfit, or the full verdict.</p>
           </div>
 
           <div className="ua-zones">
@@ -109,21 +108,16 @@ export function Upload() {
               </span>
             </div>
 
-            {attempted && missingList.length > 0 && (
+            {attempted && !anyReady && (
               <div className="val-banner">
                 <Icon.alert />
-                <span className="vt">
-                  <b>
-                    Add {missingList.length === 2 ? 'both photos' : 'your ' + (missingList[0] === 'face' ? 'face photo' : 'outfit photo')}
-                  </b>{' '}
-                  to run your scan.
-                </span>
+                <span className="vt"><b>Add at least one photo</b> to run your scan.</span>
               </div>
             )}
 
             <div className="cta-block">
               {guest || canScan ? (
-                <button className={'cta ' + (bothReady ? 'go' : 'disabled')} onClick={onGenerate}>
+                <button className={'cta ' + (anyReady ? 'go' : 'disabled')} onClick={onGenerate}>
                   <Icon.bolt /> {guest ? 'Scan my aura, free' : 'Scan my aura'}
                 </button>
               ) : (
@@ -148,8 +142,8 @@ export function Upload() {
                 )}
                 <span>~20 sec</span>
               </div>
-              {(guest || canScan) && !bothReady && !attempted && (
-                <div className="cta-hint">Add both photos to unlock your scan.</div>
+              {(guest || canScan) && !anyReady && !attempted && (
+                <div className="cta-hint">Add a face photo, an outfit photo, or both.</div>
               )}
               {!guest && !canScan && (
                 <div className="cta-hint block">
