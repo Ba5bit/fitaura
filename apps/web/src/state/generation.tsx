@@ -145,8 +145,8 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     const result: GenerationResult = {
       ...base,
       producedAt: now,
-      face: { ...base.face, card: { ...base.face.card, imageUrl: startedFace.url } },
-      outfit: { ...base.outfit, card: { ...base.outfit.card, imageUrl: startedOutfit.url } },
+      face: base.face ? { ...base.face, card: { ...base.face.card, imageUrl: startedFace.url } } : null,
+      outfit: base.outfit ? { ...base.outfit, card: { ...base.outfit.card, imageUrl: startedOutfit.url } } : null,
       receipt: { ...base.receipt, generatedAt: now },
     };
 
