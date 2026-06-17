@@ -420,3 +420,13 @@ body { overflow-y: auto; }
   .ln-hero .ln-hero-actions { flex-direction: column; align-items: flex-start; }
   .ln-hero .ln-hero-actions .ln-btn { width: 70%; }
 }
+
+/* ── CardFan: tappable stacked card fan ─────────────────────────────────── */
+.cardfan { position:relative; width:230px; height:340px; margin:0 auto; }
+.cardfan-item { position:absolute; inset:0; cursor:pointer;
+  transition:transform .45s cubic-bezier(.22,1,.36,1), opacity .45s ease; }
+.cardfan-item.front { transform:rotate(-2deg); }
+.cardfan-item.backRight { transform:translateX(34px) translateY(18px) rotate(8deg) scale(.86); opacity:.6; }
+.cardfan-item.backLeft  { transform:translateX(-8px) translateY(30px) rotate(-9deg) scale(.82); opacity:.45; }
+.cardfan-item.front:focus-visible { outline:2px solid var(--accent); outline-offset:4px; }
+@media (prefers-reduced-motion: reduce) { .cardfan-item { transition:none; } }
