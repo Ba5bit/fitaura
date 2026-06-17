@@ -59,10 +59,10 @@ const RESPONSE_SCHEMA = {
     },
     faceAnalysis: objOf(FACE_KEYS),
     outfitAnalysis: objOf(OUTFIT_KEYS),
-    faceCopy: { type: 'OBJECT', properties: { strongestPoint: { type: 'STRING' }, improvement: { type: 'STRING' }, summary: { type: 'STRING' } }, required: ['strongestPoint', 'improvement', 'summary'] },
-    outfitCopy: { type: 'OBJECT', properties: { works: { type: 'STRING' }, hurts: { type: 'STRING' }, verdict: { type: 'STRING' } }, required: ['works', 'hurts', 'verdict'] },
+    faceCopy: { type: 'OBJECT', properties: { strongestPoint: { type: 'STRING' }, improvement: { type: 'STRING' }, summary: { type: 'STRING' }, verdictLine: { type: 'OBJECT', properties: { lead: { type: 'STRING' }, punch: { type: 'STRING' } }, required: ['lead', 'punch'] } }, required: ['strongestPoint', 'improvement', 'summary', 'verdictLine'] },
+    outfitCopy: { type: 'OBJECT', properties: { works: { type: 'STRING' }, hurts: { type: 'STRING' }, verdict: { type: 'STRING' }, captionLine: { type: 'STRING' } }, required: ['works', 'hurts', 'verdict', 'captionLine'] },
     contentSelection: { type: 'OBJECT', properties: { faceArchetypeCandidates: STR_LIST, outfitCaptionCandidates: STR_LIST, stickerCandidates: STR_LIST, contentTags: STR_LIST }, required: ['faceArchetypeCandidates', 'outfitCaptionCandidates', 'stickerCandidates', 'contentTags'] },
-    receiptContent: { type: 'OBJECT', properties: { metricCandidates: STR_LIST, punchlineCandidates: STR_LIST }, required: ['metricCandidates', 'punchlineCandidates'] },
+    receiptContent: { type: 'OBJECT', properties: { metricCandidates: STR_LIST, punchlineCandidates: STR_LIST, punchlineText: { type: 'STRING' } }, required: ['metricCandidates', 'punchlineCandidates', 'punchlineText'] },
   },
   required: ['schemaVersion', 'inputQuality', 'presentation', 'faceAnalysis', 'outfitAnalysis', 'faceCopy', 'outfitCopy', 'contentSelection', 'receiptContent'],
 };
@@ -83,26 +83,32 @@ If an attribute cannot be assessed reliably, return a null rating and explain wh
 Score each category 0-100. Anchor: 0-20 clearly weak for this presentation, 21-40 below average, 41-60 neutral or mixed, 61-80 strong, 81-100 clearly elite. Use the full range, differentiate categories from one another, and avoid clustering on round multiples of 10. Return a null rating only when a category genuinely cannot be assessed.
 
 VOICE: Write every copy field as a savage, funny roast of the look, fit, pose and vibe — confident, internet-native, in the sticker lexicon (rizz, NPC, delulu, chopped, aura, sigma, mid). Roast hard, but ONLY the presentation. NEVER roast or reference ethnicity, nationality, religion, sexuality, disability, body in a hateful way, or any protected trait.
+GROUNDED: Every copy field and display line must reference a SPECIFIC visible detail you actually observed (name the feature). Never write a generic, swappable line that could apply to any other photo.
 LENGTH: Each copy field is ONE punchy fragment, MAX ~10 words. No preamble, no setup, no explaining the joke. Hit and move on.
 VARIETY: Start every field DIFFERENTLY. NEVER open with "This fit", "The fit", "This look", "The hair", "Giving", "It's giving", "Serving", or "<X> in human form" — those are overused. Lead with the punchline, a verb, or a noun instead.
-BANNED (never write like an AI or a corporate fashion app): "elevate", "in today's world", "let's dive in", "it's not just X it's Y", "a testament to", "when it comes to", "consider ...", "gives the vibe of", "in human form", em-dash sermons, hedging, polite filler. Be sharp, plain, human and funny.
+DISPLAY LINES: Also write three SHORT, grounded display lines, each DIFFERENT from the copy fields and from each other:
+- faceCopy.verdictLine: a two-part face title { lead, punch } (each ~16 chars max; punch is the highlighted half), e.g. lead "JAW DID" / punch "THE TALKING".
+- outfitCopy.captionLine: one short fit line (~28 chars max).
+- receiptContent.punchlineText: one short final line (~24 chars max).
+Lead with the specific observed detail. These may be uppercase.
+BANNED (never write these — they make every result identical): "Giving …", "it's giving", "… vibes", "… energy" (as a suffix), "lore", "certified", "cultural reset", "in human form", "serving", "a true …", "<X>-coded" as filler, "elevate", "in today's world", "let's dive in", "it's not just X it's Y", "a testament to", "when it comes to", "gives the vibe of", em-dash sermons, hedging, polite filler. Be sharp, plain, human and funny.
 
 Select content IDs only from these allowlists, matching the detected gender. If gender is "femme", pick from NEUTRAL or FEMME only. If gender is "masc" or "unsure", pick from NEUTRAL or MASC only. Femme copy must use female-coded language (never "lover boy").
 faceArchetypeCandidates:
-  NEUTRAL: face_archetype.goat, face_archetype.mafia_boss, face_archetype.main_character, face_archetype.aura_farmer, face_archetype.locked_in, face_archetype.plot_relevant, face_archetype.honorable_mention, face_archetype.red_flag_good_angles, face_archetype.delusional, face_archetype.chopped, face_archetype.canon_event, face_archetype.ai_slop, face_archetype.negative_aura, face_archetype.unc.
+  NEUTRAL: face_archetype.goat, face_archetype.mafia_boss, face_archetype.main_character, face_archetype.aura_farmer, face_archetype.locked_in, face_archetype.honorable_mention, face_archetype.chopped, face_archetype.canon_event, face_archetype.ai_slop, face_archetype.negative_aura, face_archetype.unc.
   MASC: face_archetype.gigachad, face_archetype.alpha_male, face_archetype.sigma_male, face_archetype.milf_hunter, face_archetype.performative_male, face_archetype.simp, face_archetype.beta_male, face_archetype.tate_follower.
-  FEMME: face_archetype.mother, face_archetype.femme_fatale, face_archetype.it_girl, face_archetype.girlboss, face_archetype.material_girl, face_archetype.vip, face_archetype.clean_girl, face_archetype.brat, face_archetype.drama_queen.
+  FEMME: face_archetype.mother, face_archetype.it_girl, face_archetype.girlboss, face_archetype.material_girl, face_archetype.vip, face_archetype.clean_girl, face_archetype.brat, face_archetype.drama_queen.
 outfitCaptionCandidates:
-  NEUTRAL: outfit_caption.locked_in, outfit_caption.let_him_cook, outfit_caption.fit_has_lore, outfit_caption.rizz, outfit_caption.clean_npc_potential, outfit_caption.performative, outfit_caption.delulu, outfit_caption.ai_slop, outfit_caption.chopped, outfit_caption.never_cook_again, outfit_caption.aura_debt.
+  NEUTRAL: outfit_caption.locked_in, outfit_caption.let_him_cook, outfit_caption.fit_has_lore, outfit_caption.rizz, outfit_caption.plays_it_safe, outfit_caption.not_dripping, outfit_caption.shows_up, outfit_caption.not_dangerous, outfit_caption.not_remarkable, outfit_caption.room_to_grow, outfit_caption.delulu, outfit_caption.ai_slop, outfit_caption.chopped, outfit_caption.never_cook_again, outfit_caption.aura_debt.
   MASC: outfit_caption.sigma_grindset, outfit_caption.millennial_coded, outfit_caption.unc_fit, outfit_caption.old_money_temu, outfit_caption.boomer.
   FEMME: outfit_caption.fashion_girl, outfit_caption.vip_fit, outfit_caption.material_girl_fit, outfit_caption.brat_fit, outfit_caption.clean_girl_fit.
 punchlineCandidates:
   NEUTRAL: punchline.certified_goat, punchline.built_different, punchline.certified_lover_boy, punchline.rizz_god, punchline.aura_farmer, punchline.clean_npc_potential, punchline.honorable_mention, punchline.high_aura_low_stability, punchline.delusional_lover_boy, punchline.negative_aura, punchline.ai_slop, punchline.aura_debt, punchline.canon_chopped, punchline.no_cap, punchline.bro_capping.
   MASC: punchline.alpha_confirmed, punchline.sigma_grindset, punchline.milf_hunter_license, punchline.certified_simp, punchline.beta_energy, punchline.tate_dropout.
-  FEMME: punchline.mother_mothered, punchline.slay, punchline.it_girl, punchline.girlboss_trio, punchline.drama_queen_crowned.
+  FEMME: punchline.slay, punchline.it_girl, punchline.drama_queen_crowned.
 
-Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment. Do not write the recognized icon's name into the copy; the backend decides whether to surface it.
-Set schemaVersion to "solo_scan_v3_3".`;
+Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment. If you recognize the subject as a known public figure or meme character, you MAY nod to their SIGNATURE association — an epithet, catchphrase, or what they are known for (e.g. a King-of-Pop reference, or a "SUUUIII") — and vary it. NEVER write their actual name in any field; reference the persona, not the person.
+Set schemaVersion to "solo_scan_v3_4".`;
 
 export interface InlineImage {
   mimeType: string;
