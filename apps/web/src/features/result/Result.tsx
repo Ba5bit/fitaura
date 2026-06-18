@@ -20,6 +20,7 @@ import { Icon } from '../../lib/icons';
 import { receiptDateTime } from '../../lib/format';
 import { renderCardBlob, downloadResult, shareResult } from '../../lib/exportCard';
 import { CARD_GEOM, RECEIPT_PRESETS, type Point } from './stickerGeometry';
+import { swipeStep, startsOnInteractiveSticker } from './swipeGesture';
 import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
 import { ProfileMenu } from '../account/ProfileMenu';
@@ -142,15 +143,22 @@ export function Result() {
   const touch = useRef<{ x: number; y: number } | null>(null);
   const onTouchStart = (e: TouchEvent) => {
     if (editing) return;
+    // Don't arm a tab-swipe when the gesture begins on the sticker. The sticker
+    // drags via its own pointer events, but the same finger's touch events bubble
+    // up here — without this guard a horizontal sticker drag is misread as a card
+    // swipe and flips the tab (the "tapping the sticker changes the card" bug).
+    if (startsOnInteractiveSticker(e.target)) {
+      touch.current = null;
+      return;
+    }
     const t = e.touches[0];
     touch.current = { x: t.clientX, y: t.clientY };
   };
   const onTouchEnd = (e: TouchEvent) => {
     if (!touch.current) return;
     const t = e.changedTouches[0];
-    const dx = t.clientX - touch.current.x;
-    const dy = t.clientY - touch.current.y;
-    if (Math.abs(dx) > 52 && Math.abs(dx) > Math.abs(dy) * 1.4) setTab(tab + (dx < 0 ? 1 : -1));
+    const step = swipeStep(t.clientX - touch.current.x, t.clientY - touch.current.y);
+    if (step) setTab(tab + step);
     touch.current = null;
   };
 
