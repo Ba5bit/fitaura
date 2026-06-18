@@ -1,0 +1,28 @@
+/* ============================================================
+   CARD-STACK SKIN SWITCHER. The front card is full-size + live
+   (no scale-down — it carries the sticker editor + export);
+   peeking skins sit behind, scaled + offset + dimmed. With one
+   skin only `.front-live` renders, so this is a no-op visually.
+   ============================================================ */
+.cs-switch { position: relative; width: 360px; }
+.cs-deck { position: relative; width: 360px; height: 640px; }
+.cs-card {
+  position: absolute; inset: 0; width: 360px; height: 640px;
+  transition: transform .42s cubic-bezier(.22,1,.36,1), opacity .3s ease;
+  transform-origin: 50% 60%;
+}
+.cs-card.front-live { transform: none; z-index: 5; }
+.cs-card.backRight { transform: translateX(34px) translateY(10px) rotate(5deg) scale(.9); opacity: .5; filter: saturate(.7); cursor: pointer; }
+.cs-card.backLeft  { transform: translateX(-34px) translateY(10px) rotate(-5deg) scale(.9); opacity: .42; filter: saturate(.7); cursor: pointer; }
+/* peeking cards must not capture sticker drags meant for the front card */
+.cs-card:not(.front-live) :is(image-slot, .sticker, button) { pointer-events: none; }
+
+.cs-dots { display: flex; justify-content: center; gap: 9px; margin-top: 14px; }
+.cs-dot {
+  width: 9px; height: 9px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: var(--ink-ghost); transition: background .2s, transform .2s;
+}
+.cs-dot:hover { background: var(--ink-faint); }
+.cs-dot.on { background: var(--accent); box-shadow: 0 0 10px -2px var(--accent); transform: scale(1.2); }
+
+@media (prefers-reduced-motion: reduce) { .cs-card { transition: none; } }
