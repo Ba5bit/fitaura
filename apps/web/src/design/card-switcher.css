@@ -14,8 +14,10 @@
 .cs-card.front-live { transform: none; z-index: 5; }
 .cs-card.backRight { transform: translateX(34px) translateY(10px) rotate(5deg) scale(.9); opacity: .5; filter: saturate(.7); cursor: pointer; }
 .cs-card.backLeft  { transform: translateX(-34px) translateY(10px) rotate(-5deg) scale(.9); opacity: .42; filter: saturate(.7); cursor: pointer; }
-/* peeking cards must not capture sticker drags meant for the front card */
-.cs-card:not(.front-live) :is(image-slot, .sticker, button) { pointer-events: none; }
+/* peeking cards are previews: suppress pointer events on their contents so a
+   tap lands on the .cs-card itself (which switches), not an inner sticker/photo/
+   button. The .cs-card div keeps its own pointer-events for the switch click. */
+.cs-card:not(.front-live) * { pointer-events: none; }
 
 .cs-dots { display: flex; justify-content: center; gap: 9px; margin-top: 14px; }
 .cs-dot {
