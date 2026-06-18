@@ -331,6 +331,16 @@ body::before{
 .r-barcode .bars i{ width:2px; background:var(--receipt-ink,#eef1f4); opacity:.85; }
 .r-barcode .id{ font-size:8.5px; letter-spacing:0.4em; opacity:.55; }
 
+/* QR + invite footer (replaces the barcode on neon + thermal). Text inherits
+   --receipt-ink so it adapts to dark/cream; the QR box stays light with dark
+   modules so it scans on either paper. */
+.r-qrfoot{ margin-top:16px; display:flex; align-items:center; gap:14px; }
+.r-qr{ width:96px; height:96px; flex:none; padding:6px; border-radius:8px; background:#f4f6f8; }
+.r-qr rect{ fill:#0a0c11; }
+.r-qrtext{ flex:1; min-width:0; }
+.r-qrtext .r-cta{ font-family:"Hanken Grotesk"; font-weight:800; letter-spacing:0.05em; font-size:14px; }
+.r-qrtext .r-sub{ font-size:9px; letter-spacing:0.1em; opacity:.6; margin-top:3px; text-transform:uppercase; }
+
 .r-seal{ position:absolute; top:10px; right:10px; width:58px; height:58px; border-radius:50%;
   display:grid; place-items:center; transform:rotate(13deg); z-index:4;
   border:2px solid var(--verdict); color:var(--verdict);

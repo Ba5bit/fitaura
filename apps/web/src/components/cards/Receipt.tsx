@@ -4,7 +4,8 @@ import {
   type ReceiptPaper,
   type ReceiptRowTone,
 } from '@fitaura/shared';
-import { Bars } from './Bars';
+import { QrCode } from './QrCode';
+import { SITE_URL } from '../../lib/qr';
 import { receiptDate } from '../../lib/format';
 
 interface ReceiptProps {
@@ -71,9 +72,13 @@ export function Receipt({ content, paper = 'neon', sealOn = true }: ReceiptProps
           <div className="eyebrow">— FINAL READING —</div>
           <div className="big">{content.finalPunchline}</div>
         </div>
-        <div className="r-barcode">
-          <Bars seed={content.generationId.length * 13 + 4} count={48} height="36px" />
-          <span className="id">FITAURA · {content.generationId}</span>
+        <div className="r-qrfoot">
+          <QrCode value={SITE_URL} className="r-qr" />
+          <div className="r-qrtext">
+            <div className="r-cta">SCAN TO INVITE</div>
+            <div className="r-sub">GET YOUR FRIENDS SCORED</div>
+            <div className="r-sub">FITAURA · {content.generationId}</div>
+          </div>
         </div>
       </div>
       <div className="r-edge bottom" />

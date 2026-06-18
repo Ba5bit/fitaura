@@ -278,6 +278,9 @@
 .rs-export-card.is-receipt {
   width: 340px;
 }
+.rs-export-card.is-receipt[data-paper="premium"] {
+  width: 360px; /* the premium holo card is a full-bleed 360 card, not a 340 receipt */
+}
 .rs-export-card .asset {
   position: absolute;
   inset: 0;
