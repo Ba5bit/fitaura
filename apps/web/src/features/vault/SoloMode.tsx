@@ -127,7 +127,7 @@ function SoloCard({
                 <Icon.open /> Open verdict
               </button>
               <button role="menuitem" onClick={() => onAction('download', r)}>
-                <Icon.download /> Download all 3 cards
+                <Icon.download /> Download all {1 + (r.face ? 1 : 0) + (r.outfit ? 1 : 0)} cards
               </button>
               <button role="menuitem" onClick={() => onAction('studio', r)}>
                 <Icon.layers /> Edit in Card Studio

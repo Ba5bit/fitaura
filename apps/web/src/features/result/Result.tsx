@@ -286,7 +286,7 @@ export function Result() {
     }
   };
   const exportAll = async () => {
-    ping('Exporting all 3 cards…');
+    ping(`Exporting all ${tabs.length} cards…`);
     try {
       await withExportHost(async () => {
         const kinds = [
@@ -358,6 +358,7 @@ export function Result() {
       <ReceiptSummaryBlock
         key={animKey}
         receipt={result.receipt}
+        cardCount={tabs.length}
         onExportAll={exportAll}
         onShare={share}
         onNewScan={newScan}

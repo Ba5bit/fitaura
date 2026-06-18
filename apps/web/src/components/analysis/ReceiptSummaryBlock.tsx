@@ -3,6 +3,8 @@ import { Icon } from '../../lib/icons';
 
 interface ReceiptSummaryBlockProps {
   receipt: DatingReceiptResult;
+  /** Number of downloadable cards (2 for a partial scan, 3 for a full one). */
+  cardCount: number;
   onExportAll: () => void;
   onShare: () => void;
   onNewScan: () => void;
@@ -15,6 +17,7 @@ interface ReceiptSummaryBlockProps {
  */
 export function ReceiptSummaryBlock({
   receipt,
+  cardCount,
   onExportAll,
   onShare,
   onNewScan,
@@ -40,7 +43,7 @@ export function ReceiptSummaryBlock({
       <div className="rs-summary-actions">
         <button className="rs-bigbtn primary" onClick={onExportAll}>
           <Icon.download />
-          Export all 3 cards
+          Export all {cardCount} cards
         </button>
         <button className="rs-bigbtn" onClick={onShare}>
           <Icon.share />
