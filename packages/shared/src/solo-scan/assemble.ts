@@ -11,7 +11,7 @@ import {
   biasFactor, applyScoreBias, isMemeGlory, applyGloryFloor,
 } from './scoring.ts';
 import { pickFaceArchetype, pickOutfitCaption, pickPunchline, scoreBand } from './content-bank.ts';
-import { acceptWritten, scrubName } from './copyFilter.ts';
+import { scrubName } from './copyFilter.ts';
 
 /** Display value for a rubric category that is null (not assessable). */
 const UNSCORED_DISPLAY = 50;
@@ -74,8 +74,11 @@ export function assembleResult(
   const iconName = ai.presentation.recognizedIcon;
   const d = (s: number, key: string) => displayScore(s, scanId, key, promptVersion);
 
-  const bankedPunchline = pickPunchline(glory ? undefined : ai.receiptContent.punchlineCandidates, band, scanId, contentGender);
-  const punchline = acceptWritten(ai.receiptContent.punchlineText, 26, iconName) ?? bankedPunchline;
+  // Card headlines come from the written archetype/caption/punchline bank. The AI's
+  // "grounded" line tends to narrate the photo ("WHITE TOP, PURPLE LIGHTS") rather
+  // than land a verdict, so the bank owns the punchy lines; AI prose stays in the
+  // analysis block only.
+  const punchline = pickPunchline(glory ? undefined : ai.receiptContent.punchlineCandidates, band, scanId, contentGender);
 
   const fa = b.faceAnalysis;
   const oa = b.outfitAnalysis;
@@ -85,15 +88,8 @@ export function assembleResult(
   let faceResult = null as FullGenerationResult['face'];
   if (parts.face) {
     const archetype = pickFaceArchetype(glory ? undefined : ai.contentSelection.faceArchetypeCandidates, band, scanId, contentGender);
-    // Written line wins if both halves pass the filter and the line isn't the icon
-    // name (incl. when split across lead/punch — compare with spaces stripped).
-    const wl = ai.faceCopy.verdictLine;
-    const lead = acceptWritten(wl.lead, 18, iconName);
-    const punch = acceptWritten(wl.punch, 18, iconName);
-    const nameInLine = iconName
-      ? `${wl.lead}${wl.punch}`.replace(/\s/g, '').toLowerCase().includes(iconName.replace(/\s/g, '').toLowerCase())
-      : false;
-    const verdictLine: [string, string] = lead && punch && !nameInLine ? [lead, punch] : archetype.line;
+    // Headline = banked archetype line (see note above); AI verdictLine is unused here.
+    const verdictLine: [string, string] = archetype.line;
     const faceCard = {
       imageUrl: null,
       eyebrow: 'FACE VERDICT',
@@ -129,7 +125,7 @@ export function assembleResult(
   let outfitResult = null as FullGenerationResult['outfit'];
   if (parts.outfit) {
     const caption = pickOutfitCaption(glory ? undefined : ai.contentSelection.outfitCaptionCandidates, band, scanId, contentGender);
-    const captionText = acceptWritten(ai.outfitCopy.captionLine, 30, iconName) ?? caption.caption;
+    const captionText = caption.caption;
     const outfitCard = {
       imageUrl: null,
       caption: captionText,

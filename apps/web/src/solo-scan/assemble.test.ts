@@ -152,34 +152,31 @@ describe('assembleResult (partial)', () => {
   });
 });
 
-describe('assembleResult v3.4 — written copy with fallback', () => {
-  it('uses the written line, caption and punchline when valid', () => {
+describe('assembleResult — card headlines use the written bank, not AI copy', () => {
+  it('ignores the AI written line/caption/punchline for the card headlines', () => {
+    // The fixture supplies valid AI copy (JAW DID / THE TALKING etc.), but the card
+    // verdict, caption and punchline all come from the banked archetypes.
     const r = assembleResult(sampleAIOutput(), 'scan-w', 'v3_4', { face: true, outfit: true });
-    expect(r.face!.card.verdict).toEqual(['JAW DID', 'THE TALKING']);
-    expect(r.outfit!.card.caption).toBe('STRUCTURE OVER FLASH');
-    expect(r.receipt.finalPunchline).toBe('QUIET CONFIDENCE');
+    expect(r.face!.card.verdict).not.toEqual(['JAW DID', 'THE TALKING']);
+    expect(r.face!.card.verdict).toHaveLength(2);
+    expect(r.outfit!.card.caption).not.toBe('STRUCTURE OVER FLASH');
+    expect(r.outfit!.card.caption.length).toBeGreaterThan(0);
+    expect(r.receipt.finalPunchline).not.toBe('QUIET CONFIDENCE');
+    expect(r.receipt.finalPunchline.length).toBeGreaterThan(0);
   });
 
-  it('falls back to the banked phrase when the written line is cliché/empty', () => {
+  it('uses the bank even when the AI narrates the photo (the reported bug)', () => {
     const ai = sampleAIOutput();
-    ai.faceCopy.verdictLine = { lead: 'GIVING', punch: 'ENERGY' }; // cliché
-    ai.outfitCopy.captionLine = '';                               // empty
-    ai.receiptContent.punchlineText = 'this written punchline is far too long to ever fit'; // too long
+    ai.faceCopy.verdictLine = { lead: 'SELFIE GAME', punch: 'ALMOST THERE' };
+    ai.outfitCopy.captionLine = 'WHITE TOP, PURPLE LIGHTS';
+    ai.receiptContent.punchlineText = 'SIMPLE TOP BIG BACKGROUND';
     const r = assembleResult(ai, 'scan-w', 'v3_4', { face: true, outfit: true });
-    expect(r.face!.card.verdict).not.toEqual(['GIVING', 'ENERGY']);
-    expect(r.face!.card.verdict).toHaveLength(2);
-    expect(r.outfit!.card.caption.length).toBeGreaterThan(0);
-    expect(r.receipt.finalPunchline.length).toBeGreaterThan(0);
-    // sticker + scores untouched by the fallback
+    expect(r.face!.card.verdict).not.toEqual(['SELFIE GAME', 'ALMOST THERE']);
+    expect(r.outfit!.card.caption).not.toBe('WHITE TOP, PURPLE LIGHTS');
+    expect(r.receipt.finalPunchline).not.toBe('SIMPLE TOP BIG BACKGROUND');
+    // bank values are non-empty and the sticker/scores are intact
+    expect(r.face!.card.verdict.every((s) => s.length > 0)).toBe(true);
     expect(r.face!.card.sticker.label.length).toBeGreaterThan(0);
     expect(r.face!.card.scores).toHaveLength(4);
-  });
-
-  it('falls back when the written line is only the icon name', () => {
-    const ai = sampleAIOutput();
-    ai.presentation = { ...ai.presentation, recognizedIcon: 'McLovin', recognizedConfidence: 0.9 };
-    ai.faceCopy.verdictLine = { lead: 'MC', punch: 'LOVIN' }; // combines to the name
-    const r = assembleResult(ai, 'scan-w', 'v3_4', { face: true, outfit: true });
-    expect(r.face!.card.verdict.join(' ')).not.toContain('LOVIN');
   });
 });
