@@ -20,6 +20,15 @@ describe('assembleResult — fixed gender', () => {
     ai.presentation = { ...ai.presentation, gender: 'femme', genderConfidence: 0.4 };
     expect(assembleResult(ai, 'scan-g', 'v3', both).gender).toBe('masc');
   });
+
+  it('genders the lover-boy receipt row (Heartbreaker for femme)', () => {
+    const masc = assembleResult(sampleAIOutput(), 'scan-lb', 'v3', both);
+    expect(masc.receipt.rows.find((r) => r.id === 'lover-boy')!.label).toBe('Lover-Boy Prob.');
+    const ai = sampleAIOutput();
+    ai.presentation = { ...ai.presentation, gender: 'femme', genderConfidence: 0.9 };
+    const femme = assembleResult(ai, 'scan-lb', 'v3', both);
+    expect(femme.receipt.rows.find((r) => r.id === 'lover-boy')!.label).toBe('Heartbreaker Prob.');
+  });
 });
 
 describe('genderOf', () => {
