@@ -230,23 +230,58 @@ export function Scan() {
     })();
   }, [hydrated, canScanPhotos, alreadyScanned, signedIn, canScan, spendForScan, runGeneration, refundScan, openPaywall, navigate]);
 
-  // Progress driver. For a signed-in scan the animation HOLDS near the end until
-  // the real generation settles, so the wait is synced to the actual AI. Guests
-  // have no generation in flight, so they finish on the timer (pure teaser).
+  // Progress driver — the animation is SYNCED to the real work, not a fixed timer.
+  // A signed-in scan runs the Gemini call DURING the animation: progress eases
+  // toward a soft cap while the AI analyzes, then sprints to 100 the instant it
+  // settles — so a fast scan animates fast and a slow scan holds, identically on
+  // desktop and mobile. A small floor keeps an unusually quick response from
+  // flashing past every stage. Guests have no generation in flight, so they run a
+  // fixed teaser to 100 (nothing to sync to until they sign up at the reveal).
   useEffect(() => {
     if (!canScanPhotos) return;
-    const dur = reduced ? 3000 : 4000;
+    const TAU = 2200; // ease time-constant (ms) while analyzing — slows near the cap
+    const CAP = 92; // soft ceiling held until the AI settles
+    const FLOOR = reduced ? 1100 : 1600; // min elapsed before we let it complete
+    const SPRINT = reduced ? 220 : 600; // ms to run current → 100 once settled
+    const TEASER = reduced ? 2600 : 3400; // guest teaser length (no AI in flight)
+
+    let last = 0; // last emitted progress — the sprint starts from here
+    let sprintAt: number | null = null;
+    let sprintFrom = 0;
+
+    const finish = () => {
+      setProgress(100);
+      setPhase('done');
+    };
+
     const frame = (t: number) => {
       if (startRef.current == null) startRef.current = t;
-      const rawP = Math.min(100, ((t - startRef.current) / dur) * 100);
-      const settled = !signedIn || (genStateRef.current !== 'idle' && genStateRef.current !== 'running');
-      const capped = settled ? rawP : Math.min(rawP, 95);
-      setProgress(reduced ? Math.floor(capped / 4) * 4 : capped);
-      if (rawP >= 100 && settled) {
-        setProgress(100);
-        setPhase('done');
-        return;
+      const elapsed = t - startRef.current;
+      const settled =
+        !signedIn || (genStateRef.current !== 'idle' && genStateRef.current !== 'running');
+
+      let p: number;
+      if (!signedIn) {
+        // pure teaser timer
+        p = Math.min(100, (elapsed / TEASER) * 100);
+        if (p >= 100) return finish();
+      } else if (!settled || elapsed < FLOOR) {
+        // analyzing (or under the floor): asymptotic ease toward the cap — never stalls
+        p = Math.min(CAP, CAP * (1 - Math.exp(-elapsed / TAU)));
+      } else {
+        // AI settled and the floor has passed → sprint to 100, then finish
+        if (sprintAt == null) {
+          sprintAt = t;
+          sprintFrom = last;
+        }
+        const k = Math.min(1, (t - sprintAt) / SPRINT);
+        const eased = 1 - Math.pow(1 - k, 3); // ease-out cubic
+        p = sprintFrom + (100 - sprintFrom) * eased;
+        if (k >= 1) return finish();
       }
+
+      last = p;
+      setProgress(reduced ? Math.round(p / 4) * 4 : p);
       rafRef.current = requestAnimationFrame(frame);
     };
     rafRef.current = requestAnimationFrame(frame);
