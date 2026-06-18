@@ -171,7 +171,7 @@ const PUNCHLINE_BANK: Record<string, PunchlineEntry> = {
   'punchline.canon_chopped': { text: 'CANON EVENT', band: 'dire' },
   // --- neutral slang ---
   'punchline.no_cap': { text: 'NO CAP', band: 'high' },
-  'punchline.bro_capping': { text: 'BRO IS CAPPING', band: 'poor' },
+  'punchline.bro_capping': { text: 'BRO IS CAPPING', band: 'poor', femme: 'SIS IS CAPPING' },
   // --- masc-only ---
   'punchline.alpha_confirmed': { text: 'ALPHA CONFIRMED', band: 'elite', gender: 'masc' },
   'punchline.sigma_grindset': { text: 'SIGMA GRINDSET', band: 'high', gender: 'masc' },

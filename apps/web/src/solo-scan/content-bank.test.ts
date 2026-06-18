@@ -68,6 +68,11 @@ describe('gendered content', () => {
     const a = pickFaceArchetype(['face_archetype.it_girl'], 'high', 's3', 'masc');
     expect(a.line).not.toEqual(['IT', 'GIRL']);
   });
+
+  it('genders the bro-capping punchline (SIS IS CAPPING for femme)', () => {
+    expect(pickPunchline(['punchline.bro_capping'], 'poor', 's4', 'masc')).toBe('BRO IS CAPPING');
+    expect(pickPunchline(['punchline.bro_capping'], 'poor', 's4', 'femme')).toBe('SIS IS CAPPING');
+  });
 });
 
 const NEW_MID_OUTFIT = [
