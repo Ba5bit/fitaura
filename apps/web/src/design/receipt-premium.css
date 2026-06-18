@@ -1,72 +1,57 @@
 /* ============================================================
-   PREMIUM RECEIPT — "verified pass". System tokens only.
-   Accent = card gender identity (--accent, remapped to --magenta
-   for femme by gender-theme.css). Verdict colour stays semantic.
-   Ported from the Card Studio v2 prototype, rebuilt in tokens.
+   PREMIUM RECEIPT — the Dating Score Receipt, dressed up with a
+   neon verdict box, a FITAURA VERIFIED seal, and a real QR invite
+   footer. Reuses the `.receipt` base (dark thermal styling + the
+   correct export/centering geometry — no clipping); only the
+   premium-specific bits live here. System tokens; verdict colour
+   stays semantic. Adopts the prototype's receipt style.
    ============================================================ */
-.rcp {
+.receipt[data-style="premium"] {
   position: relative;
-  width: 360px;
-  height: 640px;
-  border-radius: 22px;
-  overflow: hidden;
+  border-radius: 20px;
   background:
-    radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 60%),
-    linear-gradient(180deg, var(--bg-2), var(--bg-0) 78%);
-  border: 1px solid var(--hair);
-  box-shadow: var(--shadow-card);
-  color: var(--ink);
-}
-.rcp-glow {
-  position: absolute; inset: 0; z-index: 0; pointer-events: none; mix-blend-mode: screen;
-  background: radial-gradient(60% 40% at 50% 8%, color-mix(in oklab, var(--accent) 30%, transparent), transparent 70%);
-}
-.rcp-inner { position: relative; z-index: 2; height: 100%; padding: 24px 23px 22px; display: flex; flex-direction: column; }
-
-.rcp-top { display: flex; align-items: center; justify-content: space-between; }
-.rcp-brand { display: flex; align-items: center; gap: 9px; font-family: "Hanken Grotesk", sans-serif; font-weight: 800; letter-spacing: .3em; font-size: 13px; color: var(--ink); }
-.rcp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
-.rcp-passtag {
-  font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: .2em; color: var(--ink-dim); text-transform: uppercase;
-  padding: 4px 9px; border: 1px solid var(--hair); border-radius: 999px;
+    radial-gradient(120% 60% at 50% -8%, color-mix(in oklab, var(--verdict) 12%, transparent), transparent 60%),
+    #0a0c11;
 }
 
-.rcp-holo { position: relative; margin: 18px 0 2px; height: 28px; border-radius: 8px; overflow: hidden; border: 1px solid var(--hair-soft); }
-.rcp-holo::after {
-  content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(100deg, transparent 10%, color-mix(in oklab, var(--accent) 35%, transparent) 35%, color-mix(in oklab, var(--lime) 25%, transparent) 50%, color-mix(in oklab, var(--accent) 35%, transparent) 65%, transparent 90%);
-  opacity: .8;
-}
-.rcp-holo span {
-  position: absolute; inset: 0; display: flex; align-items: center; white-space: nowrap; overflow: hidden;
-  font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: .26em; color: var(--ink-dim); text-transform: uppercase; padding-left: 10px;
+/* FITAURA VERIFIED seal — circular badge, top-right, verdict-coloured. */
+.receipt[data-style="premium"] .rcp-seal {
+  position: absolute; top: 16px; right: 16px; z-index: 3;
+  width: 58px; height: 58px; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  text-align: center;
+  border: 1.5px solid color-mix(in oklab, var(--verdict) 70%, var(--hair));
+  color: var(--verdict);
+  font-family: "Space Mono", monospace; font-size: 7.5px; line-height: 1.15; letter-spacing: .1em; text-transform: uppercase;
+  box-shadow: 0 0 16px -4px var(--verdict), inset 0 0 12px -6px var(--verdict);
+  transform: rotate(-8deg);
 }
 
-/* margin-top:auto here + on .rcp-foot splits the free height into two even
-   gaps, so the brand/holo sit up top, the verdict+rows block centres, and the
-   QR foot anchors the bottom (instead of one big void above the foot). */
-.rcp-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 9px; margin: auto 0 2px; }
-.rcp-vlabel { font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: .3em; color: var(--ink-dim); text-transform: uppercase; }
-.rcp-stamp {
-  font-family: "Anton", sans-serif; font-size: 43px; line-height: .94; letter-spacing: .01em; text-transform: uppercase;
-  color: #fff; text-shadow: 0 0 26px color-mix(in oklab, var(--verdict) 55%, transparent);
+/* Categorical verdict in a neon outlined box, coloured by verdict. */
+.receipt[data-style="premium"] .r-verdict { text-align: center; }
+.receipt[data-style="premium"] .rcp-vbox {
+  display: inline-block;
+  margin: 6px auto 0;
+  padding: 8px 24px;
+  border: 2px solid var(--verdict);
+  border-radius: 12px;
+  color: var(--verdict);
+  text-shadow: 0 0 18px color-mix(in oklab, var(--verdict) 55%, transparent);
+  box-shadow: 0 0 26px -8px var(--verdict), inset 0 0 22px -14px var(--verdict);
 }
-.rcp-punch { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 15.5px; letter-spacing: .05em; color: var(--verdict); text-transform: uppercase; }
 
-.rcp-rows {
-  margin-top: 18px; padding: 15px; border-radius: 13px; display: flex; flex-direction: column; gap: 10px;
-  background: var(--panel); border: 1px solid var(--hair-soft); backdrop-filter: blur(8px);
+/* QR + invite footer (replaces the barcode). */
+.receipt[data-style="premium"] .rcp-foot {
+  display: flex; align-items: center; gap: 15px; margin-top: 20px;
 }
-.rcp-row { display: flex; align-items: baseline; gap: 8px; font-family: "Space Mono", monospace; font-size: 11.5px; }
-.rcp-row .rk { color: var(--ink-dim); text-transform: uppercase; letter-spacing: .06em; }
-.rcp-row .rlead { flex: 1; border-bottom: 1px dotted var(--hair); transform: translateY(-3px); }
-.rcp-row .rv { color: var(--ink); font-weight: 700; }
-.rcp-row .rv.good { color: var(--lime); }
-.rcp-row .rv.hi { color: var(--verdict); }
-
-.rcp-foot { display: flex; align-items: center; gap: 15px; margin-top: auto; padding-top: 16px; }
-.rcp-qr { width: 118px; height: 118px; flex: none; padding: 7px; border-radius: 8px; background: #f4f6f8; }
-.rcp-qr rect { fill: #0a0c11; }
-.rcp-foottext { flex: 1; min-width: 0; }
-.rcp-seal { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; letter-spacing: .08em; font-size: 12px; color: var(--ink); }
-.rcp-meta { font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: .1em; color: var(--ink-dim); text-transform: uppercase; margin-top: 3px; }
+.receipt[data-style="premium"] .rcp-qr {
+  width: 104px; height: 104px; flex: none; padding: 7px; border-radius: 9px; background: #f4f6f8;
+}
+.receipt[data-style="premium"] .rcp-qr rect { fill: #0a0c11; }
+.receipt[data-style="premium"] .rcp-foottext { flex: 1; min-width: 0; }
+.receipt[data-style="premium"] .rcp-cta {
+  font-family: "Hanken Grotesk", sans-serif; font-weight: 800; letter-spacing: .05em; font-size: 15px; color: var(--ink);
+}
+.receipt[data-style="premium"] .rcp-meta {
+  font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: .1em; color: var(--ink-dim); text-transform: uppercase; margin-top: 3px;
+}
