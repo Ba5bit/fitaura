@@ -582,7 +582,7 @@ export function Result() {
           )}
 
           {/* edit-mode panel — receipt: preset slots live on the card */}
-          {editing && kind === 'receipt' && (
+          {editing && kind === 'receipt' && paper !== 'premium' && (
             <div className="rs-editpanel">
               <div className="eh">
                 <span className="t">STAMP POSITION</span>

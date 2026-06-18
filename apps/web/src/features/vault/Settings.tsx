@@ -163,6 +163,9 @@ export function Settings() {
                 <button role="tab" aria-selected={paper === 'thermal'} onClick={() => setPaper('thermal')}>
                   Thermal
                 </button>
+                <button role="tab" aria-selected={paper === 'premium'} onClick={() => setPaper('premium')}>
+                  Premium
+                </button>
               </div>
             </div>
           </div>
