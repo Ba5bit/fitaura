@@ -72,7 +72,7 @@ export function Result() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const frameRef = useRef<HTMLDivElement>(null);
 
-  // Per-kind selected sticker index into STICKER_BANK.
+  // Per-kind selected sticker index into the gender-filtered list (stickersFor).
   const [stk, setStk] = useState<{ face: number; outfit: number }>({ face: 0, outfit: 0 });
   // Per-kind sticker position (normalized) + receipt stamp preset — the
   // customization state ported from the Card Studio, now part of this page.
