@@ -42,7 +42,10 @@
   font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: .26em; color: var(--ink-dim); text-transform: uppercase; padding-left: 10px;
 }
 
-.rcp-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 9px; margin: 16px 0 2px; }
+/* margin-top:auto here + on .rcp-foot splits the free height into two even
+   gaps, so the brand/holo sit up top, the verdict+rows block centres, and the
+   QR foot anchors the bottom (instead of one big void above the foot). */
+.rcp-hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 9px; margin: auto 0 2px; }
 .rcp-vlabel { font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: .3em; color: var(--ink-dim); text-transform: uppercase; }
 .rcp-stamp {
   font-family: "Anton", sans-serif; font-size: 43px; line-height: .94; letter-spacing: .01em; text-transform: uppercase;
