@@ -54,21 +54,6 @@ export function CardSwitcher({ kind, skinId, setSkinId, skinProps, overlay, lock
           );
         })}
       </div>
-      {n > 1 && (
-        <div className="cs-dots" role="tablist" aria-label="Card skin">
-          {skins.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              role="tab"
-              aria-selected={i === active}
-              aria-label={s.name}
-              className={'cs-dot' + (i === active ? ' on' : '')}
-              onClick={() => select(i)}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

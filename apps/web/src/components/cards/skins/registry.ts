@@ -1,10 +1,18 @@
 import type { CardSkin, SkinKind } from './types';
 import { DossierFace } from './DossierFace';
 import { DossierOutfit } from './DossierOutfit';
+import { CleanFace } from './CleanFace';
+import { CleanOutfit } from './CleanOutfit';
 
 export const CARD_SKINS: Record<SkinKind, CardSkin[]> = {
-  face: [{ id: 'dossier', name: 'Dossier', Comp: DossierFace }],
-  outfit: [{ id: 'dossier', name: 'Dossier', Comp: DossierOutfit }],
+  face: [
+    { id: 'dossier', name: 'Dossier', Comp: DossierFace },
+    { id: 'clean', name: 'Clean', Comp: CleanFace },
+  ],
+  outfit: [
+    { id: 'dossier', name: 'Dossier', Comp: DossierOutfit },
+    { id: 'clean', name: 'Clean', Comp: CleanOutfit },
+  ],
 };
 
 export function skinsFor(kind: SkinKind): CardSkin[] {

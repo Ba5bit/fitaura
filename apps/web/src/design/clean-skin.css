@@ -1,0 +1,47 @@
+/* ============================================================
+   CLEAN SKIN — full-bleed, Tinder-style card. System tokens only.
+   The photo fills the card; a bottom scrim carries the verdict +
+   chips + read. Accent (verdict highlight, score chip) follows the
+   card's gender identity (--accent, remapped to --magenta for femme
+   by gender-theme.css on the .rs-card-mount / .rs-export-card ancestor).
+   ============================================================ */
+.clean-card {
+  position: absolute; inset: 0; width: 360px; height: 640px;
+  border-radius: 26px; overflow: hidden; box-shadow: var(--shadow-card);
+  background: var(--bg-1); isolation: isolate;
+}
+.clean-card .card-image { position: absolute; inset: 0; }
+.clean-card .card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.clean-card .card-image-placeholder {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: linear-gradient(160deg, var(--bg-2), var(--bg-0));
+  color: var(--ink-faint); font-family: "Space Mono", monospace; font-size: 11px;
+  letter-spacing: .2em; text-transform: uppercase;
+}
+
+.clean-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, transparent 34%, rgba(0,0,0,.42) 60%, rgba(0,0,0,.9) 100%);
+}
+.clean-wm {
+  position: absolute; top: 18px; left: 20px; z-index: 2;
+  font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: .28em;
+  color: #fff; opacity: .85; text-transform: uppercase;
+}
+.clean-bottom { position: absolute; left: 22px; right: 22px; bottom: 24px; z-index: 2; }
+.clean-verdict {
+  margin: 0; font-family: "Anton", sans-serif; font-size: 34px; line-height: .98;
+  letter-spacing: .01em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 18px rgba(0,0,0,.55);
+}
+.clean-verdict .hl { color: var(--accent); }
+.clean-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.clean-chip {
+  font-family: "Space Mono", monospace; font-size: 10.5px; letter-spacing: .04em; text-transform: uppercase;
+  padding: 5px 10px; border-radius: 999px; background: rgba(255,255,255,.14);
+  color: #fff; border: 1px solid rgba(255,255,255,.18);
+}
+.clean-chip.score { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 700; }
+.clean-bio {
+  margin: 12px 0 0; font-family: "Hanken Grotesk", sans-serif; font-size: 13px; line-height: 1.4;
+  color: rgba(255,255,255,.82); text-wrap: pretty;
+}

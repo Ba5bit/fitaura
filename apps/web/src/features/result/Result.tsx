@@ -10,6 +10,7 @@ import {
 } from '@fitaura/shared';
 import { FaceCard, OutfitCard, Receipt, ReceiptPremium } from '../../components/cards';
 import { CardSwitcher } from '../../components/cards/CardSwitcher';
+import { skinsFor, skinIndex } from '../../components/cards/skins/registry';
 import { StickerLayer } from '../../components/cards/StickerLayer';
 import { ReceiptStampEditor } from '../../components/cards/ReceiptStampEditor';
 import { StaticSticker, StaticStamp } from '../../components/cards/ExportOverlays';
@@ -33,6 +34,7 @@ import '../../design/sticker-studio.css';
 import '../../design/gender-theme.css';
 import '../../design/receipt-premium.css';
 import '../../design/card-switcher.css';
+import '../../design/clean-skin.css';
 
 type Kind = 'face' | 'outfit' | 'receipt';
 const TABS: { id: number; slug: Kind; name: string; n: string }[] = [
@@ -329,6 +331,10 @@ export function Result() {
 
   const faceContent = result.face ? { ...result.face.card, sticker: faceSticker } : null;
   const outfitContent = result.outfit ? { ...result.outfit.card, sticker: outfitSticker } : null;
+  // The active skin's component per kind — used to render the SELECTED skin into
+  // the offscreen export host (so a downloaded card matches the on-screen skin).
+  const FaceSkinComp = skinsFor('face')[skinIndex('face', faceSkin)].Comp;
+  const OutfitSkinComp = skinsFor('outfit')[skinIndex('outfit', outfitSkin)].Comp;
 
   // Visible asset (built-in sticker/seal off — the editable layer renders it).
   const assetEl =
@@ -503,6 +509,27 @@ export function Result() {
               </div>
             </div>
           </div>
+
+          {/* skin-switcher dots — below the card, full size (the deck is scaled) */}
+          {kind !== 'receipt' && skinsFor(kind).length > 1 && (
+            <div className="cs-dots" role="tablist" aria-label="Card skin">
+              {skinsFor(kind).map((s) => {
+                const sel = kind === 'face' ? faceSkin : outfitSkin;
+                const setSel = kind === 'face' ? setFaceSkin : setOutfitSkin;
+                return (
+                  <button
+                    key={s.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={s.id === sel}
+                    aria-label={s.name}
+                    className={'cs-dot' + (s.id === sel ? ' on' : '')}
+                    onClick={() => !editing && setSel(s.id)}
+                  />
+                );
+              })}
+            </div>
+          )}
 
           {/* contextual controls — image cards */}
           {!editing && kind !== 'receipt' && (
@@ -693,7 +720,7 @@ export function Result() {
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         {faceContent && (
         <div className="rs-export-card" ref={exportRefs.face} data-gender={gender}>
-          <FaceCard content={faceContent} stickerOn={false} run={false} roast={result.face!.analysis.roast} />
+          <FaceSkinComp content={faceContent} gender={gender} stickerOn={false} run={false} roast={result.face!.analysis.roast} />
           {stickerOn && (
             <StaticSticker label={facePreset.label} tone={facePreset.tone} rotation={facePreset.rotation} pos={pos.face} />
           )}
@@ -701,7 +728,7 @@ export function Result() {
         )}
         {outfitContent && (
         <div className="rs-export-card" ref={exportRefs.outfit} data-gender={gender}>
-          <OutfitCard content={outfitContent} stickerOn={false} run={false} roast={result.outfit!.analysis.verdict} />
+          <OutfitSkinComp content={outfitContent} gender={gender} stickerOn={false} run={false} roast={result.outfit!.analysis.verdict} />
           {stickerOn && (
             <StaticSticker
               label={outfitPreset.label}
