@@ -57,9 +57,10 @@ components (`<image-slot>`), `window.*` globals, or palette are copied.
 |---|---|
 | Skin set (face/outfit) | Keep Dossier as default + add Clean + Lore = **3 switchable skins** |
 | Receipt | **Premium added as 3rd paper** (neon / thermal / premium) |
-| QR target | **Homepage URL** (static, same on every card) |
+| QR target | **`https://fitaura.studio/`** (static, same on every card) |
 | Gender control | **Auto, with a quiet manual flip**; override persists per result |
 | Stickers on new skins | **Keep full swap + drag reposition**, with **per-skin default anchors** |
+| Sticker bank | **Gender-filtered** — femme sees femme + neutral, masc sees masc + neutral |
 | Color rule | **System tokens only**; rebuild prototype layouts in current CSS |
 
 ## 5. Architecture
@@ -78,11 +79,15 @@ components (`<image-slot>`), `window.*` globals, or palette are copied.
 - A small, unobtrusive control in the card control bar flips it; the choice persists in
   `localStorage` keyed by generation id (`fitaura.gender.<generationId>`), so reopening
   the result keeps it and the canonical stored result is never mutated.
-- Scope: the override swaps the **visual identity** (accent → magenta, gold detailing)
-  and the **Femininity/Masculinity index label**. It does **not** re-pick the baked
-  archetype/caption/punchline (those were the AI's content call; re-resolving them needs
-  the raw AI output, which the stored result doesn't carry). This is an accepted
-  tradeoff for the MVP — flagged here so reviewers can object.
+- Scope: the override swaps the **visual identity** (accent → magenta, gold detailing),
+  the **Femininity/Masculinity index label**, and the **eligible sticker set** (§5.9).
+  It does **not** re-pick the baked archetype/caption/punchline already printed on the
+  card (those were the AI's content call; re-resolving them needs the raw AI output,
+  which the stored result doesn't carry). This is an accepted tradeoff for the MVP —
+  flagged here so reviewers can object.
+- Edge case: if the currently-selected sticker becomes ineligible after a flip
+  (e.g. `girlboss` while flipping to masc), reset to the gender-appropriate default
+  sticker.
 
 ### 5.3 Skin registry + component contract
 
@@ -172,10 +177,29 @@ A new `CardSwitcher` adapts the landing `CardFan` motion to skins:
 - **Real QR:** compute the QR matrix from the homepage URL with a tiny encoder
   (e.g. `qrcode-generator`, ~3KB) and render it as an inline SVG (snapdom-safe). Replaces
   the prototype's random `premiumQR` matrix.
-- The encoded URL is a single config constant (`SITE_URL`) — **value to be confirmed**
-  (see §9).
+- The encoded URL is a single config constant `SITE_URL = 'https://fitaura.studio/'`.
 
-### 5.9 State / persistence summary
+### 5.9 Gender-filtered sticker bank
+
+Today the edit-mode sticker picker and the swap cycle show the **entire**
+`STICKER_BANK[kind]`, so masc labels (ALPHA MALE, SIGMA, TATE) and femme labels
+(GIRLBOSS, IT GIRL, BRAT, DELULU) appear for everyone. They must be gender-filtered.
+
+- Tag each `StickerPreset` with optional `gender?: 'masc' | 'femme'` (untagged = neutral,
+  shown to both). The classification is **derived from the existing gender tags in
+  `content-bank.ts`** (its archetype/caption → `stickerId` maps already mark masc-only and
+  femme-only entries) — not invented from scratch.
+- Add a `stickersFor(kind, gender)` selector using the same eligibility rule as
+  `content-bank.ts`'s `eligibleFor` (neutral always; femme-only iff femme; masc-only iff
+  masc). The Result page feeds the picker and the swap cycle from this filtered list,
+  driven by the **effective** gender (so a manual flip re-filters — see §5.2).
+- Label nuance: a few archetypes carry femme label overrides (e.g. `unc` "UNC STATUS" →
+  "AUNTIE"). Source those overrides from `content-bank.ts` so a femme-flipped bank reads
+  correctly rather than showing the masc label. (Implementation detail for planning.)
+- The auto-selected default sticker is already gender-correct (assemble picks from the
+  gendered content bank); this change only fixes the **manual** picker + swap.
+
+### 5.10 State / persistence summary
 
 | State | Where | Scope |
 |---|---|---|
@@ -191,22 +215,26 @@ A new `CardSwitcher` adapts the landing `CardFan` motion to skins:
   dot-meter, badge). Each skin understandable and testable in isolation via `SkinProps`.
 - `components/cards/CardSwitcher.tsx` — stack/fan + skin selection; no business logic.
 - `components/cards/ReceiptPremium.tsx` + `lib/qr.ts` — holo receipt + QR encoding.
-- `packages/shared` — `result.ts` (`gender`, `genderOf`), `skin-copy.ts`, `ReceiptPaper`.
+- `packages/shared` — `result.ts` (`gender`, `genderOf`), `skin-copy.ts`, `ReceiptPaper`,
+  `sticker-bank.ts` (per-preset `gender` tag + `stickersFor(kind, gender)` selector).
 - `Result.tsx` — wires switcher + gender override + per-skin export; logic stays thin.
 
 ## 7. Phasing
 
 - **Phase A — Gender plumbing + Premium QR receipt.**
   Surface `gender` (+ edge redeploy), theme the existing Dossier card femme/masc, add the
-  manual flip, ship the Premium receipt with real QR. Delivers "different design for women"
-  and the QR receipt fast, with the smallest blast radius.
+  manual flip, **gender-filter the sticker bank (§5.9)**, and ship the Premium receipt with
+  real QR. Delivers "different design for women" + correct gendered stickers + the QR
+  receipt fast, with the smallest blast radius.
 - **Phase B — Skins + switcher.**
   Add Clean + Lore skins, the `CardSwitcher`, per-skin sticker geometry, and per-skin export.
 
 ## 8. Testing
 
 - **Shared (unit):** `assembleResult` sets `gender` correctly across femme/masc/unsure +
-  confidence boundary; `genderOf` legacy default; `SKIN_COPY` has every verdict.
+  confidence boundary; `genderOf` legacy default; `SKIN_COPY` has every verdict;
+  `stickersFor` returns neutral + own-gender only and excludes the other gender's stickers
+  (e.g. no `girlboss` for masc, no `alpha` for femme).
 - **QR (unit):** encoder produces a scannable matrix for `SITE_URL` (decode round-trip).
 - **Switcher (unit):** reuse/extend `cardFanCycle` tests for skin ordering; front-card
   liveness; switching disabled while editing.
@@ -215,8 +243,7 @@ A new `CardSwitcher` adapts the landing `CardFan` motion to skins:
 
 ## 9. Open items
 
-- **`SITE_URL` for the QR** — exact homepage URL to encode (e.g. `https://fitaura.app`).
-  Single value; doesn't block building, only the final QR target.
+- **Resolved:** `SITE_URL = https://fitaura.studio/`. No blocking open items remain.
 
 ## 10. Risks / watch-list
 
