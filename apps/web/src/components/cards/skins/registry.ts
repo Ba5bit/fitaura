@@ -3,15 +3,19 @@ import { DossierFace } from './DossierFace';
 import { DossierOutfit } from './DossierOutfit';
 import { CleanFace } from './CleanFace';
 import { CleanOutfit } from './CleanOutfit';
+import { LoreFace } from './LoreFace';
+import { LoreOutfit } from './LoreOutfit';
 
 export const CARD_SKINS: Record<SkinKind, CardSkin[]> = {
   face: [
     { id: 'dossier', name: 'Dossier', Comp: DossierFace },
     { id: 'clean', name: 'Clean', Comp: CleanFace },
+    { id: 'lore', name: 'Lore', Comp: LoreFace },
   ],
   outfit: [
     { id: 'dossier', name: 'Dossier', Comp: DossierOutfit },
     { id: 'clean', name: 'Clean', Comp: CleanOutfit },
+    { id: 'lore', name: 'Lore', Comp: LoreOutfit },
   ],
 };
 

@@ -1,10 +1,12 @@
-import type { FaceCardContent, OutfitCardContent, StickerData } from '@fitaura/shared';
+import type { DatingVerdict, FaceCardContent, OutfitCardContent, StickerData } from '@fitaura/shared';
 
 export type SkinKind = 'face' | 'outfit';
 
 /** Uniform props every card skin accepts, so skins are interchangeable. */
 export interface SkinProps {
   content: FaceCardContent | OutfitCardContent;
+  /** The generation's categorical verdict — drives skin flavor (e.g. Lore rarity). */
+  verdict: DatingVerdict;
   gender: 'femme' | 'masc';
   /** Built-in sticker visibility (the editable overlay renders the real one). */
   stickerOn: boolean;

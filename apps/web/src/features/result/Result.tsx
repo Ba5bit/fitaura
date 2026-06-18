@@ -35,6 +35,7 @@ import '../../design/gender-theme.css';
 import '../../design/receipt-premium.css';
 import '../../design/card-switcher.css';
 import '../../design/clean-skin.css';
+import '../../design/lore-skin.css';
 
 type Kind = 'face' | 'outfit' | 'receipt';
 const TABS: { id: number; slug: Kind; name: string; n: string }[] = [
@@ -499,6 +500,7 @@ export function Result() {
                     locked={editing}
                     skinProps={{
                       content: (kind === 'face' ? faceContent : outfitContent)!,
+                      verdict: result.verdict,
                       gender,
                       stickerOn: false,
                       roast: kind === 'face' ? result.face!.analysis.roast : result.outfit!.analysis.verdict,
@@ -720,7 +722,7 @@ export function Result() {
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         {faceContent && (
         <div className="rs-export-card" ref={exportRefs.face} data-gender={gender}>
-          <FaceSkinComp content={faceContent} gender={gender} stickerOn={false} run={false} roast={result.face!.analysis.roast} />
+          <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} stickerOn={false} run={false} roast={result.face!.analysis.roast} />
           {stickerOn && (
             <StaticSticker label={facePreset.label} tone={facePreset.tone} rotation={facePreset.rotation} pos={pos.face} />
           )}
@@ -728,7 +730,7 @@ export function Result() {
         )}
         {outfitContent && (
         <div className="rs-export-card" ref={exportRefs.outfit} data-gender={gender}>
-          <OutfitSkinComp content={outfitContent} gender={gender} stickerOn={false} run={false} roast={result.outfit!.analysis.verdict} />
+          <OutfitSkinComp content={outfitContent} verdict={result.verdict} gender={gender} stickerOn={false} run={false} roast={result.outfit!.analysis.verdict} />
           {stickerOn && (
             <StaticSticker
               label={outfitPreset.label}

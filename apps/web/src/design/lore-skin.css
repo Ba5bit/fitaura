@@ -1,0 +1,53 @@
+/* ============================================================
+   LORE SKIN — collectible card. Full-bleed photo + accent tint,
+   a FIT LORE header (volume + rarity), class label, verdict title,
+   read, and dot-meters. System tokens; gold detailing + the gender
+   accent (--accent, magenta for femme). Photo-led like Clean.
+   ============================================================ */
+.lore-card {
+  position: absolute; inset: 0; width: 360px; height: 640px;
+  border-radius: 26px; overflow: hidden; box-shadow: var(--shadow-card);
+  background: var(--bg-1); isolation: isolate; color: #fff;
+}
+.lore-card .card-image { position: absolute; inset: 0; }
+.lore-card .card-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lore-card .card-image-placeholder {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: linear-gradient(160deg, var(--bg-2), var(--bg-0));
+  color: var(--ink-faint); font-family: "Space Mono", monospace; font-size: 11px;
+  letter-spacing: .2em; text-transform: uppercase;
+}
+.lore-tint {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none; mix-blend-mode: soft-light;
+  background: linear-gradient(160deg, color-mix(in oklab, var(--accent) 38%, transparent), transparent 55%);
+}
+.lore-scrim {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.4) 0%, transparent 24%, transparent 38%, rgba(0,0,0,.92) 100%);
+}
+.lore-top {
+  position: absolute; top: 18px; left: 20px; right: 20px; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.lore-mono { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; }
+.lore-mono.dim { color: rgba(255,255,255,.66); }
+.lore-mono.gold { color: var(--gold); }
+.lore-rarity { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: .14em; color: rgba(255,255,255,.66); text-transform: uppercase; }
+.lore-rarity b { color: var(--gold); letter-spacing: .06em; }
+.lore-bottom { position: absolute; left: 22px; right: 22px; bottom: 22px; z-index: 2; }
+.lore-title {
+  margin: 6px 0 0; font-family: "Anton", sans-serif; font-size: 33px; line-height: .95;
+  letter-spacing: .01em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 16px rgba(0,0,0,.55);
+}
+.lore-bio { margin: 10px 0 0; font-family: "Hanken Grotesk", sans-serif; font-size: 12.5px; line-height: 1.4; color: rgba(255,255,255,.8); text-wrap: pretty; }
+.lore-meters { margin: 14px 0 0; display: flex; flex-direction: column; gap: 7px; }
+.lore-meter { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lore-meter .ml { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: rgba(255,255,255,.78); }
+.lore-dots { display: flex; gap: 4px; }
+.lore-dots i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.18); }
+.lore-dots i.on { background: var(--accent); box-shadow: 0 0 8px -2px var(--accent); }
+.lore-foot {
+  margin: 14px 0 0; display: flex; align-items: center; justify-content: space-between;
+  font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.6);
+}
+.lore-foot .spark { color: var(--gold); }
