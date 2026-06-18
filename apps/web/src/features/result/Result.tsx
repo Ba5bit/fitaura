@@ -9,6 +9,7 @@ import {
   type StickerData,
 } from '@fitaura/shared';
 import { FaceCard, OutfitCard, Receipt, ReceiptPremium } from '../../components/cards';
+import { CardSwitcher } from '../../components/cards/CardSwitcher';
 import { StickerLayer } from '../../components/cards/StickerLayer';
 import { ReceiptStampEditor } from '../../components/cards/ReceiptStampEditor';
 import { StaticSticker, StaticStamp } from '../../components/cards/ExportOverlays';
@@ -31,6 +32,7 @@ import '../../design/result-shell.css';
 import '../../design/sticker-studio.css';
 import '../../design/gender-theme.css';
 import '../../design/receipt-premium.css';
+import '../../design/card-switcher.css';
 
 type Kind = 'face' | 'outfit' | 'receipt';
 const TABS: { id: number; slug: Kind; name: string; n: string }[] = [
@@ -92,6 +94,10 @@ export function Result() {
     fxKey ? `${fxKey}.stamp` : null,
     'tr',
   );
+  // Per-kind selected skin (B1: only 'dossier' exists, so the switcher is
+  // invisible). Persisted per generation, like the sticker state.
+  const [faceSkin, setFaceSkin] = usePerCardState<string>(fxKey ? `${fxKey}.skin.face` : null, 'dossier');
+  const [outfitSkin, setOutfitSkin] = usePerCardState<string>(fxKey ? `${fxKey}.skin.outfit` : null, 'dossier');
 
   // Offscreen full-scale render hosts used purely for WYSIWYG export. Mounted
   // only while an export is in flight (see `withExportHost`) so the Result page
@@ -474,8 +480,26 @@ export function Result() {
                     {kind === 'receipt' ? 'PICK A POSITION' : 'DRAG'} · <kbd>←↑↓→</kbd> nudge · <kbd>Esc</kbd> done
                   </div>
                 )}
-                {assetEl}
-                {overlayEl}
+                {kind === 'receipt' ? (
+                  <>
+                    {assetEl}
+                    {overlayEl}
+                  </>
+                ) : (
+                  <CardSwitcher
+                    kind={kind}
+                    skinId={kind === 'face' ? faceSkin : outfitSkin}
+                    setSkinId={kind === 'face' ? setFaceSkin : setOutfitSkin}
+                    locked={editing}
+                    skinProps={{
+                      content: (kind === 'face' ? faceContent : outfitContent)!,
+                      gender,
+                      stickerOn: false,
+                      roast: kind === 'face' ? result.face!.analysis.roast : result.outfit!.analysis.verdict,
+                    }}
+                    overlay={overlayEl}
+                  />
+                )}
               </div>
             </div>
           </div>
