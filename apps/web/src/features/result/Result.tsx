@@ -26,6 +26,7 @@ import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
 import { ProfileMenu } from '../account/ProfileMenu';
 import { useLocalStorage } from '../../state/useLocalStorage';
+import { usePerCardState } from '../../state/usePerCardState';
 import '../../design/result-shell.css';
 import '../../design/sticker-studio.css';
 import '../../design/gender-theme.css';
@@ -72,15 +73,24 @@ export function Result() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const frameRef = useRef<HTMLDivElement>(null);
 
+  // Per-result sticker customization persists under the generation id, so
+  // reopening a card from the vault restores its stickers / positions / stamp.
+  const fxKey = result ? `fitaura.cardfx.${result.receipt.generationId}` : null;
   // Per-kind selected sticker index into the gender-filtered list (stickersFor).
-  const [stk, setStk] = useState<{ face: number; outfit: number }>({ face: 0, outfit: 0 });
+  const [stk, setStk] = usePerCardState<{ face: number; outfit: number }>(
+    fxKey ? `${fxKey}.stk` : null,
+    { face: 0, outfit: 0 },
+  );
   // Per-kind sticker position (normalized) + receipt stamp preset — the
   // customization state ported from the Card Studio, now part of this page.
-  const [pos, setPos] = useState<{ face: Point; outfit: Point }>({
-    face: { ...CARD_GEOM.face.def },
-    outfit: { ...CARD_GEOM.outfit.def },
-  });
-  const [receiptPreset, setReceiptPreset] = useState<string | null>('tr');
+  const [pos, setPos] = usePerCardState<{ face: Point; outfit: Point }>(
+    fxKey ? `${fxKey}.pos` : null,
+    { face: { ...CARD_GEOM.face.def }, outfit: { ...CARD_GEOM.outfit.def } },
+  );
+  const [receiptPreset, setReceiptPreset] = usePerCardState<string | null>(
+    fxKey ? `${fxKey}.stamp` : null,
+    'tr',
+  );
 
   // Offscreen full-scale render hosts used purely for WYSIWYG export. Mounted
   // only while an export is in flight (see `withExportHost`) so the Result page
