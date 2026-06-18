@@ -67,7 +67,7 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
         scores: [
           score('Aura', 71),
           ageStat(26),
-          score('Masculinity', 66),
+          score('Femininity', 66),
           score('Main Character', 55, true),
         ],
         sticker: FACE_STICKER.red_flag,
