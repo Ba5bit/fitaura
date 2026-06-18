@@ -11,10 +11,9 @@
 
 Give the Result page **gender-aware visual card identities** and **switchable card skins**:
 
-1. **Gender-aware cards** — femme results render in a magenta + gold identity (masc in the
-   current icy/cyan) **with the femme archetype/caption/punchline/sticker copy**. The
-   gender is the AI's existing call, with a quiet manual flip for misreads that
-   re-resolves a genuine card of the other gender (no fresh AI call — see §5.2).
+1. **Gender-dedicated cards** — the AI decides gender at submission (fixed). A femme
+   submission gets a magenta + gold identity with femme archetype/caption/punchline/sticker
+   copy; masc gets the current icy/cyan with masc copy. No manual gender toggle.
 2. **Three switchable skins** per image card — the current **Dossier** (default),
    plus two full-bleed designs adapted from the prototype: **Clean** (Tinder-style)
    and **Lore** (collectible). A landing-style fanned card stack switches between them.
@@ -28,9 +27,8 @@ components (`<image-slot>`), `window.*` globals, or palette are copied.
 ## 2. Non-goals
 
 - No change to the Gemini prompt or the AI schema — `presentation.gender` already exists.
-- No **fresh** AI call on a gender flip — copy is re-resolved from the AI output already
-  stored (the flip is free + instant; see §5.2). The AI's one-off free-text prose is not
-  regenerated; the off-gender variant uses the gendered banked line instead.
+- **No manual gender toggle.** Gender is the AI's determination at submission, fixed per
+  result (§5.2). Mode/skin switching changes style only, never gender.
 - No per-result public share URL / sharing infrastructure (QR points to the homepage).
 - The "Buffering" prototype skin is **not** adopted.
 
@@ -60,9 +58,10 @@ components (`<image-slot>`), `window.*` globals, or palette are copied.
 | Skin set (face/outfit) | Keep Dossier as default + add Clean + Lore = **3 switchable skins** |
 | Receipt | **Premium added as 3rd paper** (neon / thermal / premium) |
 | QR target | **`https://fitaura.studio/`** (static, same on every card) |
-| Gender control | **Auto, with a quiet manual flip**; override persists per result |
+| Gender | **AI-determined at submission, fixed per result** — no manual toggle. A femme submission gets femme-dedicated cards; masc gets masc |
+| Mode switching | **Style/skin only** (Dossier / Clean / Lore) — switching never changes gender |
 | Stickers on new skins | **Keep full swap + drag reposition**, with **per-skin default anchors** |
-| Sticker bank | **Gender-filtered** — femme sees femme + neutral, masc sees masc + neutral |
+| Sticker bank | **Gender-filtered** by the result's fixed gender — femme sees femme + neutral, masc sees masc + neutral |
 | Color rule | **System tokens only**; rebuild prototype layouts in current CSS |
 
 ## 5. Architecture
@@ -70,46 +69,23 @@ components (`<image-slot>`), `window.*` globals, or palette are copied.
 ### 5.1 Surface gender into the result model
 
 - Add `gender: 'femme' | 'masc'` to `FullGenerationResult` (`packages/shared/src/result.ts`),
-  set from the existing `contentGender` (`confidentlyFemme ? 'femme' : 'masc'`) — the
-  detected default.
-- Add `genderVariants: { masc: GenderVariant; femme: GenderVariant }` (see §5.2) so a flip
-  is a pure data swap. Both bundles are computed by the same deterministic picks in
-  `assemble.ts`.
-- Add `genderOf(r)` helper (mirrors `partsOf`) defaulting to `'masc'` for legacy rows;
-  legacy rows lacking `genderVariants` fall back to theme-only (no flip-copy).
+  set from the existing `contentGender` (`confidentlyFemme ? 'femme' : 'masc'`). This is a
+  **single, fixed value** decided by the AI at scan time.
+- Add `genderOf(r)` helper (mirrors `partsOf`) defaulting to `'masc'` for legacy rows.
 - **Edge redeploy** required (manual, documented step). The AI prompt/schema are unchanged.
 
-### 5.2 Manual gender override (full gendered re-resolution)
+### 5.2 Gender is fixed per result — no toggle
 
-A flip produces a **genuine card of the other gender — identical to a natively-detected
-card of that gender**, not a re-themed compromise. No fresh AI call, no credit, instant
-and offline.
+Gender is **decided once by the AI at submission** and never changes in the UI. A femme
+submission yields femme-dedicated cards (femme theme + femme archetype/caption/punchline/
+sticker — the content fork already lives in `assemble.ts`); masc yields masc. There is **no
+manual gender flip**: the card-stack switcher changes **style/skin only** (§5.5), never
+gender.
 
-- **Precompute both genders at assembly.** `assembleResult` resolves every
-  gender-dependent field for **both** `masc` and `femme` (the picks are deterministic —
-  seeded by scan id, drawn from the gendered banks) and stores them on the result as a
-  compact `genderVariants: { masc: GenderVariant; femme: GenderVariant }`. A
-  `GenderVariant` holds: face verdict line + face sticker id, outfit caption + outfit
-  sticker id, receipt punchline, and the Femininity/Masculinity index label. `result.gender`
-  names the detected default.
-- **Flip = swap the bundle.** The Result page reads the effective gender as
-  `override ?? result.gender` and renders the matching `genderVariants[effective]`. Because
-  both bundles come from the same pipeline a native card uses, a flipped card is
-  indistinguishable from a native one of that gender.
-- **Free-text prose:** assemble normally prefers the AI's written verdict line over the
-  banked archetype line. For the **off-gender** variant it uses the **gendered banked
-  line** instead (the AI prose was written under the originally-detected gender), so a
-  flipped card never shows a wrong-gender sentence — exactly what a native card shows when
-  the AI didn't supply usable prose.
-- **Scores stay put.** The flip does not re-score the photo or re-apply the femme score
-  bias — the image is unchanged, so a `masc → femme` flip must not bump the numbers.
-- Also swaps the **visual identity** (accent → magenta, gold detailing) and the
-  **eligible sticker set** (§5.9).
-- The override persists in `localStorage` keyed by generation id
-  (`fitaura.gender.<generationId>`); the canonical stored result is never mutated.
-- Edge case: if the currently-selected sticker becomes ineligible after a flip
-  (e.g. `girlboss` while flipping to masc), reset to the new gender's default sticker
-  (`genderVariants[effective]` sticker id).
+- Everything keys off the single `result.gender`: the visual identity (§5.3), the
+  Femininity/Masculinity index label, and the eligible sticker set (§5.9).
+- `unsure` / low-confidence reads resolve to `masc` (the existing `confidentlyFemme`
+  rule), so there is exactly one deterministic gender per result.
 
 ### 5.3 Skin registry + component contract
 
@@ -214,9 +190,9 @@ Today the edit-mode sticker picker and the swap cycle show the **entire**
 - Add a `stickersFor(kind, gender)` selector using the same eligibility rule as
   `content-bank.ts`'s `eligibleFor` (neutral always; femme-only iff femme; masc-only iff
   masc). The Result page feeds the picker and the swap cycle from this filtered list,
-  driven by the **effective** gender (so a manual flip re-filters — see §5.2).
+  keyed off the result's fixed `gender` (§5.2).
 - Label nuance: a few archetypes carry femme label overrides (e.g. `unc` "UNC STATUS" →
-  "AUNTIE"). Source those overrides from `content-bank.ts` so a femme-flipped bank reads
+  "AUNTIE"). Source those overrides from `content-bank.ts` so the femme bank reads
   correctly rather than showing the masc label. (Implementation detail for planning.)
 - The auto-selected default sticker is already gender-correct (assemble picks from the
   gendered content bank); this change only fixes the **manual** picker + swap.
@@ -225,8 +201,7 @@ Today the edit-mode sticker picker and the swap cycle show the **entire**
 
 | State | Where | Scope |
 |---|---|---|
-| `gender` + `genderVariants` | result model (IndexedDB + vault) | per generation |
-| gender override | `localStorage fitaura.gender.<genId>` | per generation |
+| `gender` (fixed) | result model (IndexedDB + vault) | per generation |
 | selected skin | `localStorage fitaura.skin.{face,outfit}` | global preference |
 | receipt paper | `localStorage fitaura.paper` (existing) | global preference |
 | sticker pos | component state keyed by `{kind, skinId}` | session |
@@ -239,14 +214,14 @@ Today the edit-mode sticker picker and the swap cycle show the **entire**
 - `components/cards/ReceiptPremium.tsx` + `lib/qr.ts` — holo receipt + QR encoding.
 - `packages/shared` — `result.ts` (`gender`, `genderOf`), `skin-copy.ts`, `ReceiptPaper`,
   `sticker-bank.ts` (per-preset `gender` tag + `stickersFor(kind, gender)` selector).
-- `Result.tsx` — wires switcher + gender override + per-skin export; logic stays thin.
+- `Result.tsx` — wires the skin switcher + gender theming + per-skin export; logic stays thin.
 
 ## 7. Phasing
 
 - **Phase A — Gender plumbing + Premium QR receipt.**
-  Surface `gender` (+ edge redeploy), theme the existing Dossier card femme/masc, add the
-  manual flip, **gender-filter the sticker bank (§5.9)**, and ship the Premium receipt with
-  real QR. Delivers "different design for women" + correct gendered stickers + the QR
+  Surface the fixed `gender`, theme the existing Dossier card femme/masc, **gender-filter
+  the sticker bank (§5.9)**, and ship the Premium receipt with real QR (+ one edge
+  redeploy). Delivers "different design for women" + correct gendered stickers + the QR
   receipt fast, with the smallest blast radius.
 - **Phase B — Skins + switcher.**
   Add Clean + Lore skins, the `CardSwitcher`, per-skin sticker geometry, and per-skin export.
@@ -257,15 +232,14 @@ Today the edit-mode sticker picker and the swap cycle show the **entire**
   confidence boundary; `genderOf` legacy default; `SKIN_COPY` has every verdict;
   `stickersFor` returns neutral + own-gender only and excludes the other gender's stickers
   (e.g. no `girlboss` for masc, no `alpha` for femme).
-- **Gender variants (unit):** `assembleResult` populates both `genderVariants.masc` and
-  `.femme`; the variant for the detected gender matches the primary card fields; the
-  off-gender variant uses the gendered banked line (never the original-gender AI prose);
-  numeric scores are identical across both variants (flip never re-scores).
+- **Gender (unit):** a femme-detected scan produces femme copy + `gender === 'femme'`; a
+  masc/unsure scan produces masc copy + `gender === 'masc'` (one fixed value, no toggle).
 - **QR (unit):** encoder produces a scannable matrix for `SITE_URL` (decode round-trip).
 - **Switcher (unit):** reuse/extend `cardFanCycle` tests for skin ordering; front-card
   liveness; switching disabled while editing.
 - **Manual / visual:** femme + masc × 3 skins × 3 verdicts render in-tokens; export
-  WYSIWYG parity (snapdom) incl. QR; sticker reposition per skin; gender flip persists.
+  WYSIWYG parity (snapdom) incl. QR; sticker reposition per skin; the fixed gender drives
+  theme + sticker filter per result.
 
 ## 9. Open items
 
@@ -275,9 +249,8 @@ Today the edit-mode sticker picker and the swap cycle show the **entire**
 
 - **Edge redeploy** is a manual step (documented) — easy to forget; Phase A isn't live
   until it ships.
-- **Gender flip fidelity** — a flipped card must equal a native card of that gender;
-  guarded by the gender-variant unit tests (§8). Legacy results without `genderVariants`
-  degrade to theme-only (no flip-copy) — acceptable for pre-feature rows.
+- **Legacy results** predate the `gender` field — `genderOf` defaults them to `masc`
+  (theme + sticker filter), matching the existing copy fallback.
 - **Export surface grows** from 3 to up to 5 card variants — keep each skin's export host
   lean (only the selected skin renders).
 - **Vault thumbnails / older results** — verify the vault browser tolerates the new
