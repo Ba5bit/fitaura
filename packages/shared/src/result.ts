@@ -219,9 +219,17 @@ export interface FullGenerationResult {
   verdict: DatingVerdict;
   /** Verdict chip text, e.g. "VERDICT · RED FLAG". */
   chip: string;
+  /** Fixed presentation gender the AI resolved at scan time; drives card theme,
+   * the Femininity/Masculinity label, and the eligible sticker set. */
+  gender: 'femme' | 'masc';
   /** Which modalities this scan contains. */
   parts: ScanParts;
   face: FaceResult | null;
   outfit: OutfitResult | null;
   receipt: DatingReceiptResult;
+}
+
+/** Resolve a result's fixed gender, defaulting legacy rows to masc. */
+export function genderOf(r: { gender?: 'femme' | 'masc' }): 'femme' | 'masc' {
+  return r.gender ?? 'masc';
 }

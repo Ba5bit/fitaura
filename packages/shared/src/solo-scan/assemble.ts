@@ -188,6 +188,7 @@ export function assembleResult(
   return {
     verdict,
     chip: `VERDICT · ${VERDICT_LABEL[verdict]}`,
+    gender: contentGender,
     parts,
     face: faceResult,
     outfit: outfitResult,
