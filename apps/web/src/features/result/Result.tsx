@@ -8,7 +8,7 @@ import {
   type ReceiptPaper,
   type StickerData,
 } from '@fitaura/shared';
-import { FaceCard, OutfitCard, Receipt } from '../../components/cards';
+import { FaceCard, OutfitCard, Receipt, ReceiptPremium } from '../../components/cards';
 import { StickerLayer } from '../../components/cards/StickerLayer';
 import { ReceiptStampEditor } from '../../components/cards/ReceiptStampEditor';
 import { StaticSticker, StaticStamp } from '../../components/cards/ExportOverlays';
@@ -30,6 +30,7 @@ import { usePerCardState } from '../../state/usePerCardState';
 import '../../design/result-shell.css';
 import '../../design/sticker-studio.css';
 import '../../design/gender-theme.css';
+import '../../design/receipt-premium.css';
 
 type Kind = 'face' | 'outfit' | 'receipt';
 const TABS: { id: number; slug: Kind; name: string; n: string }[] = [
@@ -329,6 +330,8 @@ export function Result() {
       <FaceCard content={faceContent!} stickerOn={false} run roast={result.face!.analysis.roast} />
     ) : kind === 'outfit' ? (
       <OutfitCard content={outfitContent!} stickerOn={false} run roast={result.outfit!.analysis.verdict} />
+    ) : paper === 'premium' ? (
+      <ReceiptPremium content={result.receipt} />
     ) : (
       <Receipt content={result.receipt} paper={paper} sealOn={false} />
     );
@@ -354,7 +357,7 @@ export function Result() {
         hidden={!stickerOn}
         onCycle={swapSticker}
       />
-    ) : (
+    ) : paper === 'premium' ? null : (
       <ReceiptStampEditor preset={receiptPreset} setPreset={setReceiptPreset} editing={editing} />
     );
 
@@ -513,19 +516,26 @@ export function Result() {
                 <button aria-pressed={paper === 'thermal'} onClick={() => setPaper('thermal')}>
                   Thermal
                 </button>
+                <button aria-pressed={paper === 'premium'} onClick={() => setPaper('premium')}>
+                  Premium
+                </button>
               </div>
               <span className="rs-cb-spacer" />
-              <button
-                className={'rs-cb-btn' + (receiptPreset ? ' on' : '')}
-                onClick={() => setReceiptPreset(receiptPreset ? null : 'tr')}
-              >
-                <Icon.star />
-                {receiptPreset ? 'Stamp on' : 'Stamp off'}
-              </button>
-              <button className="rs-cb-btn" onClick={() => setEditing(true)}>
-                <Icon.move />
-                Reposition
-              </button>
+              {paper !== 'premium' && (
+                <>
+                  <button
+                    className={'rs-cb-btn' + (receiptPreset ? ' on' : '')}
+                    onClick={() => setReceiptPreset(receiptPreset ? null : 'tr')}
+                  >
+                    <Icon.star />
+                    {receiptPreset ? 'Stamp on' : 'Stamp off'}
+                  </button>
+                  <button className="rs-cb-btn" onClick={() => setEditing(true)}>
+                    <Icon.move />
+                    Reposition
+                  </button>
+                </>
+              )}
             </div>
           )}
 
@@ -685,8 +695,14 @@ export function Result() {
           data-verdict={result.verdict}
           data-gender={gender}
         >
-          <Receipt content={result.receipt} paper={paper} sealOn={false} />
-          <StaticStamp preset={receiptPreset} />
+          {paper === 'premium' ? (
+            <ReceiptPremium content={result.receipt} />
+          ) : (
+            <>
+              <Receipt content={result.receipt} paper={paper} sealOn={false} />
+              <StaticStamp preset={receiptPreset} />
+            </>
+          )}
         </div>
       </div>
       )}
