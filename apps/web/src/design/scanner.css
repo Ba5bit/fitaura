@@ -159,15 +159,11 @@
 .hud.h-br{ bottom:60px; right:12px; }
 .hud.h-bl{ bottom:60px; left:12px; }
 .hud.h-l{ top:36%; left:12px; }
-/* full-bleed mobile scan: the HUD callouts sit on a large photo, so the tiny
-   desktop-grid sizing read as specks — bump them to a legible chip size. */
-.sa[data-mobile="true"] .hud{ font-size:11px; padding:6px 11px; border-radius:9px; gap:8px; }
-.sa[data-mobile="true"] .hud .hd{ width:6px; height:6px; }
-/* keep the chips in the photo's mid-band: clear of the top header and the taller
-   bottom readout strip (the desktop bottom:60px anchors land inside the strip). */
-.sa[data-mobile="true"] .hud.h-tr{ top:62px; }
-.sa[data-mobile="true"] .hud.h-bl{ top:52%; bottom:auto; }
-.sa[data-mobile="true"] .hud.h-br{ top:60%; bottom:auto; }
+/* Recording-clean mobile: the floating HUD callout stickers collide with the
+   header + caption on a phone, so we drop them entirely. The scan frame, sweeping
+   scanline, corner reticles, face medallion + one in-frame caption carry the
+   scanning story without clutter. */
+.sa[data-mobile="true"] .hud{ display:none; }
 .sa.rm .hud{ transition:none; }
 
 /* ============================ READOUT COLUMN ============================ */
@@ -420,11 +416,24 @@
 /* face inset top-left, just below the header */
 .sa[data-mobile="true"] .spec-face{ top:64px; bottom:auto; left:16px; --med:132px; }
 
-/* readout collapses to a slim translucent bottom strip overlaid on the image */
-.sa[data-mobile="true"] .readout{ position:absolute; left:0; right:0; bottom:0; z-index:10;
-  gap:11px; padding:20px 18px calc(30px + env(safe-area-inset-bottom));
-  background:linear-gradient(0deg, rgba(8,10,14,0.9) 64%, transparent); }
-/* lift the title off the very bottom and give it more presence on the big photo */
-.sa[data-mobile="true"] .ro-title{ font-size:28px; }
-.sa[data-mobile="true"] .rail{ display:none; }       /* rail hidden on full-bleed */
+/* readout floats as a vertically-centered hero over the photo — recording-safe:
+   it sits in the middle band, clear of TikTok/Reels' bottom caption + right
+   button rail. pointer-events:none so the header's leave (✕) stays tappable
+   underneath, and a soft radial scrim keeps the centered text legible over a
+   bright photo without a hard panel. */
+.sa[data-mobile="true"] .readout{ position:absolute; inset:0; z-index:10; pointer-events:none;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; gap:14px; padding:0 28px;
+  background:radial-gradient(120% 58% at 50% 50%, rgba(8,10,14,.78), rgba(8,10,14,.34) 46%, transparent 72%); }
+/* enlarged, centered hero text */
+.sa[data-mobile="true"] .ro-title{ font-size:clamp(36px, 9vw, 46px); }
+.sa[data-mobile="true"] .ro-stage{ justify-content:center; gap:14px; }
+.sa[data-mobile="true"] .ro-of{ margin-left:0; }
+.sa[data-mobile="true"] .ro-tick{ justify-content:center; font-size:13.5px; }
+.sa[data-mobile="true"] .ro-prog{ align-items:center; }
+.sa[data-mobile="true"] .ro-pct{ justify-content:center; }
+.sa[data-mobile="true"] .ro-pct .n{ font-size:48px; }
+.sa[data-mobile="true"] .ro-bar{ width:min(72vw, 300px); margin:0 auto; }
+.sa[data-mobile="true"] .live-chip{ display:none; }   /* redundant 'Scanning' chip — kills the header collision */
+.sa[data-mobile="true"] .rail{ display:none; }        /* rail hidden on full-bleed */
 .sa[data-mobile="true"] .ro-foot{ display:none; }     /* drop the long privacy line on mobile */

@@ -91,14 +91,19 @@
   background: linear-gradient(170deg, var(--bg-2), #0a0c11 75%);
   box-shadow: var(--shadow-card);
 }
-@media (max-width: 720px) {
+/* Mobile = full-bleed for recording (TikTok/Reels). Matches the scanner's own
+   data-mobile breakpoint (760px) so there's no 721-760 dead zone where the page
+   boxed the board while the scanner already went edge-to-edge. */
+@media (max-width: 760px) {
   .scan-page {
-    padding: 12px;
+    padding: 0;
+    min-height: 100dvh;
   }
-  /* Keep the rounded external border on mobile (was full-bleed). */
   .scan-page .sa {
-    border-radius: 20px;
-    min-height: calc(100vh - 24px);
+    border: 0;
+    border-radius: 0;
+    max-width: none;
+    min-height: 100dvh;
   }
 }
 
