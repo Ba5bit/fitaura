@@ -11,9 +11,10 @@
 
 Give the Result page **gender-aware visual card identities** and **switchable card skins**:
 
-1. **Gender theme** — femme results render in a magenta + gold identity, masc in the
-   current icy/cyan. The gender is the AI's existing call, with a quiet manual flip
-   for misreads.
+1. **Gender-aware cards** — femme results render in a magenta + gold identity (masc in the
+   current icy/cyan) **with the femme archetype/caption/punchline/sticker copy**. The
+   gender is the AI's existing call, with a quiet manual flip for misreads that
+   re-resolves a genuine card of the other gender (no fresh AI call — see §5.2).
 2. **Three switchable skins** per image card — the current **Dossier** (default),
    plus two full-bleed designs adapted from the prototype: **Clean** (Tinder-style)
    and **Lore** (collectible). A landing-style fanned card stack switches between them.
@@ -27,10 +28,11 @@ components (`<image-slot>`), `window.*` globals, or palette are copied.
 ## 2. Non-goals
 
 - No change to the Gemini prompt or the AI schema — `presentation.gender` already exists.
+- No **fresh** AI call on a gender flip — copy is re-resolved from the AI output already
+  stored (the flip is free + instant; see §5.2). The AI's one-off free-text prose is not
+  regenerated; the off-gender variant uses the gendered banked line instead.
 - No per-result public share URL / sharing infrastructure (QR points to the homepage).
 - The "Buffering" prototype skin is **not** adopted.
-- The manual gender flip re-themes the card **visually**; it does not rewrite the AI's
-  already-chosen archetype/caption/punchline copy (see §5.2).
 
 ## 3. Key findings from the current system
 
@@ -67,27 +69,47 @@ components (`<image-slot>`), `window.*` globals, or palette are copied.
 
 ### 5.1 Surface gender into the result model
 
-- Add `gender: 'femme' | 'masc'` to `FullGenerationResult` (`packages/shared/src/result.ts`).
-- In `assemble.ts`, set it from the existing `contentGender` (`confidentlyFemme ? 'femme' : 'masc'`),
-  so the visual theme and the copy can never disagree.
-- Add `genderOf(r)` helper (mirrors `partsOf`) defaulting to `'masc'` for legacy rows.
-- **Edge redeploy** required (manual, documented step). The AI side is unchanged.
+- Add `gender: 'femme' | 'masc'` to `FullGenerationResult` (`packages/shared/src/result.ts`),
+  set from the existing `contentGender` (`confidentlyFemme ? 'femme' : 'masc'`) — the
+  detected default.
+- Add `genderVariants: { masc: GenderVariant; femme: GenderVariant }` (see §5.2) so a flip
+  is a pure data swap. Both bundles are computed by the same deterministic picks in
+  `assemble.ts`.
+- Add `genderOf(r)` helper (mirrors `partsOf`) defaulting to `'masc'` for legacy rows;
+  legacy rows lacking `genderVariants` fall back to theme-only (no flip-copy).
+- **Edge redeploy** required (manual, documented step). The AI prompt/schema are unchanged.
 
-### 5.2 Manual gender override (theme-only)
+### 5.2 Manual gender override (full gendered re-resolution)
 
-- The Result page reads the effective gender as `override ?? result.gender`.
-- A small, unobtrusive control in the card control bar flips it; the choice persists in
-  `localStorage` keyed by generation id (`fitaura.gender.<generationId>`), so reopening
-  the result keeps it and the canonical stored result is never mutated.
-- Scope: the override swaps the **visual identity** (accent → magenta, gold detailing),
-  the **Femininity/Masculinity index label**, and the **eligible sticker set** (§5.9).
-  It does **not** re-pick the baked archetype/caption/punchline already printed on the
-  card (those were the AI's content call; re-resolving them needs the raw AI output,
-  which the stored result doesn't carry). This is an accepted tradeoff for the MVP —
-  flagged here so reviewers can object.
+A flip produces a **genuine card of the other gender — identical to a natively-detected
+card of that gender**, not a re-themed compromise. No fresh AI call, no credit, instant
+and offline.
+
+- **Precompute both genders at assembly.** `assembleResult` resolves every
+  gender-dependent field for **both** `masc` and `femme` (the picks are deterministic —
+  seeded by scan id, drawn from the gendered banks) and stores them on the result as a
+  compact `genderVariants: { masc: GenderVariant; femme: GenderVariant }`. A
+  `GenderVariant` holds: face verdict line + face sticker id, outfit caption + outfit
+  sticker id, receipt punchline, and the Femininity/Masculinity index label. `result.gender`
+  names the detected default.
+- **Flip = swap the bundle.** The Result page reads the effective gender as
+  `override ?? result.gender` and renders the matching `genderVariants[effective]`. Because
+  both bundles come from the same pipeline a native card uses, a flipped card is
+  indistinguishable from a native one of that gender.
+- **Free-text prose:** assemble normally prefers the AI's written verdict line over the
+  banked archetype line. For the **off-gender** variant it uses the **gendered banked
+  line** instead (the AI prose was written under the originally-detected gender), so a
+  flipped card never shows a wrong-gender sentence — exactly what a native card shows when
+  the AI didn't supply usable prose.
+- **Scores stay put.** The flip does not re-score the photo or re-apply the femme score
+  bias — the image is unchanged, so a `masc → femme` flip must not bump the numbers.
+- Also swaps the **visual identity** (accent → magenta, gold detailing) and the
+  **eligible sticker set** (§5.9).
+- The override persists in `localStorage` keyed by generation id
+  (`fitaura.gender.<generationId>`); the canonical stored result is never mutated.
 - Edge case: if the currently-selected sticker becomes ineligible after a flip
-  (e.g. `girlboss` while flipping to masc), reset to the gender-appropriate default
-  sticker.
+  (e.g. `girlboss` while flipping to masc), reset to the new gender's default sticker
+  (`genderVariants[effective]` sticker id).
 
 ### 5.3 Skin registry + component contract
 
@@ -203,7 +225,7 @@ Today the edit-mode sticker picker and the swap cycle show the **entire**
 
 | State | Where | Scope |
 |---|---|---|
-| `gender` | result model (IndexedDB + vault) | per generation |
+| `gender` + `genderVariants` | result model (IndexedDB + vault) | per generation |
 | gender override | `localStorage fitaura.gender.<genId>` | per generation |
 | selected skin | `localStorage fitaura.skin.{face,outfit}` | global preference |
 | receipt paper | `localStorage fitaura.paper` (existing) | global preference |
@@ -235,6 +257,10 @@ Today the edit-mode sticker picker and the swap cycle show the **entire**
   confidence boundary; `genderOf` legacy default; `SKIN_COPY` has every verdict;
   `stickersFor` returns neutral + own-gender only and excludes the other gender's stickers
   (e.g. no `girlboss` for masc, no `alpha` for femme).
+- **Gender variants (unit):** `assembleResult` populates both `genderVariants.masc` and
+  `.femme`; the variant for the detected gender matches the primary card fields; the
+  off-gender variant uses the gendered banked line (never the original-gender AI prose);
+  numeric scores are identical across both variants (flip never re-scores).
 - **QR (unit):** encoder produces a scannable matrix for `SITE_URL` (decode round-trip).
 - **Switcher (unit):** reuse/extend `cardFanCycle` tests for skin ordering; front-card
   liveness; switching disabled while editing.
@@ -249,7 +275,9 @@ Today the edit-mode sticker picker and the swap cycle show the **entire**
 
 - **Edge redeploy** is a manual step (documented) — easy to forget; Phase A isn't live
   until it ships.
-- **Theme/copy mismatch** after a manual flip (§5.2) — accepted for MVP.
+- **Gender flip fidelity** — a flipped card must equal a native card of that gender;
+  guarded by the gender-variant unit tests (§8). Legacy results without `genderVariants`
+  degrade to theme-only (no flip-copy) — acceptable for pre-feature rows.
 - **Export surface grows** from 3 to up to 5 card variants — keep each skin's export host
   lean (only the selected skin renders).
 - **Vault thumbnails / older results** — verify the vault browser tolerates the new
