@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  STICKER_BANK,
+  stickersFor,
   stickerFromPreset,
+  genderOf,
   VERDICT_COLOR_VAR,
   type ReceiptPaper,
   type StickerData,
@@ -27,6 +28,7 @@ import { ProfileMenu } from '../account/ProfileMenu';
 import { useLocalStorage } from '../../state/useLocalStorage';
 import '../../design/result-shell.css';
 import '../../design/sticker-studio.css';
+import '../../design/gender-theme.css';
 
 type Kind = 'face' | 'outfit' | 'receipt';
 const TABS: { id: number; slug: Kind; name: string; n: string }[] = [
@@ -193,14 +195,20 @@ export function Result() {
   const tabDef = tabs[Math.min(tab, tabs.length - 1)];
   const kind = tabDef.slug;
 
-  const facePreset = STICKER_BANK.face[stk.face];
-  const outfitPreset = STICKER_BANK.outfit[stk.outfit];
+  const gender = genderOf(result);
+  const faceStickers = stickersFor('face', gender);
+  const outfitStickers = stickersFor('outfit', gender);
+  // `stk` indexes into the (gender-filtered) bank; clamp in case a stored index
+  // is out of range for this gender's shorter list.
+  const facePreset = faceStickers[Math.min(stk.face, faceStickers.length - 1)];
+  const outfitPreset = outfitStickers[Math.min(stk.outfit, outfitStickers.length - 1)];
+  const kindStickers = kind === 'face' ? faceStickers : kind === 'outfit' ? outfitStickers : [];
   const faceSticker: StickerData = stickerFromPreset(facePreset, !stickerOn);
   const outfitSticker: StickerData = stickerFromPreset(outfitPreset, !stickerOn);
 
   const swapSticker = () => {
-    if (kind === 'receipt') return;
-    setStk((s) => ({ ...s, [kind]: (s[kind] + 1) % STICKER_BANK[kind].length }));
+    if (kind === 'receipt' || kindStickers.length === 0) return;
+    setStk((s) => ({ ...s, [kind]: (s[kind] + 1) % kindStickers.length }));
   };
   const pickSticker = (i: number) => {
     if (kind === 'receipt') return;
@@ -446,7 +454,7 @@ export function Result() {
             onTouchEnd={onTouchEnd}
           >
             <div className="rs-frame-inner">
-              <div className="rs-card-mount" data-paper={paper} data-verdict={result.verdict}>
+              <div className="rs-card-mount" data-paper={paper} data-verdict={result.verdict} data-gender={gender}>
                 {editing && (
                   <div className="st-edithint">
                     {kind === 'receipt' ? 'PICK A POSITION' : 'DRAG'} · <kbd>←↑↓→</kbd> nudge · <kbd>Esc</kbd> done
@@ -520,7 +528,7 @@ export function Result() {
                 </button>
               </div>
               <div className="rs-stickergrid">
-                {STICKER_BANK[kind].map((s, i) => (
+                {kindStickers.map((s, i) => (
                   <button
                     key={s.id}
                     className="rs-stickeropt"
@@ -639,7 +647,7 @@ export function Result() {
       {exporting && (
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         {faceContent && (
-        <div className="rs-export-card" ref={exportRefs.face}>
+        <div className="rs-export-card" ref={exportRefs.face} data-gender={gender}>
           <FaceCard content={faceContent} stickerOn={false} run={false} roast={result.face!.analysis.roast} />
           {stickerOn && (
             <StaticSticker label={facePreset.label} tone={facePreset.tone} rotation={facePreset.rotation} pos={pos.face} />
@@ -647,7 +655,7 @@ export function Result() {
         </div>
         )}
         {outfitContent && (
-        <div className="rs-export-card" ref={exportRefs.outfit}>
+        <div className="rs-export-card" ref={exportRefs.outfit} data-gender={gender}>
           <OutfitCard content={outfitContent} stickerOn={false} run={false} roast={result.outfit!.analysis.verdict} />
           {stickerOn && (
             <StaticSticker
@@ -664,6 +672,7 @@ export function Result() {
           ref={exportRefs.receipt}
           data-paper={paper}
           data-verdict={result.verdict}
+          data-gender={gender}
         >
           <Receipt content={result.receipt} paper={paper} sealOn={false} />
           <StaticStamp preset={receiptPreset} />
