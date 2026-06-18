@@ -1,0 +1,40 @@
+/* ============================================================
+   FEMME CARD IDENTITY — magenta accent + gold detailing.
+   System tokens only (--magenta / --gold already in :root).
+   Scoped to the card subtree (mount + export hosts) so the page
+   chrome keeps the brand accent. Masc = default (no rules here).
+   ============================================================ */
+
+.rs-card-mount[data-gender="femme"],
+.rs-export-card[data-gender="femme"] {
+  /* The cards paint everything off --accent; remapping it here recolors the
+     whole card (face + outfit) to magenta without touching page chrome. */
+  --accent: var(--magenta);
+}
+
+/* Gold detailing — the wordmark + footer index read gold for femme.
+   Selectors verified against FaceCard (.facecard .brand-tag, .fc-foot .kind-tag)
+   and OutfitCard (.outfitcard .brand-tag, .oc-foot .kind-tag). */
+.rs-card-mount[data-gender="femme"] .facecard .brand-tag,
+.rs-export-card[data-gender="femme"] .facecard .brand-tag,
+.rs-card-mount[data-gender="femme"] .facecard .fc-foot .kind-tag,
+.rs-export-card[data-gender="femme"] .facecard .fc-foot .kind-tag,
+.rs-card-mount[data-gender="femme"] .outfitcard .brand-tag,
+.rs-export-card[data-gender="femme"] .outfitcard .brand-tag,
+.rs-card-mount[data-gender="femme"] .outfitcard .oc-foot .kind-tag,
+.rs-export-card[data-gender="femme"] .outfitcard .oc-foot .kind-tag {
+  color: var(--gold);
+}
+
+/* Selfie ring gets a magenta→gold sheen instead of the icy conic. */
+.rs-card-mount[data-gender="femme"] .facecard .selfie-ring,
+.rs-export-card[data-gender="femme"] .facecard .selfie-ring {
+  background: conic-gradient(
+    from 0deg,
+    var(--magenta),
+    color-mix(in oklab, var(--gold) 70%, #fff),
+    var(--magenta),
+    color-mix(in oklab, var(--magenta) 25%, transparent),
+    var(--magenta)
+  );
+}
