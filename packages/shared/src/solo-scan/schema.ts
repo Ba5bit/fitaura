@@ -31,7 +31,11 @@ export const inputIssueSchema = z.enum([
 ]);
 export type InputIssue = z.infer<typeof inputIssueSchema>;
 
-const candidates = z.array(z.string().max(80)).max(8);
+// These are candidate POOLS the backend picks ONE from (see assemble.ts pick*).
+// Gemini routinely returns the entire allowlist (15-21 ids) instead of a few, so a
+// tight cap here rejects an otherwise-perfect scan with schema_invalid -> 502. Extra
+// candidates are harmless (the picker selects one), so keep this generous.
+const candidates = z.array(z.string().max(80)).max(64);
 
 export const soloScanSchema = z
   .object({
