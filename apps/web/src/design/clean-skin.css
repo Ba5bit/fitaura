@@ -47,25 +47,22 @@
 }
 
 /* ============================================================
-   CLEAN FACE variant — the photo fills the card (framed on the face, never
-   stretched) but a translucent glass block at the bottom now holds ALL the copy
-   (verdict, roast, est. age, pills, footer). The block covers the lower part of
-   the photo, so the crisp image is the smaller top slice of the card; the photo
-   continues, blurred, behind the glass. Scoped to `.cleanface` so the shared
-   `.clean-card` outfit skin is unaffected.
+   CLEAN FACE variant — a contained photo on top (framed on the face, never
+   stretched) that ends exactly at the info block; the block below holds ALL the
+   copy (verdict, roast, est. age, pills, footer). Scoped to `.cleanface` so the
+   shared `.clean-card` outfit skin is unaffected.
    ============================================================ */
-.cleanface { display: flex; flex-direction: column; justify-content: flex-end; }
+.cleanface { display: flex; flex-direction: column; }
 
-/* Photo fills the whole card (base `.clean-card .card-image { inset:0 }` rule);
-   framed toward the top. `object-fit: cover` crops — it never stretches. */
-.cleanface .card-image img { object-position: center 26%; }
+/* Photo region: fills the space above the block. The base `.clean-card .card-image
+   { inset:0 }` rule fills THIS box, so the photo is contained and ends where the
+   block begins. `object-fit: cover` crops — it never stretches. */
+.cleanface-photo { position: relative; flex: 1; min-height: 0; overflow: hidden; }
+.cleanface .card-image img { object-position: center 30%; }
 
-/* Translucent glass block — holds every text element, so the photo above it is
-   the smaller part of the card. */
+/* Info block — holds every text element below the photo. */
 .cleanface-info {
-  position: relative; z-index: 2;
-  background: linear-gradient(180deg, rgba(10,12,16,.5) 0%, rgba(10,12,16,.66) 100%);
-  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  background: var(--bg-1);
   padding: 18px 22px 18px; display: flex; flex-direction: column;
 }
 .cleanface .clean-verdict { font-size: 32px; }
@@ -78,10 +75,10 @@
   font-size: 15px; line-height: 1.25; letter-spacing: .02em; text-transform: uppercase;
   color: rgba(255,255,255,.92); text-wrap: pretty;
 }
-/* Estimated age — a small mono line directly below the roast/quote. */
+/* Estimated age — a mono line directly below the roast/quote. */
 .cleanface-age {
-  margin: 8px 0 0; font-family: "Space Mono", monospace; font-size: 11px;
-  letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.72);
+  margin: 9px 0 0; font-family: "Space Mono", monospace; font-size: 13px;
+  letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.8);
 }
 .cleanface-info .clean-chips { margin-top: 14px; }
 /* Bigger pills than the shared Clean chip (outfit unaffected — scoped to face). */
