@@ -28,8 +28,8 @@ export function OutfitCard({ content, stickerOn = true, run = true, roast }: Out
           <span className="brand-tag">FITAURA</span>
         </div>
         <div className="score-badge">
-          <span className="num">{score}</span>
           <span className="sub">FIT SCORE</span>
+          <span className="num">{score}</span>
         </div>
         <Sticker sticker={content.sticker} hidden={!stickerOn} kind="outfit" />
         <div className="caption-bar">

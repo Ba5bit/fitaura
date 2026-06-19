@@ -15,10 +15,13 @@ export function CleanOutfit({ content, roast }: SkinProps) {
       <CardImage src={c.imageUrl} shape="rect" placeholder="drop outfit photo" alt="Your outfit" />
       <div className="clean-scrim" />
       <span className="clean-wm">FITAURA</span>
+      <div className="score-badge">
+        <span className="sub">FIT SCORE</span>
+        <span className="num">{c.overallScore}</span>
+      </div>
       <div className="clean-bottom">
         <h2 className="clean-verdict">{c.caption}</h2>
         <div className="clean-chips">
-          <span className="clean-chip score">FIT {c.overallScore}</span>
           {chips.map((s) => (
             <span className="clean-chip" key={s.id}>{s.label} · {s.displayValue ?? s.value}</span>
           ))}

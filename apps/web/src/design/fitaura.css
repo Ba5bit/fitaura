@@ -263,13 +263,16 @@ body::before{
 .outfit-photo .scrim{ position:absolute; inset:0; z-index:2; pointer-events:none;
   background:linear-gradient(180deg, rgba(6,7,10,.55) 0%, transparent 22%, transparent 55%, rgba(6,7,10,.85) 100%); }
 .oc-top{ position:absolute; top:18px; left:20px; right:20px; z-index:4; display:flex; justify-content:space-between; align-items:center; }
-.score-badge{ position:absolute; top:18px; right:18px; z-index:4; text-align:center;
-  width:88px;height:88px;border-radius:20px; display:grid; place-items:center;
-  background:rgba(6,7,10,.55); backdrop-filter:blur(10px);
-  border:1px solid color-mix(in oklab,var(--accent) 55%,var(--hair));
-  box-shadow:0 0 36px -10px var(--accent); }
-.score-badge .num{ font-family:"Anton",sans-serif; font-size:42px; line-height:.82; color:#fff; }
-.score-badge .sub{ font-family:"Space Mono",monospace; font-size:10px; letter-spacing:0.14em; color:var(--accent); text-transform:uppercase; margin-top:4px; }
+/* Score badge — an accent "FIT SCORE" pill over a big Anton number, both
+   centred (the pill leads, the number sits under it). Accent follows gender. */
+.score-badge{ position:absolute; top:16px; right:16px; z-index:4; pointer-events:none;
+  display:flex; flex-direction:column; align-items:center; gap:3px; }
+.score-badge .sub{ font-family:"Space Mono",monospace; font-size:11px; font-weight:700;
+  letter-spacing:0.18em; text-transform:uppercase; color:#fff;
+  background:var(--accent); padding:5px 12px; border-radius:9px;
+  text-shadow:0 1px 2px rgba(0,0,0,.22); box-shadow:0 6px 16px -6px var(--accent); }
+.score-badge .num{ font-family:"Anton",sans-serif; font-size:56px; line-height:.86; color:#fff;
+  letter-spacing:0.01em; text-shadow:0 3px 16px rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.55); }
 .caption-bar{ position:absolute; left:18px; bottom:18px; right:18px; z-index:4; }
 .caption-bar .cap{ font-family:"Anton",sans-serif; font-size:30px; line-height:.95; text-transform:uppercase;
   color:#fff; text-shadow:0 2px 18px #000; }
