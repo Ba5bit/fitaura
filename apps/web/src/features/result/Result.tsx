@@ -73,6 +73,9 @@ export function Result() {
   const [tab, setTabRaw] = useState(initialTab);
   const [editing, setEditing] = useState(false);
   const [paper, setPaper] = useLocalStorage<ReceiptPaper>('fitaura.paper', 'neon');
+  // Premium + white share the "verified pass" (ReceiptPremium) layout and have no
+  // editable seal slots — white is just its ivory/cream skin.
+  const premiumLike = paper === 'premium' || paper === 'white';
   const [stickerOn, setStickerOn] = useLocalStorage('fitaura.stickerOn', true);
   const [toast, setToast] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
@@ -343,7 +346,7 @@ export function Result() {
       <FaceCard content={faceContent!} stickerOn={false} run roast={result.face!.analysis.roast} />
     ) : kind === 'outfit' ? (
       <OutfitCard content={outfitContent!} stickerOn={false} run roast={result.outfit!.analysis.verdict} />
-    ) : paper === 'premium' ? (
+    ) : premiumLike ? (
       <ReceiptPremium content={result.receipt} />
     ) : (
       <Receipt content={result.receipt} paper={paper} sealOn={false} />
@@ -370,7 +373,7 @@ export function Result() {
         hidden={!stickerOn}
         onCycle={swapSticker}
       />
-    ) : paper === 'premium' ? null : (
+    ) : premiumLike ? null : (
       <ReceiptStampEditor preset={receiptPreset} setPreset={setReceiptPreset} editing={editing} />
     );
 
@@ -572,9 +575,12 @@ export function Result() {
                 <button aria-pressed={paper === 'premium'} onClick={() => setPaper('premium')}>
                   Premium
                 </button>
+                <button aria-pressed={paper === 'white'} onClick={() => setPaper('white')}>
+                  White
+                </button>
               </div>
               <span className="rs-cb-spacer" />
-              {paper !== 'premium' && (
+              {!premiumLike && (
                 <>
                   <button
                     className={'rs-cb-btn' + (receiptPreset ? ' on' : '')}
@@ -635,7 +641,7 @@ export function Result() {
           )}
 
           {/* edit-mode panel — receipt: preset slots live on the card */}
-          {editing && kind === 'receipt' && paper !== 'premium' && (
+          {editing && kind === 'receipt' && !premiumLike && (
             <div className="rs-editpanel">
               <div className="eh">
                 <span className="t">STAMP POSITION</span>
@@ -748,7 +754,7 @@ export function Result() {
           data-verdict={result.verdict}
           data-gender={gender}
         >
-          {paper === 'premium' ? (
+          {premiumLike ? (
             <ReceiptPremium content={result.receipt} />
           ) : (
             <>

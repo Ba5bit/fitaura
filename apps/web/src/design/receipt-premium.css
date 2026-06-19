@@ -70,3 +70,36 @@
 .rcp-foottext { flex: 1; min-width: 0; }
 .rcp-seal { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; letter-spacing: .08em; font-size: 12px; color: var(--ink); }
 .rcp-meta { font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: .1em; color: var(--ink-dim); text-transform: uppercase; margin-top: 3px; }
+
+/* ============================================================
+   WHITE paper — ivory / cream light-glass version of the verified pass
+   (ported from the Card Studio v2 ivory receipt). An ADDITIONAL paper; the
+   default premium above is unchanged. Scoped to the `data-paper="white"`
+   ancestor (card mount + export host). Redefining the token vars on `.rcp`
+   flips every descendant to cream + dark ink. Accent still follows gender
+   (magenta femme / cyan masc); verdict colour stays semantic.
+   ============================================================ */
+.rs-card-mount[data-paper="white"] .rcp,
+.rs-export-card[data-paper="white"] .rcp {
+  --ink: #241f1b;
+  --ink-dim: #6c6157;
+  --hair: rgba(40, 32, 24, .14);
+  --hair-soft: rgba(40, 32, 24, .10);
+  --panel: rgba(255, 255, 255, .5);
+  color: #241f1b;
+  border-color: rgba(40, 32, 24, .12);
+  background:
+    radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--accent) 20%, transparent), transparent 60%),
+    linear-gradient(168deg, #fcf9f3, #efe8dc 72%);
+}
+/* Verdict stamp darkens so it reads on cream. */
+.rs-card-mount[data-paper="white"] .rcp-stamp,
+.rs-export-card[data-paper="white"] .rcp-stamp {
+  color: color-mix(in oklab, var(--verdict) 66%, #2a1d05);
+  text-shadow: 0 0 18px color-mix(in oklab, var(--verdict) 26%, transparent);
+}
+/* QR inverts to a dark chip with cream cells (a little sticker on the cream). */
+.rs-card-mount[data-paper="white"] .rcp-qr,
+.rs-export-card[data-paper="white"] .rcp-qr { background: #241f1b; }
+.rs-card-mount[data-paper="white"] .rcp-qr rect,
+.rs-export-card[data-paper="white"] .rcp-qr rect { fill: #f4efe6; }

@@ -186,7 +186,7 @@ export interface ReceiptRow {
   tone?: ReceiptRowTone;
 }
 
-export type ReceiptPaper = 'neon' | 'thermal' | 'premium';
+export type ReceiptPaper = 'neon' | 'thermal' | 'premium' | 'white';
 
 export interface DatingReceiptResult {
   /** Generation identifier shown on the receipt (e.g. "0xA73F"). */
