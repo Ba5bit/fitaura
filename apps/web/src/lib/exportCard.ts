@@ -1,8 +1,13 @@
 import { type DatingVerdict } from '@fitaura/shared';
 
 /**
- * Card export — rasterizes the actual on-screen card (WYSIWYG) and centers it on
- * a branded 9:16 (1080×1920) poster, then downloads or shares it.
+ * Card export — rasterizes the actual on-screen card (WYSIWYG) onto a 9:16
+ * (1080×1920) poster, then downloads or shares it. A card whose own aspect ratio
+ * matches the story frame (the 360×640 face / outfit / premium-receipt cards) is
+ * drawn full-bleed — edge-to-edge with squared corners — so it fills the whole
+ * frame, story-ready. The narrower thermal/neon receipt strip can't fill 9:16
+ * without distortion, so it stays centered on the branded glow poster. The
+ * on-screen cards keep their rounded corners; only the export squares them.
  *
  * Rasterized with snapdom. We used to use html-to-image, but its SVG
  * `<foreignObject>` pipeline renders advanced CSS wrong on Safari/WebKit:
@@ -75,6 +80,12 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
 
   const verdictHex = VERDICT_HEX[verdict] ?? '#ff3b49';
   const base = { w: 1080, h: 1920 };
+  const frameAr = base.w / base.h; // 9:16
+
+  // Cards whose own aspect ratio matches the story frame export full-bleed; the
+  // narrower receipt strip stays centered on the poster (see header doc).
+  const elAr = el.offsetWidth / el.offsetHeight;
+  const fullBleed = Math.abs(elAr - frameAr) < 0.02;
 
   const cv = document.createElement('canvas');
   cv.width = base.w;
@@ -98,33 +109,52 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, base.w, base.h);
 
-  // Rasterize the card 1:1 with snapdom. Transparent background so the card's
-  // rounded corners reveal the poster glow behind it. Edit-only overlays are
-  // dropped from the snapshot. snapdom is loaded on demand (only when a user
+  // Rasterize the card 1:1 with snapdom. Transparent background so a centered
+  // card's rounded corners reveal the poster glow behind it. Edit-only overlays
+  // are dropped from the snapshot. snapdom is loaded on demand (only when a user
   // actually exports) so it stays out of the initial bundle.
-  const { snapdom } = await import('@zumer/snapdom');
-  const cardCanvas = await snapdom.toCanvas(el, {
-    scale: 3,
-    embedFonts: true,
-    backgroundColor: 'transparent',
-    exclude: ['.st-overlay', '.st-edithint'],
-    excludeMode: 'remove',
-  });
+  //
+  // For a full-bleed export we square the card's rounded corners just for the
+  // capture (the on-screen card is untouched): the `.asset` root carries the
+  // radius, so we drop it inline and restore it afterwards.
+  const assetEl = fullBleed ? el.querySelector<HTMLElement>('.asset') : null;
+  const prevRadius = assetEl?.style.borderRadius;
+  if (assetEl) assetEl.style.borderRadius = '0';
 
-  // Center the card with a small uniform margin + a soft shadow.
-  const margin = base.h * 0.04;
-  const availH = base.h - margin * 2;
-  const ar = cardCanvas.width / cardCanvas.height;
-  const drawH = availH;
-  const drawW = drawH * ar;
-  const dx = (base.w - drawW) / 2;
-  const dy = margin;
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,.66)';
-  ctx.shadowBlur = 70;
-  ctx.shadowOffsetY = 28;
-  ctx.drawImage(cardCanvas, dx, dy, drawW, drawH);
-  ctx.restore();
+  const { snapdom } = await import('@zumer/snapdom');
+  let cardCanvas: HTMLCanvasElement;
+  try {
+    cardCanvas = await snapdom.toCanvas(el, {
+      scale: 3,
+      embedFonts: true,
+      backgroundColor: 'transparent',
+      exclude: ['.st-overlay', '.st-edithint'],
+      excludeMode: 'remove',
+    });
+  } finally {
+    if (assetEl) assetEl.style.borderRadius = prevRadius ?? '';
+  }
+
+  if (fullBleed) {
+    // The card AR matches the frame exactly, so it fills 1080×1920 with no
+    // distortion and no margin — a clean, story-ready full frame.
+    ctx.drawImage(cardCanvas, 0, 0, base.w, base.h);
+  } else {
+    // Center the strip with a small uniform margin + a soft shadow.
+    const margin = base.h * 0.04;
+    const availH = base.h - margin * 2;
+    const ar = cardCanvas.width / cardCanvas.height;
+    const drawH = availH;
+    const drawW = drawH * ar;
+    const dx = (base.w - drawW) / 2;
+    const dy = margin;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,.66)';
+    ctx.shadowBlur = 70;
+    ctx.shadowOffsetY = 28;
+    ctx.drawImage(cardCanvas, dx, dy, drawW, drawH);
+    ctx.restore();
+  }
 
   const blob = await new Promise<Blob | null>((res) => cv.toBlob(res, 'image/png'));
   if (!blob) throw new Error('Failed to encode PNG');
