@@ -202,6 +202,17 @@ describe('assembleResult — nameplate + metric notes', () => {
     expect(r.outfit).toBeNull();
   });
 
+  it('renames the jargon supporting labels to plain language', () => {
+    const r = assembleResult(sampleAIOutput(), 'scan-np', 'v3_5', { face: true, outfit: true });
+    const labels = r.outfit!.analysis.supporting!.map((s) => s.label);
+    expect(labels).toContain('Color Match');
+    expect(labels).toContain('Styling Effort');
+    expect(labels).toContain('Overall Look');
+    expect(labels).not.toContain('Color Story');
+    expect(labels).not.toContain('Styling Intent');
+    expect(labels).not.toContain('Overall Cohesion');
+  });
+
   it('accepts an over-long AI dossier and caps it at 4 rows', () => {
     const ai = sampleAIOutput();
     ai.outfitNameplate.dossier = [

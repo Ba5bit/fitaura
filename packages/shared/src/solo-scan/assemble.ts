@@ -150,10 +150,10 @@ export function assembleResult(
       nameplate,
     };
     const supportingDefs: Array<{ id: string; label: string; r: RubricRating; key: string }> = [
-      { id: 'color-story', label: 'Color Story', r: oa.colorCoherence, key: 'color' },
+      { id: 'color-story', label: 'Color Match', r: oa.colorCoherence, key: 'color' },
       { id: 'layering', label: 'Layering', r: oa.layering, key: 'layering' },
-      { id: 'styling-intent', label: 'Styling Intent', r: oa.stylingIntent, key: 'styling' },
-      { id: 'overall-cohesion', label: 'Overall Cohesion', r: oa.overallCohesion, key: 'cohesion' },
+      { id: 'styling-intent', label: 'Styling Effort', r: oa.stylingIntent, key: 'styling' },
+      { id: 'overall-cohesion', label: 'Overall Look', r: oa.overallCohesion, key: 'cohesion' },
       { id: 'accessories', label: 'Accessories', r: oa.accessories, key: 'accessories' },
     ];
     const supporting: SupportingStat[] = supportingDefs
