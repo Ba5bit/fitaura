@@ -5,7 +5,8 @@ import {
   authResend, authResetPassword, authSignIn, authSignOut, authSignUp,
   getCurrentSession, onAuthChange,
 } from '../../services/authService';
-import { getBalance, grantCredits, refundCredit, spendCredit } from '../../services/creditsService';
+import { getBalance, refundCredit, spendCredit } from '../../services/creditsService';
+import { createCheckout, openCheckoutOverlay, pollBalanceUntilChange } from '../../services/checkoutService';
 
 export interface AccountUser {
   email: string;
@@ -116,7 +117,6 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [missingId, setMissingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const procTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const authRedirect = useRef<string | null>(null);
 
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
@@ -346,20 +346,28 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     [signedIn],
   );
 
-  const pay = useCallback(() => {
+  // Real Polar checkout: create session → open embedded overlay → on success,
+  // poll the server balance until the webhook has granted the credits.
+  const pay = useCallback(async () => {
+    if (!userId) return;
+    const packCredits = CREDIT_PACKS.find((p) => p.id === pack)?.credits ?? 0;
     setScene('processing');
-    if (procTimer.current) clearTimeout(procTimer.current);
-    procTimer.current = setTimeout(async () => {
-      const packCredits = CREDIT_PACKS.find((p) => p.id === pack)?.credits ?? 0;
-      if (userId) {
-        const next = await grantCredits(userId, packCredits);
-        setCredits(next);
+    try {
+      const url = await createCheckout(pack);
+      const outcome = await openCheckoutOverlay(url);
+      if (outcome !== 'success') {
+        setScene('checkout'); // user closed the overlay without paying
+        return;
       }
       setLastPurchaseCredits(packCredits);
       setScene('success');
+      const next = await pollBalanceUntilChange(userId, credits);
+      setCredits(next);
       flash('Credits added to your account.');
-    }, 2300);
-  }, [pack, userId, flash]);
+    } catch {
+      setScene('failure');
+    }
+  }, [userId, pack, credits, flash]);
 
   const failPayment = useCallback(() => setScene('failure'), []);
 
