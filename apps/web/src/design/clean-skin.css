@@ -47,32 +47,26 @@
 }
 
 /* ============================================================
-   CLEAN FACE variant — contained photo (no selfie stretch) with the
-   verdict/punchline/roast on a bottom scrim, and a solid info block of
-   pill chips + footer read below. Scoped to `.cleanface` so the shared
-   `.clean-card` outfit skin is unaffected.
+   CLEAN FACE variant — the photo fills the card (framed on the face so a selfie
+   reads well, not stretched); the verdict, roast and est. age ride a scrim above a
+   translucent glass info block of pill chips + footer read. Scoped to `.cleanface`
+   so the shared `.clean-card` outfit skin is unaffected.
    ============================================================ */
-.cleanface { display: flex; flex-direction: column; }
+.cleanface { display: flex; flex-direction: column; justify-content: flex-end; }
 
-/* Photo region: top ~58%. The base `.clean-card .card-image { inset:0 }` rule
-   fills THIS positioned box (not the whole card), so the photo is contained and
-   `object-fit: cover` gives a natural crop instead of a 360×640 stretch. */
-.cleanface-photo { position: relative; flex: 0 0 68%; overflow: hidden; }
-
-/* Estimated age — a small mono label on the photo (top-right), opposite FITAURA. */
-.cleanface-age {
-  position: absolute; top: 18px; right: 20px; z-index: 2;
-  font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: .14em;
-  text-transform: uppercase; color: #fff; opacity: .85; text-shadow: 0 1px 6px rgba(0,0,0,.6);
-}
+/* Photo fills the whole card (base `.clean-card .card-image { inset:0 }` rule).
+   Frame toward the top so the face sits high and the lower body falls behind the
+   translucent info panel. `object-fit: cover` crops — it never stretches. */
+.cleanface .card-image img { object-position: center 26%; }
 
 .cleanface-photo-scrim {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 64%;
+  position: absolute; left: 0; right: 0; bottom: 0; height: 62%;
   z-index: 1; pointer-events: none;
-  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.5) 46%, rgba(0,0,0,.92) 100%);
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.48) 46%, rgba(0,0,0,.86) 100%);
 }
 
-.cleanface-text { position: absolute; left: 22px; right: 22px; bottom: 18px; z-index: 2; }
+/* Text stack sits in normal flow, pushed to the bottom (above the info panel). */
+.cleanface-text { position: relative; z-index: 2; padding: 0 22px 12px; }
 .cleanface .clean-verdict { font-size: 32px; }
 /* Verdict highlight uses the semantic band colour (lime/cyan/red), matching the
    Dossier (first) face card — not the gender accent. */
@@ -83,14 +77,23 @@
   font-size: 15px; line-height: 1.25; letter-spacing: .02em; text-transform: uppercase;
   color: rgba(255,255,255,.92); text-wrap: pretty; text-shadow: 0 2px 10px rgba(0,0,0,.7);
 }
+/* Estimated age — a small mono line directly below the roast/quote. */
+.cleanface-age {
+  margin: 8px 0 0; font-family: "Space Mono", monospace; font-size: 11px;
+  letter-spacing: .14em; text-transform: uppercase; color: rgba(255,255,255,.72);
+  text-shadow: 0 1px 6px rgba(0,0,0,.6);
+}
 
-/* Solid info block: bottom ~42%. Pill chips at top, footer read pinned bottom. */
+/* Translucent glass info panel at the bottom — the photo shows through. */
 .cleanface-info {
-  flex: 1; min-height: 0; background: var(--bg-1);
-  padding: 16px 22px 18px; display: flex; flex-direction: column;
+  position: relative; z-index: 2; background: rgba(10,12,16,.55);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  padding: 14px 22px 18px; display: flex; flex-direction: column;
 }
 .cleanface-info .clean-chips { margin-top: 0; }
+/* Bigger pills than the shared Clean chip (outfit unaffected — scoped to face). */
+.cleanface .clean-chip { font-size: 12.5px; padding: 7px 13px; }
 .cleanface-read {
-  margin-top: auto; font-family: "Space Mono", monospace; font-size: 10px;
+  margin-top: 12px; font-family: "Space Mono", monospace; font-size: 10px;
   letter-spacing: .22em; text-transform: uppercase; color: var(--ink-faint);
 }
