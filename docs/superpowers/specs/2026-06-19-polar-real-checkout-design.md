@@ -246,5 +246,8 @@ Frontend dep: `@polar-sh/checkout`.
 
 ## Open follow-ups
 
-- Decide whether `/credits` should also surface the real receipt history from
-  `credit_purchases` (the UI references "payment receipts" today). Likely a fast follow.
+- Surface real receipt history on `/credits` from `credit_purchases` (the UI references
+  "payment receipts" today). Confirmed **fast follow**, not v1.
+- **Legal/policy pages** (terms of service, refund policy, privacy) — separate website task,
+  not part of this payment wiring. Note: Polar may *require* a linked refund/terms policy
+  before selling in production, so keep it on the near list.
