@@ -95,6 +95,8 @@ interface AccountContextValue {
   openPaywall: () => void;
   startCheckout: (packId?: string) => void;
   pay: () => void;
+  /** Re-fetch the balance after returning from Polar's hosted success redirect. */
+  refreshBalanceAfterPurchase: () => Promise<void>;
   failPayment: () => void;
   openMissing: (id: string) => void;
 }
@@ -369,6 +371,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     }
   }, [userId, pack, credits, flash]);
 
+  // Returning to /credits?status=success (overlay event missed): poll until the
+  // webhook-granted credits land, then reflect the new balance.
+  const refreshBalanceAfterPurchase = useCallback(async () => {
+    if (!userId) return;
+    const next = await pollBalanceUntilChange(userId, credits);
+    setCredits(next);
+    flash('Credits added to your account.');
+  }, [userId, credits, flash]);
+
   const failPayment = useCallback(() => setScene('failure'), []);
 
   const value = useMemo<AccountContextValue>(
@@ -404,6 +415,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       openPaywall,
       startCheckout,
       pay,
+      refreshBalanceAfterPurchase,
       failPayment,
       openMissing,
     }),
@@ -411,7 +423,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       signedIn, userId, user, credits, canScan, spendForScan, refundScan, scene, authStatus, authError,
       pack, lastPurchaseCredits, missingId, toast, pendingEmail, confirmKind, resendCooldown,
       resendConfirmation, requestPasswordReset, flash, closeScene, openAuth, authInitialMode, signUp, logIn,
-      requestLogout, confirmLogout, openPaywall, startCheckout, pay, failPayment, openMissing,
+      requestLogout, confirmLogout, openPaywall, startCheckout, pay, refreshBalanceAfterPurchase, failPayment, openMissing,
     ],
   );
 

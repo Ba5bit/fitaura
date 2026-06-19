@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CREDIT_PACKS } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
 import { useAccount } from '../account/AccountContext';
@@ -15,7 +17,17 @@ const UNLOCKS = [
 
 /** Pricing & credits — credit-pack selector wired to the real checkout flow. */
 export function Pricing() {
-  const { credits, pack, setPack, startCheckout, flash } = useAccount();
+  const { credits, pack, setPack, startCheckout, flash, userId, refreshBalanceAfterPurchase } = useAccount();
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    if (params.get('status') === 'success' && userId) {
+      void refreshBalanceAfterPurchase();
+      params.delete('status');
+      params.delete('checkout_id');
+      setParams(params, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
   const zero = credits === 0;
   const selected = CREDIT_PACKS.find((p) => p.id === pack) ?? CREDIT_PACKS[0];
 
