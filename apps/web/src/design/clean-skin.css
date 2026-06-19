@@ -42,7 +42,7 @@
 }
 .clean-chip.score { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 700; }
 .clean-bio {
-  margin: 12px 0 0; font-family: "Hanken Grotesk", sans-serif; font-size: 13px; line-height: 1.4;
+  margin: 12px 0 0; font-family: "Hanken Grotesk", sans-serif; font-size: 15.5px; line-height: 1.38;
   color: rgba(255,255,255,.82); text-wrap: pretty;
 }
 
