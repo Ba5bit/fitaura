@@ -573,10 +573,10 @@ export function Result() {
                   Thermal
                 </button>
                 <button aria-pressed={paper === 'premium'} onClick={() => setPaper('premium')}>
-                  Premium
+                  Onyx
                 </button>
                 <button aria-pressed={paper === 'white'} onClick={() => setPaper('white')}>
-                  White
+                  Ivory
                 </button>
               </div>
               <span className="rs-cb-spacer" />
