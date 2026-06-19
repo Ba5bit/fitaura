@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { cycleOrder } from './cardFanCycle';
+import { cycleOrder } from '../../lib/cycleOrder';
 
 interface CardFanProps {
   items: React.ReactNode[];
