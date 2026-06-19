@@ -24,8 +24,11 @@ Deno.serve(async (req) => {
   const raw = await req.text();
 
   // 1. Verify the Standard-Webhooks signature. Invalid → 400, no side effects.
+  // Polar's secret (polar_whs_…) must be base64-encoded first: standardwebhooks
+  // base64-DECODES whatever it receives to recover the signing key. (Polar's own
+  // SDK does the same — new Webhook(base64(secret)).)
   try {
-    new Webhook(WEBHOOK_SECRET).verify(raw, {
+    new Webhook(btoa(WEBHOOK_SECRET)).verify(raw, {
       'webhook-id': req.headers.get('webhook-id') ?? '',
       'webhook-timestamp': req.headers.get('webhook-timestamp') ?? '',
       'webhook-signature': req.headers.get('webhook-signature') ?? '',
