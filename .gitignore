@@ -17,3 +17,7 @@ coverage/
 # Visual-companion brainstorm mockups
 .superpowers/
 .gstack/
+
+# Supabase CLI local state (machine-specific; not for version control)
+supabase/.temp/
+supabase/.branches/
