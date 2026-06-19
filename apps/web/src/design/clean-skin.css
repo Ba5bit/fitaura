@@ -80,10 +80,7 @@
   margin: 9px 0 0; font-family: "Space Mono", monospace; font-size: 13px;
   letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.8);
 }
-.cleanface-info .clean-chips { margin-top: 14px; }
+/* Pills sit a little below the copy above. */
+.cleanface-info .clean-chips { margin-top: 22px; }
 /* Bigger pills than the shared Clean chip (outfit unaffected — scoped to face). */
 .cleanface .clean-chip { font-size: 12.5px; padding: 7px 13px; }
-.cleanface-read {
-  margin-top: 14px; font-family: "Space Mono", monospace; font-size: 10px;
-  letter-spacing: .22em; text-transform: uppercase; color: var(--ink-faint);
-}

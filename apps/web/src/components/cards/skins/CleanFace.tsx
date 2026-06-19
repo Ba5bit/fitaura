@@ -33,7 +33,6 @@ export function CleanFace({ content, roast }: SkinProps) {
             </span>
           ))}
         </div>
-        <div className="cleanface-read">FACE / VIBE READ</div>
       </div>
     </div>
   );
