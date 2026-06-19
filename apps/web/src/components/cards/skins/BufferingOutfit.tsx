@@ -27,6 +27,7 @@ export function BufferingOutfit({ content, roast }: SkinProps) {
           <span className="buffering-bigpct">{c.overallScore}<i>%</i></span>
         </div>
         <h2 className="buffering-title">{c.caption}</h2>
+        {roast && <p className="buffering-quote">“{roast}”</p>}
         <div className="buffering-bars">
           {bars.map((s) => (
             <div className="buffering-bar" key={s.id}>
@@ -40,7 +41,6 @@ export function BufferingOutfit({ content, roast }: SkinProps) {
             </div>
           ))}
         </div>
-        {roast && <p className="buffering-quote">“{roast}”</p>}
         <div className="buffering-foot">
           <span className="buffering-nextbtn">RENDER READY</span>
           <span className="buffering-spark">✦ FITAURA.APP</span>

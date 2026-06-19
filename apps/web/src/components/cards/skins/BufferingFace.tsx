@@ -31,6 +31,7 @@ export function BufferingFace({ content, roast }: SkinProps) {
         <h2 className="buffering-title">
           {c.verdict[0]} <span className="hl">{c.verdict[1]}</span>
         </h2>
+        {roast && <p className="buffering-quote">“{roast}”</p>}
         <div className="buffering-bars">
           {bars.map((s) => (
             <div className="buffering-bar" key={s.id}>
@@ -44,7 +45,6 @@ export function BufferingFace({ content, roast }: SkinProps) {
             </div>
           ))}
         </div>
-        {roast && <p className="buffering-quote">“{roast}”</p>}
         <div className="buffering-foot">
           <span className="buffering-nextbtn">RENDER READY</span>
           <span className="buffering-spark">✦ FITAURA.APP</span>

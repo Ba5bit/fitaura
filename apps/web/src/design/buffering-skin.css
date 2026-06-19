@@ -58,8 +58,8 @@
 .buffering-bar-track { height: 9px; border-radius: 99px; background: rgba(255,255,255,.13); overflow: hidden; }
 .buffering-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); box-shadow: 0 0 10px -1px var(--accent); }
 .buffering-quote {
-  margin: 0; font-family: "Hanken Grotesk", sans-serif; font-style: italic; font-size: 13.5px;
-  line-height: 1.36; color: rgba(255,255,255,.82); text-wrap: pretty;
+  margin: 0; font-family: "Hanken Grotesk", sans-serif; font-style: italic; font-size: 15px;
+  line-height: 1.34; color: rgba(255,255,255,.85); text-wrap: pretty;
 }
 .buffering-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; }
 .buffering-nextbtn {
