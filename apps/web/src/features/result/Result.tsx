@@ -36,6 +36,7 @@ import '../../design/receipt-premium.css';
 import '../../design/card-switcher.css';
 import '../../design/clean-skin.css';
 import '../../design/buffering-skin.css';
+import '../../design/nameplate-skin.css';
 
 type Kind = 'face' | 'outfit' | 'receipt';
 const TABS: { id: number; slug: Kind; name: string; n: string }[] = [

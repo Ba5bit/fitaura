@@ -1,0 +1,82 @@
+/* apps/web/src/design/nameplate-skin.css
+   NAMEPLATE SKIN — Aura-Scan outfit card. Full-bleed photo + static grain +
+   bottom scrim; one per-card --accent (image-matched, clamped) flows through
+   ticks / brand / lane / dotted leaders. Stars stay gold. Dark for both genders.
+   Frame mirrors .clean-card so it drops into the deck + export identically. */
+.nameplate-card {
+  position: absolute; inset: 0; width: 360px; height: 640px;
+  border-radius: 26px; overflow: hidden; box-shadow: var(--shadow-card);
+  background: var(--bg-1); isolation: isolate;
+}
+.nameplate-card .card-image { position: absolute; inset: 0; }
+.nameplate-card .card-image img { width: 100%; height: 100%; object-fit: cover; object-position: center 28%; display: block; }
+.nameplate-card .card-image-placeholder {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: linear-gradient(160deg, var(--bg-2), var(--bg-0));
+  color: var(--ink-faint); font-family: "Space Mono", monospace; font-size: 11px;
+  letter-spacing: .2em; text-transform: uppercase;
+}
+
+/* static film grain (export-safe — no animation, no opacity-from-0) */
+.np-grain {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  opacity: .14; mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 150px 150px;
+}
+.np-scrim {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(180deg, rgba(6,7,10,.55) 0%, rgba(6,7,10,.12) 16%,
+    transparent 34%, transparent 44%, rgba(6,7,10,.66) 68%, rgba(6,7,10,.97) 100%);
+}
+
+/* corner reticle */
+.np-ticks span { position: absolute; width: 20px; height: 20px; border: 2.5px solid var(--accent); opacity: .9; z-index: 6; }
+.np-ticks .tl { top: 16px; left: 16px; border-right: 0; border-bottom: 0; }
+.np-ticks .tr { top: 16px; right: 16px; border-left: 0; border-bottom: 0; }
+.np-ticks .bl { bottom: 16px; left: 16px; border-right: 0; border-top: 0; }
+.np-ticks .br { bottom: 16px; right: 16px; border-left: 0; border-top: 0; }
+
+/* top chrome */
+.np-top { position: absolute; z-index: 7; top: 22px; left: 22px; right: 22px;
+  display: flex; justify-content: space-between; align-items: flex-start; }
+.np-brand { display: inline-flex; align-items: center; gap: 8px;
+  font-family: "Space Mono", monospace; font-weight: 700; letter-spacing: .3em; font-size: 12px; color: #fff; }
+.np-brand .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+.np-lane { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px;
+  background: rgba(6,7,10,.55); backdrop-filter: blur(8px);
+  border: 1.5px solid color-mix(in oklab, var(--accent) 55%, var(--hair));
+  font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+  color: color-mix(in oklab, var(--accent) 72%, #fff); white-space: nowrap; }
+.np-lane .pip { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+/* bottom content */
+.np-body { position: absolute; z-index: 7; left: 22px; right: 22px; bottom: 22px; }
+.np-eyebrow { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+  color: rgba(255,255,255,.82); text-shadow: 0 2px 10px rgba(0,0,0,.7); margin-bottom: 6px; }
+.np-name { margin: 0; font-family: "Anton", sans-serif; font-weight: 400; text-transform: uppercase;
+  letter-spacing: .01em; font-size: 46px; line-height: .9; color: #fff; text-wrap: balance; text-shadow: 0 2px 18px rgba(0,0,0,.5); }
+.np-rate { display: flex; align-items: baseline; gap: 10px; margin: 10px 0 8px; }
+.np-stars { position: relative; display: inline-block; font-size: 22px; letter-spacing: 2px; line-height: 1; }
+.np-stars .base { color: rgba(255,255,255,.22); }
+.np-stars .fill { position: absolute; inset: 0; overflow: hidden; white-space: nowrap; color: var(--gold);
+  width: calc(var(--r) / 5 * 100%); text-shadow: 0 0 12px color-mix(in oklab, var(--gold) 60%, transparent); }
+.np-score { font-family: "Anton", sans-serif; font-size: 26px; line-height: 1; color: #fff; }
+.np-score .u { font-size: 14px; color: var(--ink-dim); }
+.np-tagline { margin: 0 0 14px; font-family: "Anton", sans-serif; text-transform: uppercase;
+  font-size: 18px; line-height: 1; letter-spacing: .01em; color: color-mix(in oklab, var(--accent) 78%, #fff); }
+.np-specs { display: flex; flex-direction: column; gap: 9px; }
+.np-spec { display: flex; align-items: baseline; gap: 10px; }
+.np-spec .k { font-family: "Space Mono", monospace; font-weight: 700; font-size: 11px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+.np-spec .lead { flex: 1; align-self: center; height: 0; min-width: 14px; transform: translateY(-2px);
+  border-bottom: 2px dotted color-mix(in oklab, var(--accent) 62%, transparent); }
+.np-spec .v { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 15px; color: #fff;
+  white-space: nowrap; text-align: right; }
+.np-foot { margin-top: 15px; padding-top: 11px; border-top: 1px solid var(--hair);
+  display: flex; justify-content: space-between; align-items: center; }
+.np-handle { display: inline-flex; align-items: center; gap: 7px;
+  font-family: "Space Mono", monospace; font-size: 11px; color: var(--ink-dim); }
+.np-handle .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.np-handle b { color: #fff; }
+.np-barcode { height: 18px; opacity: .75; }

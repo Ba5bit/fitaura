@@ -4,7 +4,7 @@ import { DossierOutfit } from './DossierOutfit';
 import { CleanFace } from './CleanFace';
 import { CleanOutfit } from './CleanOutfit';
 import { BufferingFace } from './BufferingFace';
-import { BufferingOutfit } from './BufferingOutfit';
+import { NameplateOutfit } from './NameplateOutfit';
 
 export const CARD_SKINS: Record<SkinKind, CardSkin[]> = {
   face: [
@@ -15,7 +15,7 @@ export const CARD_SKINS: Record<SkinKind, CardSkin[]> = {
   outfit: [
     { id: 'dossier', name: 'Dossier', Comp: DossierOutfit },
     { id: 'clean', name: 'Clean', Comp: CleanOutfit },
-    { id: 'buffering', name: 'Buffering', Comp: BufferingOutfit },
+    { id: 'nameplate', name: 'Nameplate', Comp: NameplateOutfit },
   ],
 };
 
