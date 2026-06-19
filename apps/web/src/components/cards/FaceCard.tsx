@@ -36,13 +36,19 @@ export function FaceCard({ content, stickerOn = true, run = true, roast }: FaceC
     // Re-measure once the display font loads — the fallback font wraps differently.
     document.fonts?.ready.then(measure).catch(() => {});
   }, [content.verdict]);
+  const aura = content.scores.find((s) => s.id === 'aura');
   return (
     <div className="asset facecard" data-vlines={vlines}>
       <div className="glow" />
       <div className="fc-top">
         <span className="brand-tag">FITAURA</span>
-        <span className="kind-tag">FACE CARD</span>
       </div>
+      {aura && (
+        <div className="score-badge">
+          <span className="sub">AURA</span>
+          <span className="num">{aura.value}</span>
+        </div>
+      )}
       <div className="selfie-stage">
         <div className="selfie-ring" />
         <div className="fc-recticks">
