@@ -180,3 +180,25 @@ describe('assembleResult — card headlines use the written bank, not AI copy', 
     expect(r.face!.card.scores).toHaveLength(4);
   });
 });
+
+describe('assembleResult — nameplate + metric notes', () => {
+  it('attaches a clamped nameplate to the outfit card', () => {
+    const r = assembleResult(sampleAIOutput(), 'scan-np', 'v3_5', { face: true, outfit: true });
+    const np = r.outfit!.card.nameplate!;
+    expect(np.name).toBe('DENIM ARMORY');
+    expect(np.lane).toBe('Streetwear');
+    expect(np.dossier).toHaveLength(4);
+    expect(np.accent).toMatch(/^#[0-9a-f]{6}$/);
+  });
+
+  it('carries each main outfit metric AI evidence onto note', () => {
+    const r = assembleResult(sampleAIOutput(), 'scan-np', 'v3_5', { face: true, outfit: true });
+    const silhouette = r.outfit!.card.scores.find((s) => s.id === 'silhouette')!;
+    expect(silhouette.note).toBe('Visible in the image.'); // fixture evidence
+  });
+
+  it('does not attach a nameplate when the outfit is absent', () => {
+    const r = assembleResult(sampleAIOutput(), 'scan-np', 'v3_5', { face: true, outfit: false });
+    expect(r.outfit).toBeNull();
+  });
+});

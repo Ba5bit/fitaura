@@ -1,6 +1,6 @@
 // packages/shared/src/solo-scan/assemble.ts
 import type {
-  FullGenerationResult, ScoreItem, FaceTrait, SupportingStat, ReceiptRow,
+  FullGenerationResult, ScoreItem, FaceTrait, SupportingStat, ReceiptRow, OutfitNameplate,
 } from '../result.ts';
 import type { ScanParts } from '../result.ts';
 import { STICKER_BANK, stickerFromPreset } from '../sticker-bank.ts';
@@ -12,6 +12,7 @@ import {
 } from './scoring.ts';
 import { pickFaceArchetype, pickOutfitCaption, pickPunchline, scoreBand } from './content-bank.ts';
 import { scrubName } from './copyFilter.ts';
+import { clampAccent } from './accent.ts';
 
 /** Display value for a rubric category that is null (not assessable). */
 const UNSCORED_DISPLAY = 50;
@@ -126,17 +127,27 @@ export function assembleResult(
   if (parts.outfit) {
     const caption = pickOutfitCaption(glory ? undefined : ai.contentSelection.outfitCaptionCandidates, band, scanId, contentGender);
     const captionText = caption.caption;
+    const npAI = ai.outfitNameplate;
+    const nameplate: OutfitNameplate = {
+      name: npAI.name,
+      eyebrow: npAI.eyebrow,
+      tagline: npAI.tagline,
+      lane: npAI.lane,
+      accent: clampAccent(npAI.accentHex, contentGender),
+      dossier: npAI.dossier.slice(0, 4).map((row) => ({ label: row.label, value: row.value })),
+    };
     const outfitCard = {
       imageUrl: null,
       caption: captionText,
       overallScore: d(outfit as number, 'outfit-overall'),
       scores: [
-        score('silhouette', 'Silhouette', sc(oa.silhouette, 'silhouette')),
-        score('proportions', 'Proportions', sc(oa.proportions, 'proportions')),
-        score('fit', 'Fit', sc(oa.fit, 'fit')),
-        score('physique-match', 'Physique Match', sc(oa.physiqueMatch, 'physique')),
+        { id: 'silhouette', label: 'Silhouette', value: sc(oa.silhouette, 'silhouette'), note: oa.silhouette.evidence },
+        { id: 'proportions', label: 'Proportions', value: sc(oa.proportions, 'proportions'), note: oa.proportions.evidence },
+        { id: 'fit', label: 'Fit', value: sc(oa.fit, 'fit'), note: oa.fit.evidence },
+        { id: 'physique-match', label: 'Physique Match', value: sc(oa.physiqueMatch, 'physique'), note: oa.physiqueMatch.evidence },
       ],
       sticker: outfitStickerById(caption.stickerId),
+      nameplate,
     };
     const supportingDefs: Array<{ id: string; label: string; r: RubricRating; key: string }> = [
       { id: 'color-story', label: 'Color Story', r: oa.colorCoherence, key: 'color' },
