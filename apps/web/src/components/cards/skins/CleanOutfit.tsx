@@ -21,12 +21,12 @@ export function CleanOutfit({ content, roast }: SkinProps) {
       </div>
       <div className="clean-bottom">
         <h2 className="clean-verdict">{c.caption}</h2>
+        {roast && <p className="clean-bio">{roast}</p>}
         <div className="clean-chips">
           {chips.map((s) => (
             <span className="clean-chip" key={s.id}>{s.label} · {s.displayValue ?? s.value}</span>
           ))}
         </div>
-        {roast && <p className="clean-bio">{roast}</p>}
       </div>
     </div>
   );
