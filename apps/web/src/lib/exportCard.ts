@@ -2,12 +2,14 @@ import { type DatingVerdict } from '@fitaura/shared';
 
 /**
  * Card export — rasterizes the actual on-screen card (WYSIWYG) onto a 9:16
- * (1080×1920) poster, then downloads or shares it. A card whose own aspect ratio
- * matches the story frame (the 360×640 face / outfit / premium-receipt cards) is
- * drawn full-bleed — edge-to-edge with squared corners — so it fills the whole
- * frame, story-ready. The narrower thermal/neon receipt strip can't fill 9:16
- * without distortion, so it stays centered on the branded glow poster. The
- * on-screen cards keep their rounded corners; only the export squares them.
+ * (1080×1920) frame, then downloads or shares it. Every card exports full-bleed
+ * — edge-to-edge with squared corners — so it fills the whole frame, story-ready.
+ * The 360×640 cards (face / outfit / premium receipt) already match the frame, so
+ * they're drawn 1:1. The narrower 340×640 thermal/neon receipt strip is widened
+ * to a true 9:16 for the capture (no distortion — its QR and type keep their
+ * size, it just gains a little side breathing room) so it fills the frame too.
+ * The on-screen cards keep their rounded corners and their width; only the export
+ * squares the corners and widens the receipt.
  *
  * Rasterized with snapdom. We used to use html-to-image, but its SVG
  * `<foreignObject>` pipeline renders advanced CSS wrong on Safari/WebKit:
@@ -82,10 +84,13 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
   const base = { w: 1080, h: 1920 };
   const frameAr = base.w / base.h; // 9:16
 
-  // Cards whose own aspect ratio matches the story frame export full-bleed; the
-  // narrower receipt strip stays centered on the poster (see header doc).
+  // A card whose own aspect ratio already matches the story frame exports
+  // full-bleed as-is. The narrower receipt strip is widened to a true 9:16 for
+  // its capture so it fills the frame too (see header doc), then handled like any
+  // full-bleed card.
   const elAr = el.offsetWidth / el.offsetHeight;
-  const fullBleed = Math.abs(elAr - frameAr) < 0.02;
+  const isNarrowReceipt = kind === 'receipt' && elAr < frameAr - 0.005;
+  const fullBleed = Math.abs(elAr - frameAr) < 0.02 || isNarrowReceipt;
 
   const cv = document.createElement('canvas');
   cv.width = base.w;
@@ -114,12 +119,29 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
   // are dropped from the snapshot. snapdom is loaded on demand (only when a user
   // actually exports) so it stays out of the initial bundle.
   //
-  // For a full-bleed export we square the card's rounded corners just for the
-  // capture (the on-screen card is untouched): the `.asset` root carries the
-  // radius, so we drop it inline and restore it afterwards.
+  // Full-bleed prep, all on the offscreen capture target (the on-screen card is
+  // untouched): square the card's rounded corners — the `.asset` root carries the
+  // radius — and, for the narrow receipt strip, widen the capture box + the
+  // receipt to a true 9:16 so it fills the frame. Every override is inline +
+  // `!important` and undone in the `finally`.
   const assetEl = fullBleed ? el.querySelector<HTMLElement>('.asset') : null;
-  const prevRadius = assetEl?.style.borderRadius;
-  if (assetEl) assetEl.style.borderRadius = '0';
+  const restore: Array<() => void> = [];
+  const force = (node: HTMLElement, prop: string, value: string) => {
+    const prev = node.style.getPropertyValue(prop);
+    const prevPriority = node.style.getPropertyPriority(prop);
+    restore.push(() => node.style.setProperty(prop, prev, prevPriority));
+    node.style.setProperty(prop, value, 'important');
+  };
+
+  if (assetEl) force(assetEl, 'border-radius', '0');
+  if (isNarrowReceipt && assetEl) {
+    const targetW = `${Math.round(el.offsetHeight * frameAr)}px`; // 640 → 360
+    force(el, 'width', targetW);
+    force(assetEl, 'width', targetW);
+    force(assetEl, 'left', '0');
+    force(assetEl, 'right', 'auto');
+    force(assetEl, 'transform', 'none');
+  }
 
   const { snapdom } = await import('@zumer/snapdom');
   let cardCanvas: HTMLCanvasElement;
@@ -132,7 +154,7 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
       excludeMode: 'remove',
     });
   } finally {
-    if (assetEl) assetEl.style.borderRadius = prevRadius ?? '';
+    restore.forEach((fn) => fn());
   }
 
   if (fullBleed) {
