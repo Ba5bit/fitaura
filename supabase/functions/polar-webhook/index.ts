@@ -40,6 +40,13 @@ Deno.serve(async (req) => {
     if (event.type === 'order.paid') {
       const order = event.data;
       const m = order.metadata ?? {};
+      // Metadata is server-set in create-checkout, so this should never happen.
+      // If it does, it is a permanent data problem — acknowledge with 200 so Polar
+      // does not retry forever (a 500 would wedge the delivery in its retry queue).
+      if (!m.user_id || m.credits === undefined || m.credits === null) {
+        console.log(JSON.stringify({ fn: 'polar-webhook', type: event.type, order: order.id, skipped: 'missing_metadata' }));
+        return new Response('ok', { status: 200 });
+      }
       const amount = (order.total_amount ?? order.amount ?? 0) / 100;
       const res = await rpc('grant_purchase_credits', {
         p_order_id: order.id,
