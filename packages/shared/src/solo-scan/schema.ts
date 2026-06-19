@@ -77,6 +77,16 @@ export const soloScanSchema = z
       verdict: z.string().max(200),
       captionLine: z.string().max(80),
     }),
+    outfitNameplate: z.object({
+      name: z.string().max(40),
+      eyebrow: z.string().max(60),
+      tagline: z.string().max(80),
+      lane: z.string().max(24),
+      accentHex: z.string().max(9),
+      dossier: z
+        .array(z.object({ label: z.string().max(20), value: z.string().max(28) }))
+        .max(4),
+    }),
     contentSelection: z.object({
       faceArchetypeCandidates: candidates,
       outfitCaptionCandidates: candidates,

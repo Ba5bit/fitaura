@@ -39,6 +39,19 @@ export function sampleAIOutput(): SoloScanAIOutput {
       verdict: 'Good base, but the proportions can be sharper.',
       captionLine: 'STRUCTURE OVER FLASH',
     },
+    outfitNameplate: {
+      name: 'DENIM ARMORY',
+      eyebrow: 'Double-denim, wash on wash',
+      tagline: 'Built like a fortress',
+      lane: 'Streetwear',
+      accentHex: '#3f7fd0',
+      dossier: [
+        { label: 'Signature', value: 'Trucker jacket' },
+        { label: 'Rule', value: 'Tonal layering' },
+        { label: 'Palette', value: 'Stonewashed blue' },
+        { label: 'Finish', value: 'Clean white tee' },
+      ],
+    },
     contentSelection: {
       faceArchetypeCandidates: ['face_archetype.main_character'],
       outfitCaptionCandidates: ['outfit_caption.let_him_cook'],

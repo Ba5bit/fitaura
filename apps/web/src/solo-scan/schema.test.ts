@@ -40,10 +40,10 @@ describe('soloScanSchema', () => {
   });
 });
 
-describe('soloScanSchema v3_4', () => {
+describe('soloScanSchema v3_5', () => {
   it('the fixture parses and carries the new written fields', () => {
     const parsed = soloScanSchema.parse(sampleAIOutput());
-    expect(SOLO_SCAN_SCHEMA_VERSION).toBe('solo_scan_v3_4');
+    expect(SOLO_SCAN_SCHEMA_VERSION).toBe('solo_scan_v3_5');
     expect(parsed.faceCopy.verdictLine).toEqual({ lead: 'JAW DID', punch: 'THE TALKING' });
     expect(parsed.outfitCopy.captionLine).toBe('STRUCTURE OVER FLASH');
     expect(parsed.receiptContent.punchlineText).toBe('QUIET CONFIDENCE');

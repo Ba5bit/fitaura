@@ -60,6 +60,8 @@ export interface ScoreItem {
   hot?: boolean;
   /** Hide the fill bar (for non-0–100 stats like an age estimate). */
   noBar?: boolean;
+  /** Plain-language one-liner shown under the metric in the analysis block. */
+  note?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -121,6 +123,30 @@ export interface FaceResult {
 /* OUTFIT                                                              */
 /* ------------------------------------------------------------------ */
 
+/** One AI-authored dossier row on the Nameplate outfit card. */
+export interface OutfitDossierRow {
+  /** Short AI-chosen label, e.g. "Signature". */
+  label: string;
+  /** Short AI-chosen value, ≤ ~3 words, e.g. "Trucker jacket". */
+  value: string;
+}
+
+/** Gemini-authored "nameplate" block powering the Nameplate outfit skin. */
+export interface OutfitNameplate {
+  /** Big Anton title — the FIT's name, e.g. "DENIM ARMORY". */
+  name: string;
+  /** Small descriptor over the name, e.g. "All-black streetwear". */
+  eyebrow: string;
+  /** One-line read (descriptive, not a roast). */
+  tagline: string;
+  /** Category pill, e.g. "Streetwear" / "Minimalist". */
+  lane: string;
+  /** Legibility-clamped accent hex (safe to render directly). */
+  accent: string;
+  /** AI-chosen dossier rows (labels + values); up to 4. */
+  dossier: OutfitDossierRow[];
+}
+
 export interface OutfitCardContent {
   imageUrl: string | null;
   caption: string;
@@ -128,6 +154,8 @@ export interface OutfitCardContent {
   overallScore: number;
   scores: ScoreItem[];
   sticker: StickerData;
+  /** Present only for results assembled with the Nameplate fields. */
+  nameplate?: OutfitNameplate;
 }
 
 /** A short tagged observation in the outfit analysis block. */
