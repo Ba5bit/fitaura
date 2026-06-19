@@ -45,3 +45,45 @@
   margin: 12px 0 0; font-family: "Hanken Grotesk", sans-serif; font-size: 13px; line-height: 1.4;
   color: rgba(255,255,255,.82); text-wrap: pretty;
 }
+
+/* ============================================================
+   CLEAN FACE variant — contained photo (no selfie stretch) with the
+   verdict/punchline/roast on a bottom scrim, and a solid info block of
+   pill chips + footer read below. Scoped to `.cleanface` so the shared
+   `.clean-card` outfit skin is unaffected.
+   ============================================================ */
+.cleanface { display: flex; flex-direction: column; }
+
+/* Photo region: top ~58%. The base `.clean-card .card-image { inset:0 }` rule
+   fills THIS positioned box (not the whole card), so the photo is contained and
+   `object-fit: cover` gives a natural crop instead of a 360×640 stretch. */
+.cleanface-photo { position: relative; flex: 0 0 58%; overflow: hidden; }
+
+.cleanface-photo-scrim {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 64%;
+  z-index: 1; pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.5) 46%, rgba(0,0,0,.92) 100%);
+}
+
+.cleanface-text { position: absolute; left: 22px; right: 22px; bottom: 18px; z-index: 2; }
+.cleanface .clean-verdict { font-size: 32px; }
+.cleanface-punch {
+  margin: 8px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 800;
+  font-size: 14px; letter-spacing: .04em; text-transform: uppercase;
+  color: var(--accent); text-shadow: 0 2px 12px rgba(0,0,0,.6);
+}
+.cleanface-roast {
+  margin: 6px 0 0; font-family: "Hanken Grotesk", sans-serif; font-size: 13px; line-height: 1.35;
+  color: rgba(255,255,255,.82); text-wrap: pretty; text-shadow: 0 1px 8px rgba(0,0,0,.7);
+}
+
+/* Solid info block: bottom ~42%. Pill chips at top, footer read pinned bottom. */
+.cleanface-info {
+  flex: 1; min-height: 0; background: var(--bg-1);
+  padding: 16px 22px 18px; display: flex; flex-direction: column;
+}
+.cleanface-info .clean-chips { margin-top: 0; }
+.cleanface-read {
+  margin-top: auto; font-family: "Space Mono", monospace; font-size: 10px;
+  letter-spacing: .22em; text-transform: uppercase; color: var(--ink-faint);
+}
