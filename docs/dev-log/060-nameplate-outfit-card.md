@@ -83,6 +83,26 @@ a readability pass on the in-app analysis block.
   here. To check manually: `npm run dev`, produce/seed a green-flag scan, open the
   outfit deck, rotate to the 3rd (Nameplate) skin.
 
+## Addendum (same session) — analysis labels + actionable tips (`50f582c`)
+
+User feedback: the analysis bars use jargon ("Color Story", "Styling Intent",
+"Overall Cohesion" — *what is that to a user?*) and the notes only **describe**
+the look instead of saying **how to improve the score**.
+
+- **Renamed the jargon supporting labels** in `assemble.ts`: Color Story →
+  **Color Match**, Styling Intent → **Styling Effort**, Overall Cohesion →
+  **Overall Look** (Silhouette/Proportions/Fit/Layering/Physique Match kept).
+- **Outfit metric `evidence` is now an in-app TIP**, via a new ANALYSIS TIPS block
+  in the Gemini prompt: playful FitAura voice, **score-conditional** — below ~60
+  it names a concrete fix ("Tuck the tee — your waist is hiding"), higher it gives
+  a one-line "why it works". This is the **one carve-out** from the prompt's
+  NO-COACHING rule (explicitly scoped to outfit `evidence`); the shareable cards
+  and face copy stay savage. No schema change (reuses `evidence`).
+- Note: assembly runs **inside the edge function** (`solo-scan/index.ts`), so both
+  the label rename and the tip behavior ship with the **same manual deploy** — and
+  can't be previewed via dev mocks (which use their own physique-style supporting
+  labels). 173 tests green (added a label-rename assertion); typecheck clean.
+
 ## Follow-ups
 
 - [ ] **Manual deploy** the `solo-scan` edge function (see `fitaura-solo-scan-deploy`)
