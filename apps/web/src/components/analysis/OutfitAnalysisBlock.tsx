@@ -62,6 +62,7 @@ export function OutfitAnalysisBlock({ outfit, run }: OutfitAnalysisBlockProps) {
               </div>
               <div className="gc-name">{stat.label}</div>
               <div className="gc-bar"><i style={{ width: `${stat.value}%` }} /></div>
+              {stat.note && <p className="gc-note">{stat.note}</p>}
             </div>
           ))}
         </div>

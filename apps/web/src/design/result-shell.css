@@ -315,6 +315,11 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
 .gym-card[data-tier="mid"]  .gc-bar i{ background:linear-gradient(90deg, color-mix(in oklab,var(--gold) 55%,#fff), var(--gold)); box-shadow:0 0 10px -1px var(--gold); }
 .gym-card[data-tier="low"]  .gc-bar i{ background:linear-gradient(90deg, color-mix(in oklab,var(--red) 55%,#fff), var(--red)); box-shadow:0 0 10px -1px var(--red); }
 
+.gc-note {
+  margin: 9px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 500;
+  font-size: 12px; line-height: 1.35; color: var(--ink-dim); text-wrap: pretty;
+}
+
 /* blue accent variant (outfit compact blocks) */
 .gym-card[data-accent="blue"] .gc-bar i{ background:var(--accent); }
 .gym-card[data-accent="blue"] .gc-score .tier{ color:var(--accent); }
