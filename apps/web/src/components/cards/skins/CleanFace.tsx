@@ -13,8 +13,8 @@ import type { SkinProps } from './types';
 export function CleanFace({ content, roast }: SkinProps) {
   const c = content as FaceCardContent;
   const age = c.scores.find((s) => s.id === 'age');
-  // Aura is intentionally omitted from the Clean face (kept minimal / short block).
-  const chips = c.scores.filter((s) => s.id !== 'age' && s.id !== 'aura');
+  // Aura shows as a chip in the bottom row (not a top-right badge).
+  const chips = c.scores.filter((s) => s.id !== 'age');
   return (
     <div className="asset clean-card cleanface" data-kind="face">
       <div className="cleanface-photo">
