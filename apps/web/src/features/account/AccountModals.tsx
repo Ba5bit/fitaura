@@ -205,11 +205,10 @@ export function Paywall() {
   );
 }
 
-/* ============================ CHECKOUT ============================ */
+/* ============================ CHECKOUT (order summary → Polar overlay) ============================ */
 export function Checkout() {
   const { pack, pay, closeScene } = useAccount();
   const p = packById(pack);
-  const [embedded, setEmbedded] = useState(false);
 
   return (
     <WebModal size="lg" onClose={closeScene}>
@@ -230,92 +229,33 @@ export function Checkout() {
             {p.credits} CREDITS
           </div>
           <div className="aw-summary">
-            <div className="row">
-              <span className="k">Pack</span>
-              <span className="v">{p.credits} credits</span>
-            </div>
-            <div className="row">
-              <span className="k">Billing</span>
-              <span className="v">One-time</span>
-            </div>
-            <div className="row total">
-              <span className="k">Total today</span>
-              <span className="v">{p.price}</span>
-            </div>
+            <div className="row"><span className="k">Pack</span><span className="v">{p.credits} credits</span></div>
+            <div className="row"><span className="k">Billing</span><span className="v">One-time</span></div>
+            <div className="row total"><span className="k">Total today</span><span className="v">{p.price}</span></div>
           </div>
           <div style={{ marginTop: '20px' }}>
-            <span className="aw-tag server">
-              <Icon.receipt /> Receipt saved to your account
-            </span>
+            <span className="aw-tag server"><Icon.receipt /> Receipt saved to your account</span>
           </div>
           <div style={{ marginTop: 'auto', paddingTop: '22px' }}>
             <div className="aw-securebar">
-              <Icon.shield /> 256-bit encrypted · PCI-compliant partner · Fitaura never sees your card
+              <Icon.shield /> Secured by Polar · PCI-compliant · Fitaura never sees your card
             </div>
           </div>
         </div>
 
-        {/* RIGHT — payment entry */}
+        {/* RIGHT — confirm + open Polar overlay */}
         <div className="aw-checkout-right" style={{ display: 'flex', flexDirection: 'column' }}>
-          <span className="aw-eyebrow accent">{embedded ? 'PAYMENT DETAILS' : 'REVIEW & CONFIRM'}</span>
-
-          {!embedded ? (
-            <>
-              <h2 className="aw-modal-title" style={{ fontSize: '26px' }}>
-                CONFIRM PURCHASE
-              </h2>
-              <p className="aw-modal-sub">Review your order, then pay securely.</p>
-              <div className="aw-paymethod">
-                <span className="ic">
-                  <Icon.card />
-                </span>
-                <span>Visa ···· 4242</span>
-                <button type="button" className="chg" onClick={() => setEmbedded(true)}>
-                  Change
-                </button>
-              </div>
-              <button className="aw-btn primary block" style={{ marginTop: 'auto' }} onClick={pay}>
-                <Icon.lock /> Pay {p.price}
-              </button>
-              <div className="aw-fineprint">
-                Your purchase is a one-time charge. Credits are added to your account on success.
-              </div>
-            </>
-          ) : (
-            <>
-              <h2 className="aw-modal-title" style={{ fontSize: '24px' }}>
-                PAY {p.price}
-              </h2>
-              <p className="aw-modal-sub" style={{ marginBottom: '4px' }}>
-                {p.credits} credits · one-time charge
-              </p>
-              <div className="aw-securebar" style={{ marginTop: '14px' }}>
-                <Icon.lock /> Encrypted &amp; secured by our payment partner
-              </div>
-              <div className="aw-field">
-                <label>Card number</label>
-                <div className="aw-input-wrap aw-cardnum">
-                  <input className="aw-input" inputMode="numeric" placeholder="1234 1234 1234 1234" defaultValue="4242 4242 4242 4242" />
-                  <span className="scheme">
-                    <i className="a" />
-                    <i className="b" />
-                  </span>
-                </div>
-              </div>
-              <div className="aw-field-grid">
-                <WebField label="Expiry" placeholder="MM / YY" defaultValue="08 / 28" />
-                <WebField label="CVC" placeholder="123" lock />
-              </div>
-              <div className="aw-field-grid">
-                <WebField label="ZIP / Postal" placeholder="94107" />
-                <WebField label="Country" defaultValue="United States" />
-              </div>
-              <button className="aw-btn primary block" style={{ marginTop: '18px' }} onClick={pay}>
-                <Icon.lock /> Pay {p.price}
-              </button>
-              <div className="aw-fineprint">Card details are tokenized by our payment partner, never stored by Fitaura.</div>
-            </>
-          )}
+          <span className="aw-eyebrow accent">REVIEW & CONFIRM</span>
+          <h2 className="aw-modal-title" style={{ fontSize: '26px' }}>CONFIRM PURCHASE</h2>
+          <p className="aw-modal-sub">
+            Payment opens securely on this page, powered by our payment partner. You won't leave Fitaura.
+          </p>
+          <button className="aw-btn primary block" style={{ marginTop: 'auto' }} onClick={() => void pay()}>
+            <Icon.lock /> Pay {p.price}
+          </button>
+          <div className="aw-fineprint">
+            One-time charge. Credits are added to your account once payment is confirmed.
+          </div>
         </div>
       </div>
     </WebModal>
@@ -420,11 +360,11 @@ export function PayFailure() {
           <Icon.x />
         </div>
         <h2 className="aw-modal-title" style={{ marginTop: '18px' }}>
-          PAYMENT DECLINED
+          CHECKOUT DIDN'T START
         </h2>
         <p className="aw-modal-sub">
-          Your card was declined by the issuer. <b style={{ color: 'var(--ink)' }}>You haven't been charged</b> and no
-          credits were used.
+          We couldn't open the payment window just now. <b style={{ color: 'var(--ink)' }}>You haven't been
+          charged.</b> Please try again.
         </p>
         <button className="aw-btn primary block" style={{ marginTop: '22px' }} onClick={() => startCheckout()}>
           <Icon.refresh /> Try again
