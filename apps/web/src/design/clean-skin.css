@@ -57,7 +57,14 @@
 /* Photo region: top ~58%. The base `.clean-card .card-image { inset:0 }` rule
    fills THIS positioned box (not the whole card), so the photo is contained and
    `object-fit: cover` gives a natural crop instead of a 360×640 stretch. */
-.cleanface-photo { position: relative; flex: 0 0 58%; overflow: hidden; }
+.cleanface-photo { position: relative; flex: 0 0 68%; overflow: hidden; }
+
+/* Estimated age — a small mono label on the photo (top-right), opposite FITAURA. */
+.cleanface-age {
+  position: absolute; top: 18px; right: 20px; z-index: 2;
+  font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: .14em;
+  text-transform: uppercase; color: #fff; opacity: .85; text-shadow: 0 1px 6px rgba(0,0,0,.6);
+}
 
 .cleanface-photo-scrim {
   position: absolute; left: 0; right: 0; bottom: 0; height: 64%;
@@ -67,14 +74,14 @@
 
 .cleanface-text { position: absolute; left: 22px; right: 22px; bottom: 18px; z-index: 2; }
 .cleanface .clean-verdict { font-size: 32px; }
-.cleanface-punch {
-  margin: 8px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 800;
-  font-size: 14px; letter-spacing: .04em; text-transform: uppercase;
-  color: var(--accent); text-shadow: 0 2px 12px rgba(0,0,0,.6);
-}
+/* Verdict highlight uses the semantic band colour (lime/cyan/red), matching the
+   Dossier (first) face card — not the gender accent. */
+.cleanface .clean-verdict .hl { color: var(--verdict); }
+/* Roast reads as the bold uppercase subtitle, sized like the outfit card's read. */
 .cleanface-roast {
-  margin: 6px 0 0; font-family: "Hanken Grotesk", sans-serif; font-size: 13px; line-height: 1.35;
-  color: rgba(255,255,255,.82); text-wrap: pretty; text-shadow: 0 1px 8px rgba(0,0,0,.7);
+  margin: 8px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 800;
+  font-size: 15px; line-height: 1.25; letter-spacing: .02em; text-transform: uppercase;
+  color: rgba(255,255,255,.92); text-wrap: pretty; text-shadow: 0 2px 10px rgba(0,0,0,.7);
 }
 
 /* Solid info block: bottom ~42%. Pill chips at top, footer read pinned bottom. */

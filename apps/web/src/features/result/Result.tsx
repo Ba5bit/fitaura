@@ -504,7 +504,6 @@ export function Result() {
                       gender,
                       stickerOn: false,
                       roast: kind === 'face' ? result.face!.analysis.roast : result.outfit!.analysis.verdict,
-                      punchline: result.receipt.finalPunchline,
                     }}
                     overlay={overlayEl}
                   />
@@ -723,7 +722,7 @@ export function Result() {
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         {faceContent && (
         <div className="rs-export-card" ref={exportRefs.face} data-gender={gender}>
-          <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} stickerOn={false} run={false} roast={result.face!.analysis.roast} punchline={result.receipt.finalPunchline} />
+          <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} stickerOn={false} run={false} roast={result.face!.analysis.roast} />
           {stickerOn && (
             <StaticSticker label={facePreset.label} tone={facePreset.tone} rotation={facePreset.rotation} pos={pos.face} />
           )}
