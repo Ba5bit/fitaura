@@ -23,6 +23,9 @@ const Pricing = lazy(() => import('./features/vault/Pricing').then((m) => ({ def
 const Settings = lazy(() => import('./features/vault/Settings').then((m) => ({ default: m.Settings })));
 const AuthConfirm = lazy(() => import('./features/auth/AuthConfirm').then((m) => ({ default: m.AuthConfirm })));
 const UpdatePassword = lazy(() => import('./features/auth/UpdatePassword').then((m) => ({ default: m.UpdatePassword })));
+// DEV-only: a local preview of the card skins (the AI-driven Nameplate content
+// can't be seen in dev until the edge function is deployed). Never routed in prod.
+const CardPreview = lazy(() => import('./features/dev/CardPreview').then((m) => ({ default: m.CardPreview })));
 
 /**
  * Reset the window scroll to the top on every route (pathname) change. React
@@ -61,6 +64,7 @@ export function App() {
             <Route path="/results" element={<Navigate to="/vault" replace />} />
             <Route path="/auth/confirm" element={<AuthConfirm />} />
             <Route path="/auth/update-password" element={<UpdatePassword />} />
+            {import.meta.env.DEV && <Route path="/dev/cards" element={<CardPreview />} />}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
