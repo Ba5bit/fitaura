@@ -92,11 +92,24 @@
     radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 60%),
     linear-gradient(168deg, #e7ddca, #d6c9b2 72%);
 }
-/* Verdict stamp darkens so it reads on cream. */
+/* Verdict-tinted text darkens on cream so the lighter bands (green/blue) read.
+   The bright --verdict/--lime are mixed toward dark ink for contrast. */
 .rs-card-mount[data-paper="white"] .rcp-stamp,
 .rs-export-card[data-paper="white"] .rcp-stamp {
-  color: color-mix(in oklab, var(--verdict) 66%, #2a1d05);
-  text-shadow: 0 0 18px color-mix(in oklab, var(--verdict) 26%, transparent);
+  color: color-mix(in oklab, var(--verdict) 54%, #1f1a12);
+  text-shadow: 0 0 18px color-mix(in oklab, var(--verdict) 18%, transparent);
+}
+.rs-card-mount[data-paper="white"] .rcp-punch,
+.rs-export-card[data-paper="white"] .rcp-punch {
+  color: color-mix(in oklab, var(--verdict) 56%, #241f1b);
+}
+.rs-card-mount[data-paper="white"] .rcp-row .rv.good,
+.rs-export-card[data-paper="white"] .rcp-row .rv.good {
+  color: color-mix(in oklab, var(--lime) 48%, #241f1b);
+}
+.rs-card-mount[data-paper="white"] .rcp-row .rv.hi,
+.rs-export-card[data-paper="white"] .rcp-row .rv.hi {
+  color: color-mix(in oklab, var(--verdict) 56%, #241f1b);
 }
 /* QR inverts to a dark chip with cream cells (a little sticker on the cream). */
 .rs-card-mount[data-paper="white"] .rcp-qr,
