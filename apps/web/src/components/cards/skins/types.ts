@@ -14,6 +14,9 @@ export interface SkinProps {
   run: boolean;
   /** One-line roast shown under the verdict. */
   roast?: string;
+  /** The big viral punchline (result.receipt.finalPunchline); the Clean face skin
+   * renders it between the verdict and the roast. Optional — other skins ignore it. */
+  punchline?: string;
   /** Dimmed, non-interactive peeking card in the stack. */
   preview?: boolean;
   /** The currently selected sticker preset (skins may render a default badge;
