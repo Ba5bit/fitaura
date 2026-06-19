@@ -24,7 +24,12 @@
 }
 .buffering-photo-top {
   position: absolute; top: 0; left: 0; right: 0; z-index: 2;
-  display: flex; align-items: center; justify-content: space-between; padding: 14px 16px;
+  display: flex; align-items: flex-start; justify-content: space-between; padding: 14px 16px;
+}
+/* Score sits where LOADING V1.0 was — top-right of the photo (face card). */
+.buffering-photo-score {
+  font-family: "Anton", sans-serif; font-size: 46px; line-height: .8; color: var(--accent);
+  text-shadow: 0 2px 12px rgba(0,0,0,.6), 0 1px 3px rgba(0,0,0,.7);
 }
 .buffering-pill {
   font-family: "Space Mono", monospace; font-size: 12px; font-weight: 700;
@@ -41,6 +46,10 @@
   flex: 1; min-height: 0; overflow: hidden; background: var(--bg-1);
   padding: 14px 22px 16px; display: flex; flex-direction: column; gap: 9px;
 }
+/* Face card: the score moved onto the photo, so the photo grows and the block
+   shrinks to its content (no head). Outfit keeps its head, so it's unscoped. */
+.buffering-card[data-kind="face"] .buffering-photo { flex: 1; }
+.buffering-card[data-kind="face"] .buffering-info { flex: 0 0 auto; }
 .buffering-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 /* Transparent score pill (FIT SCORE / AURA) — outlined, not solid-filled. */
 .buffering-score-pill {
