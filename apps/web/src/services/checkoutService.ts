@@ -12,7 +12,7 @@ export async function createCheckout(packId: string): Promise<string> {
 /** Open Polar's embedded checkout overlay on-site. Resolves when it closes. */
 export async function openCheckoutOverlay(url: string): Promise<'success' | 'closed'> {
   const { PolarEmbedCheckout } = await import('@polar-sh/checkout/embed');
-  const checkout = await PolarEmbedCheckout.create(url, 'light');
+  const checkout = await PolarEmbedCheckout.create(url, { theme: 'light' });
   return new Promise((resolve) => {
     let succeeded = false;
     checkout.addEventListener('success', () => { succeeded = true; resolve('success'); });
