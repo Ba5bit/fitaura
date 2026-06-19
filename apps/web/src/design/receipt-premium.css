@@ -83,14 +83,14 @@
 .rs-export-card[data-paper="white"] .rcp {
   --ink: #241f1b;
   --ink-dim: #6c6157;
-  --hair: rgba(40, 32, 24, .14);
-  --hair-soft: rgba(40, 32, 24, .10);
-  --panel: rgba(255, 255, 255, .5);
+  --hair: rgba(40, 32, 24, .16);
+  --hair-soft: rgba(40, 32, 24, .12);
+  --panel: rgba(255, 255, 255, .34);
   color: #241f1b;
-  border-color: rgba(40, 32, 24, .12);
+  border-color: rgba(40, 32, 24, .14);
   background:
-    radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--accent) 20%, transparent), transparent 60%),
-    linear-gradient(168deg, #fcf9f3, #efe8dc 72%);
+    radial-gradient(120% 80% at 50% -10%, color-mix(in oklab, var(--accent) 14%, transparent), transparent 60%),
+    linear-gradient(168deg, #e7ddca, #d6c9b2 72%);
 }
 /* Verdict stamp darkens so it reads on cream. */
 .rs-card-mount[data-paper="white"] .rcp-stamp,
