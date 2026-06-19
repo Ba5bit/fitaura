@@ -61,10 +61,29 @@ const RESPONSE_SCHEMA = {
     outfitAnalysis: objOf(OUTFIT_KEYS),
     faceCopy: { type: 'OBJECT', properties: { strongestPoint: { type: 'STRING' }, improvement: { type: 'STRING' }, summary: { type: 'STRING' }, verdictLine: { type: 'OBJECT', properties: { lead: { type: 'STRING' }, punch: { type: 'STRING' } }, required: ['lead', 'punch'] } }, required: ['strongestPoint', 'improvement', 'summary', 'verdictLine'] },
     outfitCopy: { type: 'OBJECT', properties: { works: { type: 'STRING' }, hurts: { type: 'STRING' }, verdict: { type: 'STRING' }, captionLine: { type: 'STRING' } }, required: ['works', 'hurts', 'verdict', 'captionLine'] },
+    outfitNameplate: {
+      type: 'OBJECT',
+      properties: {
+        name: { type: 'STRING' },
+        eyebrow: { type: 'STRING' },
+        tagline: { type: 'STRING' },
+        lane: { type: 'STRING' },
+        accentHex: { type: 'STRING' },
+        dossier: {
+          type: 'ARRAY',
+          items: {
+            type: 'OBJECT',
+            properties: { label: { type: 'STRING' }, value: { type: 'STRING' } },
+            required: ['label', 'value'],
+          },
+        },
+      },
+      required: ['name', 'eyebrow', 'tagline', 'lane', 'accentHex', 'dossier'],
+    },
     contentSelection: { type: 'OBJECT', properties: { faceArchetypeCandidates: STR_LIST, outfitCaptionCandidates: STR_LIST, stickerCandidates: STR_LIST, contentTags: STR_LIST }, required: ['faceArchetypeCandidates', 'outfitCaptionCandidates', 'stickerCandidates', 'contentTags'] },
     receiptContent: { type: 'OBJECT', properties: { metricCandidates: STR_LIST, punchlineCandidates: STR_LIST, punchlineText: { type: 'STRING' } }, required: ['metricCandidates', 'punchlineCandidates', 'punchlineText'] },
   },
-  required: ['schemaVersion', 'inputQuality', 'presentation', 'faceAnalysis', 'outfitAnalysis', 'faceCopy', 'outfitCopy', 'contentSelection', 'receiptContent'],
+  required: ['schemaVersion', 'inputQuality', 'presentation', 'faceAnalysis', 'outfitAnalysis', 'faceCopy', 'outfitCopy', 'outfitNameplate', 'contentSelection', 'receiptContent'],
 };
 
 const SYSTEM_INSTRUCTION = `You are FitAura's Solo Scan visual classification engine.
@@ -110,7 +129,15 @@ punchlineCandidates:
   FEMME: punchline.slay, punchline.it_girl, punchline.drama_queen_crowned.
 
 Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment. If you recognize the subject as a known public figure or meme character, you MAY nod to their SIGNATURE association — an epithet, catchphrase, or what they are known for (e.g. a King-of-Pop reference, or a "SUUUIII") — and vary it. NEVER write their actual name in any field; reference the persona, not the person.
-Set schemaVersion to "solo_scan_v3_4".`;
+NAMEPLATE (outfit): Also produce outfitNameplate that NAMES and flatters the FIT itself — never the wearer, never a recognized icon's real name. This block is NOT a roast (it overrides the roast VOICE above for these fields only):
+- name: a punchy 1–3 word TITLE for the outfit's aesthetic, e.g. "DENIM ARMORY", "DESERT QUIET".
+- eyebrow: a short style descriptor, ≤ 6 words, e.g. "All-black streetwear".
+- tagline: one characterful, descriptive read of the fit, ≤ 9 words — flattering, not a roast.
+- lane: a 1–2 word category, e.g. "Streetwear", "Minimalist", "Y2K", "Formal".
+- accentHex: a "#rrggbb" sampled from the dominant CLOTHING palette (NOT the background) that best represents the fit's vibe; prefer a vivid, saturated read (the backend adjusts it for legibility).
+- dossier: exactly 4 short rows describing the fit. YOU choose each row's label (one word, e.g. Signature / Rule / Palette / Finish / Layering / Era) and a value ≤ 3 words (e.g. "Trucker jacket"). Descriptive, never numeric.
+For a FACE-ONLY scan (no outfit photo), return name "", eyebrow "", tagline "", lane "", accentHex "#83b4ff", dossier [].
+Set schemaVersion to "solo_scan_v3_5".`;
 
 export interface InlineImage {
   mimeType: string;
@@ -156,7 +183,7 @@ function buildBody(face?: InlineImage, outfit?: InlineImage) {
     contents: [{ role: 'user', parts }],
     generationConfig: {
       temperature: 0.3,
-      maxOutputTokens: 2500,
+      maxOutputTokens: 2900,
       responseMimeType: 'application/json',
       responseSchema: RESPONSE_SCHEMA,
       thinkingConfig: { thinkingBudget: 0 },
