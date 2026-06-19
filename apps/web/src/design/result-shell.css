@@ -352,6 +352,12 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
   .rs-stage{ grid-template-columns:1fr; gap:26px; max-width:560px; padding:24px 18px 120px; }
   .rs-asset{ position:static; top:auto; }
   .rs-resultlabel{ display:none; }
+  /* The card-stack fan splays its side skins past the viewport edges (the
+     Landing look). Clip the horizontal bleed at the page level so it never adds
+     a horizontal scrollbar. `.rs-asset` is static here, so clip can't disturb
+     the desktop sticky column. `clip` (not hidden) keeps vertical scroll + the
+     fixed mobile bar intact and creates no scroll container. */
+  .rs-app{ overflow-x:clip; }
 }
 
 @media (max-width: 720px){

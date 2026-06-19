@@ -1,0 +1,91 @@
+/* ============================================================
+   BUFFERING SKIN — a "loading screen" card. A contained photo on top
+   (cover-cropped, never stretched) with a BUFFERING_ pill, then a content
+   block: NOW LOADING + the big %, the verdict/caption title, progress bars,
+   an italic quote and a RENDER READY footer. Masc = dark (accent cyan);
+   femme = ivory/cream (Image #11). System tokens + a few ivory values.
+   ============================================================ */
+.buffering-card {
+  position: absolute; inset: 0; width: 360px; height: 640px;
+  border-radius: 26px; overflow: hidden; box-shadow: var(--shadow-card);
+  background: var(--bg-1); isolation: isolate; color: #fff;
+  display: flex; flex-direction: column;
+}
+
+/* Photo region (contained, top). `object-fit: cover` crops — never stretches. */
+.buffering-photo { position: relative; flex: 0 0 44%; min-height: 0; overflow: hidden; }
+.buffering-card .card-image { position: absolute; inset: 0; }
+.buffering-card .card-image img { width: 100%; height: 100%; object-fit: cover; object-position: center 26%; display: block; }
+.buffering-card .card-image-placeholder {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  background: linear-gradient(160deg, var(--bg-2), var(--bg-0));
+  color: var(--ink-faint); font-family: "Space Mono", monospace; font-size: 11px;
+  letter-spacing: .2em; text-transform: uppercase;
+}
+.buffering-photo-top {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between; padding: 14px 16px;
+}
+.buffering-pill {
+  font-family: "Space Mono", monospace; font-size: 12px; font-weight: 700;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink);
+  background: var(--accent); padding: 5px 10px; border-radius: 8px;
+}
+.buffering-mono { font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
+.buffering-mono.dim { color: rgba(255,255,255,.7); text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.buffering-mono.accent { color: var(--accent); }
+
+/* Content block. */
+.buffering-info {
+  flex: 1; min-height: 0; overflow: hidden; background: var(--bg-1);
+  padding: 14px 22px 16px; display: flex; flex-direction: column; gap: 9px;
+}
+.buffering-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.buffering-bigpct { font-family: "Anton", sans-serif; font-size: 42px; line-height: .78; color: var(--accent); }
+.buffering-bigpct i { font-style: normal; font-size: 21px; }
+.buffering-title {
+  margin: 0; font-family: "Anton", sans-serif; font-weight: 400; font-size: 27px;
+  line-height: 1.02; letter-spacing: .01em; text-transform: uppercase; color: #fff;
+}
+.buffering-title .hl { color: var(--accent); }
+.buffering-bars { display: flex; flex-direction: column; gap: 9px; }
+.buffering-bar-top {
+  display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;
+  font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: .06em;
+  text-transform: uppercase; color: rgba(255,255,255,.64);
+}
+.buffering-bar-top b { color: #fff; font-size: 15px; }
+.buffering-bar-track { height: 9px; border-radius: 99px; background: rgba(255,255,255,.13); overflow: hidden; }
+.buffering-bar-fill { height: 100%; border-radius: 99px; background: var(--accent); box-shadow: 0 0 10px -1px var(--accent); }
+.buffering-quote {
+  margin: 0; font-family: "Hanken Grotesk", sans-serif; font-style: italic; font-size: 13.5px;
+  line-height: 1.36; color: rgba(255,255,255,.82); text-wrap: pretty;
+}
+.buffering-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; }
+.buffering-nextbtn {
+  font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+  color: #fff; padding: 7px 12px; border: 1px solid rgba(255,255,255,.26); border-radius: 8px;
+}
+.buffering-spark { font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: .06em; color: var(--accent); white-space: nowrap; }
+
+/* ---- FEMME = ivory / cream (Image #11). Accent is already magenta here, so the
+   big %, bars, pill and NOW LOADING stay magenta; the block turns cream + ink. ---- */
+.rs-card-mount[data-gender="femme"] .buffering-info,
+.rs-export-card[data-gender="femme"] .buffering-info {
+  --fem-ink: #241f1b; --fem-soft: #6c6157; --fem-gold: #a87c22; --fem-cream: #f4efe6;
+  background: var(--fem-cream); color: var(--fem-ink);
+}
+.rs-card-mount[data-gender="femme"] .buffering-title,
+.rs-export-card[data-gender="femme"] .buffering-title { color: var(--fem-ink); }
+.rs-card-mount[data-gender="femme"] .buffering-bar-top,
+.rs-export-card[data-gender="femme"] .buffering-bar-top { color: var(--fem-soft); }
+.rs-card-mount[data-gender="femme"] .buffering-bar-top b,
+.rs-export-card[data-gender="femme"] .buffering-bar-top b { color: var(--fem-ink); }
+.rs-card-mount[data-gender="femme"] .buffering-bar-track,
+.rs-export-card[data-gender="femme"] .buffering-bar-track { background: rgba(40,32,24,.12); }
+.rs-card-mount[data-gender="femme"] .buffering-quote,
+.rs-export-card[data-gender="femme"] .buffering-quote { color: var(--fem-soft); }
+.rs-card-mount[data-gender="femme"] .buffering-spark,
+.rs-export-card[data-gender="femme"] .buffering-spark { color: var(--fem-gold); }
+.rs-card-mount[data-gender="femme"] .buffering-nextbtn,
+.rs-export-card[data-gender="femme"] .buffering-nextbtn { color: var(--fem-ink); border-color: rgba(40,32,24,.26); }

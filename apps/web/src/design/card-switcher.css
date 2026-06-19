@@ -1,23 +1,34 @@
 /* ============================================================
-   CARD-STACK SKIN SWITCHER. The front card is full-size + live
-   (no scale-down — it carries the sticker editor + export);
-   peeking skins sit behind, scaled + offset + dimmed. With one
-   skin only `.front-live` renders, so this is a no-op visually.
+   CARD-STACK SKIN SWITCHER — landing-style fan. Browsing: the
+   front skin is scaled down and the two side skins splay wide
+   (matching the Landing `.cardfan`); the front is still live and
+   carries the sticker editor. Editing: the front pops to full
+   size and the side skins step out of the way. With one skin only
+   `.front-live` renders, so this is a no-op visually.
    ============================================================ */
 .cs-switch { position: relative; width: 360px; }
 .cs-deck { position: relative; width: 360px; height: 640px; }
 .cs-card {
-  position: absolute; inset: 0; width: 360px; height: 640px;
-  transition: transform .42s cubic-bezier(.22,1,.36,1), opacity .3s ease;
-  transform-origin: 50% 60%;
+  position: absolute; inset: 0; margin: auto; width: 360px; height: 640px;
+  transition: transform .5s cubic-bezier(.22,1,.36,1), opacity .45s ease, filter .45s ease;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7));
 }
-.cs-card.front-live { transform: none; z-index: 5; }
-.cs-card.backRight { transform: translateX(34px) translateY(10px) rotate(5deg) scale(.9); opacity: .5; filter: saturate(.7); cursor: pointer; }
-.cs-card.backLeft  { transform: translateX(-34px) translateY(10px) rotate(-5deg) scale(.9); opacity: .42; filter: saturate(.7); cursor: pointer; }
+/* Browse: front near full-size and lifted; side skins splayed wide (±150/9°) and
+   large, bleeding off the column edges like the Landing fan. */
+.cs-card.front-live { transform: translateY(-6px) scale(.94); z-index: 5; }
+.cs-card.backRight  { transform: translateX(154px) rotate(9deg) scale(.84);  z-index: 2;
+  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7)) brightness(.82); cursor: pointer; }
+.cs-card.backLeft   { transform: translateX(-154px) rotate(-9deg) scale(.84); z-index: 2;
+  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7)) brightness(.82); cursor: pointer; }
 /* peeking cards are previews: suppress pointer events on their contents so a
    tap lands on the .cs-card itself (which switches), not an inner sticker/photo/
    button. The .cs-card div keeps its own pointer-events for the switch click. */
 .cs-card:not(.front-live) * { pointer-events: none; }
+
+/* Editing: front pops to full size for comfortable sticker work; peeks hide. */
+.cs-deck.editing .cs-card.front-live { transform: none; }
+.cs-deck.editing .cs-card:not(.front-live) { opacity: 0; pointer-events: none; }
 
 .cs-dots { display: flex; justify-content: center; gap: 9px; margin-top: 14px; }
 .cs-dot {
@@ -26,5 +37,16 @@
 }
 .cs-dot:hover { background: var(--ink-faint); }
 .cs-dot.on { background: var(--accent); box-shadow: 0 0 10px -2px var(--accent); transform: scale(1.2); }
+
+/* Mobile: larger fan (matches the Landing hero) + the middle card is tappable
+   to advance (the side cards are hard to hit on a phone). */
+@media (max-width: 760px) {
+  /* Front nearly fills the deck height so there's no dead space above/below the
+     fan; the side skins still peek + bleed off the (clipped) edges. */
+  .cs-card.front-live { transform: scale(.98); }
+  .cs-card.backRight  { transform: translateX(106px) rotate(8deg) scale(.78); }
+  .cs-card.backLeft   { transform: translateX(-106px) rotate(-8deg) scale(.78); }
+  .cs-deck:not(.editing) .cs-card.front-live { cursor: pointer; }
+}
 
 @media (prefers-reduced-motion: reduce) { .cs-card { transition: none; } }
