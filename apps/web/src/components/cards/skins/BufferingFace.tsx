@@ -47,7 +47,7 @@ export function BufferingFace({ content, roast }: SkinProps) {
         </div>
         <div className="buffering-foot">
           <span className="buffering-nextbtn">RENDER READY</span>
-          <span className="buffering-spark">✦ FITAURA.APP</span>
+          <span className="buffering-spark">✦ FITAURA.STUDIO</span>
         </div>
       </div>
     </div>
