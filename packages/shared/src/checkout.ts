@@ -1,4 +1,4 @@
-import { CREDIT_PACKS } from './pricing';
+import { CREDIT_PACKS } from './pricing.ts';
 
 /** Origins allowed to open the embedded Polar checkout (used as embed_origin). */
 export const ALLOWED_ORIGINS = ['https://fitaura.studio', 'http://localhost:5173'] as const;
