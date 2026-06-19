@@ -20,14 +20,17 @@ export function BufferingFace({ content, roast }: SkinProps) {
         <CardImage src={c.imageUrl} shape="rect" placeholder="drop face photo" alt="Your face" />
         <div className="buffering-photo-top">
           <span className="buffering-pill">BUFFERING<span className="cur">_</span></span>
-          <span className="buffering-photo-score">{big.value}</span>
+        </div>
+        <div className="score-badge">
+          <span className="sub">AURA</span>
+          <span className="num">{big.value}</span>
         </div>
       </div>
       <div className="buffering-info">
         <h2 className="buffering-title">
           {c.verdict[0]} <span className="hl">{c.verdict[1]}</span>
         </h2>
-        {roast && <p className="buffering-quote">“{roast}”</p>}
+        {roast && <p className="buffering-quote">{roast}</p>}
         <div className="buffering-bars">
           {bars.map((s) => (
             <div className="buffering-bar" key={s.id}>
