@@ -25,8 +25,8 @@ export function BufferingFace({ content, roast }: SkinProps) {
       </div>
       <div className="buffering-info">
         <div className="buffering-head">
-          <span className="buffering-mono accent">NOW LOADING</span>
-          <span className="buffering-bigpct">{big.value}<i>%</i></span>
+          <span className="buffering-score-pill">AURA</span>
+          <span className="buffering-bigpct">{big.value}</span>
         </div>
         <h2 className="buffering-title">
           {c.verdict[0]} <span className="hl">{c.verdict[1]}</span>

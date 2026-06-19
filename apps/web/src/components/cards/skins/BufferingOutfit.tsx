@@ -23,8 +23,8 @@ export function BufferingOutfit({ content, roast }: SkinProps) {
       </div>
       <div className="buffering-info">
         <div className="buffering-head">
-          <span className="buffering-mono accent">NOW LOADING</span>
-          <span className="buffering-bigpct">{c.overallScore}<i>%</i></span>
+          <span className="buffering-score-pill">FIT SCORE</span>
+          <span className="buffering-bigpct">{c.overallScore}</span>
         </div>
         <h2 className="buffering-title">{c.caption}</h2>
         {roast && <p className="buffering-quote">“{roast}”</p>}
