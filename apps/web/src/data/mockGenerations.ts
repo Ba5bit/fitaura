@@ -186,6 +186,19 @@ export const MOCK_GENERATIONS: Record<DatingVerdict, FullGenerationResult> = {
           score('Physique Match', 89),
         ],
         sticker: OUTFIT_STICKER.green_flag,
+        nameplate: {
+          name: 'LET HIM COOK',
+          eyebrow: 'Tailored streetwear, all intent',
+          tagline: 'Quiet flex, loud silhouette',
+          lane: 'Streetwear',
+          accent: '#5b9dff',
+          dossier: [
+            { label: 'Signature', value: 'Boxy overshirt' },
+            { label: 'Rule', value: 'Fit over flash' },
+            { label: 'Palette', value: 'Ink & bone' },
+            { label: 'Finish', value: 'Crisp white sole' },
+          ],
+        },
       },
       analysis: {
         explanation:
