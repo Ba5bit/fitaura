@@ -71,6 +71,7 @@ const RESPONSE_SCHEMA = {
         accentHex: { type: 'STRING' },
         dossier: {
           type: 'ARRAY',
+          maxItems: 4,
           items: {
             type: 'OBJECT',
             properties: { label: { type: 'STRING' }, value: { type: 'STRING' } },

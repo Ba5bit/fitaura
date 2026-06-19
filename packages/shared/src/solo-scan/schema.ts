@@ -83,9 +83,7 @@ export const soloScanSchema = z
       tagline: z.string().max(80),
       lane: z.string().max(24),
       accentHex: z.string().max(9),
-      dossier: z
-        .array(z.object({ label: z.string().max(20), value: z.string().max(28) }))
-        .max(4),
+      dossier: z.array(z.object({ label: z.string().max(20), value: z.string().max(28) })),
     }),
     contentSelection: z.object({
       faceArchetypeCandidates: candidates,

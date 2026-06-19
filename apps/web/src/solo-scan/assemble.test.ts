@@ -1,6 +1,6 @@
 // apps/web/src/solo-scan/assemble.test.ts
 import { describe, expect, it } from 'vitest';
-import { assembleResult, sampleAIOutput, DATING_VERDICTS } from '@fitaura/shared';
+import { assembleResult, sampleAIOutput, DATING_VERDICTS, soloScanSchema } from '@fitaura/shared';
 
 describe('assembleResult', () => {
   const result = assembleResult(sampleAIOutput(), 'scan-test-1', 'v2', { face: true, outfit: true });
@@ -200,5 +200,17 @@ describe('assembleResult — nameplate + metric notes', () => {
   it('does not attach a nameplate when the outfit is absent', () => {
     const r = assembleResult(sampleAIOutput(), 'scan-np', 'v3_5', { face: true, outfit: false });
     expect(r.outfit).toBeNull();
+  });
+
+  it('accepts an over-long AI dossier and caps it at 4 rows', () => {
+    const ai = sampleAIOutput();
+    ai.outfitNameplate.dossier = [
+      { label: 'A', value: '1' }, { label: 'B', value: '2' },
+      { label: 'C', value: '3' }, { label: 'D', value: '4' },
+      { label: 'E', value: '5' },
+    ];
+    expect(soloScanSchema.safeParse(ai).success).toBe(true); // no longer rejected
+    const r = assembleResult(ai, 'scan-cap', 'v3_5', { face: true, outfit: true });
+    expect(r.outfit!.card.nameplate!.dossier).toHaveLength(4);
   });
 });
