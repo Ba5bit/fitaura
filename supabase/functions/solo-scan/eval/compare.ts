@@ -6,12 +6,13 @@ import { soloScanSchema } from 'shared/solo-scan/schema.ts';
 import { MODELS, resolveKey, estimateCost } from './models.ts';
 import { discoverCases } from './cases.ts';
 import { renderReport } from './report.ts';
+import { loadEnvFile } from './env.ts';
 import type { CaseResult, ModelConfig, ModelOutcome, RunResult, ScanInput } from './types.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
 /** Run one model against one case input, capturing timing, schema validity, cost. */
-async function runModel(cfg: ModelConfig, input: ScanInput, apiKey: string): Promise<ModelOutcome> {
+export async function runModel(cfg: ModelConfig, input: ScanInput, apiKey: string): Promise<ModelOutcome> {
   const started = Date.now();
   try {
     const { raw, usage } = await callGemini({
@@ -92,6 +93,7 @@ export async function runCompare(opts: RunCompareOpts): Promise<{ dir: string; r
 
 // CLI entry — only runs when invoked directly (not when imported by tests).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  loadEnvFile(join(HERE, '.env'));
   runCompare({ casesDir: join(HERE, 'cases'), outDir: join(HERE, 'out'), env: process.env })
     .then(({ dir }) => console.log(`\nReport: ${join(dir, 'report.html')}`))
     .catch((e) => {
