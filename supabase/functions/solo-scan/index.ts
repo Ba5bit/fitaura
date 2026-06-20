@@ -64,9 +64,10 @@ Deno.serve(async (req) => {
       outfit: parts.outfit ? outfit : undefined,
       systemInstruction: V4_SYSTEM_INSTRUCTION,
       responseSchema: V4_RESPONSE_SCHEMA,
-      // 'minimal' (vs 'low') trims 3.5's deliberation to cut the ~25s latency; the
-      // roast quality comes from the model, not the thinking. Re-validate output.
-      thinkingConfig: isGemini3 ? { thinkingLevel: 'minimal' } : { thinkingBudget: 0 },
+      // 'low' (not 'minimal'): minimal bought ~no speed (latency is output generation)
+      // and made the model narrate the photo instead of landing roasts. 'low' is the
+      // validated quality.
+      thinkingConfig: isGemini3 ? { thinkingLevel: 'low' } : { thinkingBudget: 0 },
       maxOutputTokens: 4096,
     });
 
