@@ -74,7 +74,9 @@ Deno.serve(async (req) => {
     const parsed = soloScanV4Schema.safeParse(raw);
     if (!parsed.success) {
       console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: 'schema_invalid', latency_ms: Date.now() - started }));
-      return json({ ok: false, kind: 'error', message: 'The AI returned an unreadable result. Give it another go.' }, 502);
+      // 200 (not 502): supabase-js functions.invoke discards the body on non-2xx, so
+      // app-level errors return 200 with ok:false to let the client read the reason.
+      return json({ ok: false, kind: 'error', message: 'The AI returned an unreadable result. Give it another go.' });
     }
     const ai = parsed.data;
 
@@ -112,6 +114,7 @@ Deno.serve(async (req) => {
   } catch (e) {
     const code = e instanceof Error ? e.message : String(e);
     console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: code, latency_ms: Date.now() - started }));
-    return json({ ok: false, kind: 'error', message: reasonFor(code) }, 502);
+    // 200 (not 502) so supabase-js exposes the body and the UI can show this reason.
+    return json({ ok: false, kind: 'error', message: reasonFor(code) });
   }
 });
