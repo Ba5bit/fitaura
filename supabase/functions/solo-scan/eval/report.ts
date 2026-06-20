@@ -214,7 +214,44 @@ const STYLE = `
   .tag.good { background: #dcfce7; color: #166534; }
   .tag.bad { background: #fee2e2; color: #991b1b; }
   .punch { font-weight: 700; margin-top: 6px; }
+  .totals { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 8px; font-size: 13px; }
+  .tot { background: #f4f4f5; padding: 4px 10px; border-radius: 8px; }
 `;
+
+export interface ModelTotals {
+  modelId: string;
+  generations: number;
+  tokens: number;
+  costUsd: number;
+}
+
+/** Per-model totals across every case in a run (for the cost comparison). */
+export function summarizeCost(run: RunResult): ModelTotals[] {
+  return run.models.map((modelId) => {
+    let tokens = 0;
+    let costUsd = 0;
+    let generations = 0;
+    for (const c of run.cases) {
+      const o = c.outcomes.find((x) => x.modelId === modelId);
+      if (o) {
+        tokens += o.usage.total;
+        costUsd += o.costUsd;
+        generations += 1;
+      }
+    }
+    return { modelId, generations, tokens, costUsd: Number(costUsd.toFixed(6)) };
+  });
+}
+
+function totalsBar(run: RunResult): string {
+  const rows = summarizeCost(run)
+    .map(
+      (t) =>
+        `<span class="tot"><b>${esc(t.modelId)}</b> — ${t.generations} gen · ${t.tokens.toLocaleString('en-US')} tok · <b>$${t.costUsd.toFixed(4)}</b> (≈ $${(t.costUsd / Math.max(t.generations, 1)).toFixed(4)}/gen)</span>`,
+    )
+    .join('');
+  return `<div class="totals">${rows}</div>`;
+}
 
 /** Render the full comparison report. `inputs` supplies the per-case images. */
 export function renderReport(run: RunResult, inputs: ScanInput[]): string {
@@ -223,6 +260,7 @@ export function renderReport(run: RunResult, inputs: ScanInput[]): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <title>Solo Scan — 2.5 vs 3.5</title><style>${STYLE}</style></head>
 <body><header><h1>Solo Scan — 2.5 vs 3.5</h1>
-<p>${esc(run.startedAt)} · ${run.models.map(esc).join(' | ')}</p></header>
+<p>${esc(run.startedAt)} · ${run.models.map(esc).join(' | ')}</p>
+${totalsBar(run)}</header>
 ${sections}</body></html>`;
 }

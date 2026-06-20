@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { renderReport } from './report.ts';
+import { renderReport, summarizeCost } from './report.ts';
 import { sampleAIOutput } from './fixtures.ts';
 import { assembleResult } from 'shared/solo-scan/assemble.ts';
 import { SOLO_SCAN_PROMPT_VERSION } from 'shared/solo-scan/constants.ts';
@@ -85,10 +85,25 @@ describe('renderReport', () => {
     expect(html).toContain('&lt;script&gt;');
   });
 
+  it('renders the per-model cost totals bar', () => {
+    const html = renderReport(run, inputs);
+    expect(html).toContain('class="totals"');
+    expect(html).toContain('/gen'); // per-generation cost shown
+  });
+
   it('shows schema ✗ and the error for a failed outcome', () => {
     const failed = outcome('gemini-2.5-flash', { ok: false, raw: null, parsed: null, schemaValid: false, assembled: null, error: 'gemini_http_400' });
     const html = renderReport({ ...run, cases: [{ name: 'x', hasFace: true, hasOutfit: false, outcomes: [failed] }] }, []);
     expect(html).toContain('✗');
     expect(html).toContain('gemini_http_400');
+  });
+});
+
+describe('summarizeCost', () => {
+  it('sums tokens, cost, and generation count per model', () => {
+    const totals = summarizeCost(run);
+    expect(totals).toHaveLength(2);
+    expect(totals[0]).toMatchObject({ modelId: 'gemini-2.5-flash', generations: 1, tokens: 1500, costUsd: 0.0015 });
+    expect(totals[1].modelId).toBe('gemini-3.5-flash');
   });
 });

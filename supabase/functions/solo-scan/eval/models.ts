@@ -16,9 +16,10 @@ export const MODELS: ModelConfig[] = [
     thinkingConfig: { thinkingLevel: 'low' },
     // Thinking can consume output budget; give 3.5 a little more headroom than 2.5's 2900.
     maxOutputTokens: 4096,
-    // TODO: confirm gemini-3.5-flash pricing; using 2.5 rates as a placeholder estimate.
-    priceIn: 0.3,
-    priceOut: 2.5,
+    // Standard paid-tier pricing per Google's pricing page (verified 2026-06-20):
+    // $1.50 / 1M input, $9.00 / 1M output (output incl. thinking tokens).
+    priceIn: 1.5,
+    priceOut: 9.0,
   },
 ];
 

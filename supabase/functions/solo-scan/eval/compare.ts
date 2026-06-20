@@ -7,7 +7,7 @@ import { assembleResult } from 'shared/solo-scan/assemble.ts';
 import { SOLO_SCAN_PROMPT_VERSION } from 'shared/solo-scan/constants.ts';
 import { MODELS, resolveKey, estimateCost } from './models.ts';
 import { discoverCases } from './cases.ts';
-import { renderReport } from './report.ts';
+import { renderReport, summarizeCost } from './report.ts';
 import { loadEnvFile } from './env.ts';
 import type { CaseResult, ModelConfig, ModelOutcome, RunResult, ScanInput } from './types.ts';
 
@@ -106,6 +106,12 @@ export async function runCompare(opts: RunCompareOpts): Promise<{ dir: string; r
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'results.json'), JSON.stringify(run, null, 2));
   writeFileSync(join(dir, 'report.html'), renderReport(run, inputs));
+
+  console.log('\n  Cost totals:');
+  for (const t of summarizeCost(run)) {
+    const perGen = t.costUsd / Math.max(t.generations, 1);
+    console.log(`  ${t.modelId}: ${t.generations} gen · ${t.tokens} tok · $${t.costUsd.toFixed(4)} (≈ $${perGen.toFixed(4)}/gen)`);
+  }
   return { dir, run };
 }
 
