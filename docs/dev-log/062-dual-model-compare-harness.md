@@ -73,6 +73,29 @@ comparison is faithful.
   `GEMINI_API_KEY=… GEMINI_API_KEY_35=… npm run scan:compare`, open the printed `report.html`.
   If 3.5 returns `gemini_http_400` (thinking field) or `schema ✗` (truncation), tune
   `eval/models.ts` (`thinkingLevel` value / `maxOutputTokens`) and re-run.
-- ⏳ **Open items:** confirm `gemini-3.5-flash` pricing (placeholder = 2.5 rates) and the
-  exact `thinking_level` value the API accepts.
+- ⏳ **Open items:** confirm `gemini-3.5-flash` pricing (placeholder = 2.5 rates).
 - 🔐 Rotate the 3.5 key pasted in chat once testing is done.
+
+## Update (same day) — web UI + full assembly + live validation
+
+Two follow-on commits on the branch:
+
+- **Local web UI** (`server.ts`, `env.ts`, `.env`/`.env.example`, `npm run scan:compare:serve`)
+  — upload a photo at `http://localhost:5178`, both models run, the report renders in-page.
+  Keys load from a gitignored `eval/.env` (loader shared with the batch CLI). No folders needed.
+- **Real assembly in the report** (`assembleResult`) — each model's valid output now also runs
+  the production assembly, so the report leads with the **final system result** (verdict band,
+  Aura/Dating scores, picked archetype/caption/punchline, nameplate, receipt) above the raw
+  Gemini fields. Seeded with the case name (same for both models) so differences are model-driven.
+  `insufficient_signal` is caught and shown per-column.
+
+**Live validation** (real API, 1×1 pixel through the web pipeline): both `gemini-2.5-flash`
+and `gemini-3.5-flash` returned **schema ✓**. So `gemini-3.5-flash` **accepts
+`thinkingConfig: { thinkingLevel: 'low' }`** and produces schema-valid output under the exact
+production prompt — no `models.ts` tuning needed. One column assembled to a full verdict, the
+other hit `insufficient_signal` (correct retake path for a blank pixel), exercising both
+render branches. Keys both authenticate; both models available on the account.
+
+Still pending: a real-photo test by the user (quality judgement), and the decision to merge the
+branch. Productionizing 3.5 (per-model thinking config + optional 2.5 fallback) is a separate,
+later task — not done here.
