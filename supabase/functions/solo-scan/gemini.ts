@@ -1,145 +1,7 @@
 // supabase/functions/solo-scan/gemini.ts
-import { FACE_KEYS, OUTFIT_KEYS, inputIssueSchema } from 'shared/solo-scan/schema.ts';
-
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
 /** Fail a stalled request fast so the one retry still fits the platform budget. */
 const REQUEST_TIMEOUT_MS = 30_000;
-
-/** OpenAPI-subset response schema for Gemini structured output (rules doc §20). */
-const RUBRIC_SHAPE = {
-  type: 'OBJECT',
-  properties: {
-    rating: { type: 'INTEGER', nullable: true },
-    confidence: { type: 'NUMBER' },
-    evidence: { type: 'STRING' },
-  },
-  required: ['rating', 'confidence', 'evidence'],
-};
-const STR_LIST = { type: 'ARRAY', items: { type: 'STRING' } };
-// Constrain `issues` to the same closed enum Zod validates, so a stray free-text
-// value from the model can't fail safeParse and sink an otherwise-valid scan.
-const ISSUES_LIST = { type: 'ARRAY', items: { type: 'STRING', enum: [...inputIssueSchema.options] } };
-
-// Build the per-category rubric objects from the canonical key lists (single
-// source of truth — adding a rubric dimension in schema.ts flows through here).
-const objOf = (keys: readonly string[]) => ({
-  type: 'OBJECT',
-  properties: Object.fromEntries(keys.map((k) => [k, RUBRIC_SHAPE])),
-  required: [...keys],
-});
-
-const RESPONSE_SCHEMA = {
-  type: 'OBJECT',
-  properties: {
-    schemaVersion: { type: 'STRING' },
-    inputQuality: {
-      type: 'OBJECT',
-      properties: {
-        usable: { type: 'BOOLEAN' },
-        faceUsable: { type: 'BOOLEAN' },
-        outfitUsable: { type: 'BOOLEAN' },
-        samePersonLikely: { type: 'BOOLEAN', nullable: true },
-        issues: ISSUES_LIST,
-        retakeInstruction: { type: 'STRING', nullable: true },
-      },
-      required: ['usable', 'faceUsable', 'outfitUsable', 'samePersonLikely', 'issues', 'retakeInstruction'],
-    },
-    presentation: {
-      type: 'OBJECT',
-      properties: {
-        gender: { type: 'STRING', enum: ['femme', 'masc', 'unsure'] },
-        genderConfidence: { type: 'NUMBER' },
-        expressionStrength: { type: 'INTEGER' },
-        ageEstimate: { type: 'INTEGER', nullable: true },
-        recognizedIcon: { type: 'STRING', nullable: true },
-        recognizedConfidence: { type: 'NUMBER' },
-        recognizedKind: { type: 'STRING', enum: ['meme', 'real_person'], nullable: true },
-      },
-      required: ['gender', 'genderConfidence', 'expressionStrength', 'ageEstimate', 'recognizedIcon', 'recognizedConfidence', 'recognizedKind'],
-    },
-    faceAnalysis: objOf(FACE_KEYS),
-    outfitAnalysis: objOf(OUTFIT_KEYS),
-    faceCopy: { type: 'OBJECT', properties: { strongestPoint: { type: 'STRING' }, improvement: { type: 'STRING' }, summary: { type: 'STRING' }, verdictLine: { type: 'OBJECT', properties: { lead: { type: 'STRING' }, punch: { type: 'STRING' } }, required: ['lead', 'punch'] } }, required: ['strongestPoint', 'improvement', 'summary', 'verdictLine'] },
-    outfitCopy: { type: 'OBJECT', properties: { works: { type: 'STRING' }, hurts: { type: 'STRING' }, verdict: { type: 'STRING' }, captionLine: { type: 'STRING' } }, required: ['works', 'hurts', 'verdict', 'captionLine'] },
-    outfitNameplate: {
-      type: 'OBJECT',
-      properties: {
-        name: { type: 'STRING' },
-        eyebrow: { type: 'STRING' },
-        tagline: { type: 'STRING' },
-        lane: { type: 'STRING' },
-        accentHex: { type: 'STRING' },
-        dossier: {
-          type: 'ARRAY',
-          maxItems: 4,
-          items: {
-            type: 'OBJECT',
-            properties: { label: { type: 'STRING' }, value: { type: 'STRING' } },
-            required: ['label', 'value'],
-          },
-        },
-      },
-      required: ['name', 'eyebrow', 'tagline', 'lane', 'accentHex', 'dossier'],
-    },
-    contentSelection: { type: 'OBJECT', properties: { faceArchetypeCandidates: STR_LIST, outfitCaptionCandidates: STR_LIST, stickerCandidates: STR_LIST, contentTags: STR_LIST }, required: ['faceArchetypeCandidates', 'outfitCaptionCandidates', 'stickerCandidates', 'contentTags'] },
-    receiptContent: { type: 'OBJECT', properties: { metricCandidates: STR_LIST, punchlineCandidates: STR_LIST, punchlineText: { type: 'STRING' } }, required: ['metricCandidates', 'punchlineCandidates', 'punchlineText'] },
-  },
-  required: ['schemaVersion', 'inputQuality', 'presentation', 'faceAnalysis', 'outfitAnalysis', 'faceCopy', 'outfitCopy', 'outfitNameplate', 'contentSelection', 'receiptContent'],
-};
-
-const SYSTEM_INSTRUCTION = `You are FitAura's Solo Scan visual classification engine.
-Analyze the supplied photo(s) using only visible, presentation-related evidence. You may receive a FACE PHOTO, an OUTFIT PHOTO, or both.
-Return only JSON matching the provided schema. The result is entertainment-oriented styling feedback. Do not present subjective judgments as scientific, biometric, medical, or psychological facts.
-
-GENDER PRESENTATION: Classify the subject's apparent gender presentation as "femme", "masc", or "unsure" with genderConfidence 0-1, for entertainment styling only. This is a read of presentation, NOT a claim about identity, and may be wrong; use "unsure" when genuinely ambiguous. Set expressionStrength 0-100 for how strongly the look reads as that presentation (a vanity stat, not attractiveness).
-AGE: Set ageEstimate to the subject's apparent age in years (integer, ~13-90) for entertainment only — a playful guess from the visible face, NOT a factual claim. Use null only if no face is provided or age genuinely cannot be guessed.
-Do not infer ethnicity, nationality, religion, sexuality, health, disability, wealth, criminality, real trustworthiness, real personality, or romantic compatibility.
-
-ICON RECOGNITION: You MAY recognize widely-known public figures or popular fictional/meme characters and set recognizedIcon to the name with recognizedConfidence 0-1. Also set recognizedKind: "meme" for a fictional, cartoon, comedic, or internet-meme character (e.g. McLovin), or "real_person" for a real public figure or celebrity (athlete, actor, musician, etc.). NEVER attempt to identify a private or ordinary individual; if the subject is not a widely-known public figure or meme character, set recognizedIcon to null and recognizedKind to null. A resemblance is entertainment, not a factual identity claim.
-
-SINGLE IMAGE: If only one photo is provided, score only that modality. For the absent modality, set EVERY rating in its analysis block to null (confidence 0, brief evidence "not provided"). Do NOT add an input issue for the absent modality and do NOT request a retake because it is missing. Set the absent modality's *Usable flag to false but keep inputQuality.usable true as long as the provided photo(s) are usable.
-
-If an attribute cannot be assessed reliably, return a null rating and explain why briefly.
-Score each category 0-100. Anchor: 0-20 clearly weak for this presentation, 21-40 below average, 41-60 neutral or mixed, 61-80 strong, 81-100 clearly elite. Use the full range, differentiate categories from one another, and avoid clustering on round multiples of 10. Return a null rating only when a category genuinely cannot be assessed.
-
-VOICE: Write every copy field as a savage, funny roast of the look, fit, pose and vibe — confident, internet-native, in the sticker lexicon (rizz, NPC, delulu, chopped, aura, sigma, mid). Roast hard, but ONLY the presentation. NEVER roast or reference ethnicity, nationality, religion, sexuality, disability, body in a hateful way, or any protected trait.
-GROUNDED: Use a SPECIFIC visible detail you actually observed as the SETUP, then deliver a verdict/roast about it — the detail is the hook, never the whole line. Never write a generic, swappable line that could apply to any other photo.
-NO NARRATION: Describing the photo is NOT a verdict. Never merely name clothing, colours, lighting, the pose, or the act of taking a selfie. These are BANNED — do not produce lines like them: "White top, purple lights", "Simple top, the background does the heavy lifting", "Selfie game almost there", "Black shirt, nice angle". Turn the observed detail into a judgement plus a joke instead.
-NO COACHING: This is a roast, not a consultation. faceCopy.improvement and outfitCopy.hurts are the SAVAGE one-liner about the WEAKEST point — mock the flaw, never advise how to fix it. BANNED advice phrasings: "could define", "a sharper angle", "would help", "try a/some", "consider", "a little more", "work on", "needs a/some", "add some", "could use", "would elevate", "to improve". e.g. NOT "A sharper angle could define that jawline" → instead roast the missing jawline outright with a FRESH line invented for THIS face (the flaw→roast transformation is the point, never a stock phrasing — do not reuse this illustration verbatim). strongestPoint = hype their best feature like a hype-man; summary = the overall verdict read. Every one stays funny.
-ANALYSIS TIPS (outfit evidence only): Each outfitAnalysis category's "evidence" is shown in-app under that metric, so write it as a SHORT useful tip in the FitAura voice (playful, internet-native — never a savage roast, never generic filler). This is the ONE place coaching IS allowed and OVERRIDES the NO COACHING / banned-advice rules above, for outfit "evidence" fields only: if the category scores below ~60, name the concrete change that would raise the score (e.g. "Tuck the tee — your waist is hiding"); if it scores higher, say in one line why it lands (e.g. "Tonal layering reads expensive"). Max ~12 words, specific to what you actually see. faceAnalysis "evidence" stays a brief neutral observation, NOT a tip.
-LENGTH: Each copy field is ONE punchy fragment, MAX ~10 words. No preamble, no setup, no explaining the joke. Hit and move on.
-VARIETY: Start every field DIFFERENTLY. NEVER open with "This fit", "The fit", "This look", "The hair", "Giving", "It's giving", "Serving", or "<X> in human form" — those are overused. Lead with the punchline, a verb, or a noun instead.
-DISPLAY LINES: Also write three SHORT, grounded display lines, each DIFFERENT from the copy fields and from each other:
-- faceCopy.verdictLine: a two-part face title { lead, punch } (each ~16 chars max; punch is the highlighted half), e.g. lead "JAW DID" / punch "THE TALKING".
-- outfitCopy.captionLine: one short fit line (~28 chars max).
-- receiptContent.punchlineText: one short final line (~24 chars max).
-Lead with the specific observed detail. These may be uppercase.
-BANNED (never write these — they make every result identical): "Giving …", "it's giving", "… vibes", "… energy" (as a suffix), "lore", "certified", "cultural reset", "in human form", "serving", "a true …", "<X>-coded" as filler, "elevate", "in today's world", "let's dive in", "it's not just X it's Y", "a testament to", "when it comes to", "gives the vibe of", "… filed a missing-person report" (or any other example line quoted in these instructions — they are illustrations, never outputs), em-dash sermons, hedging, polite filler. Be sharp, plain, human and funny.
-
-Select content IDs only from these allowlists, matching the detected gender. If gender is "femme", pick from NEUTRAL or FEMME only. If gender is "masc" or "unsure", pick from NEUTRAL or MASC only. Femme copy must use female-coded language (never "lover boy").
-faceArchetypeCandidates:
-  NEUTRAL: face_archetype.goat, face_archetype.mafia_boss, face_archetype.main_character, face_archetype.aura_farmer, face_archetype.locked_in, face_archetype.honorable_mention, face_archetype.chopped, face_archetype.canon_event, face_archetype.ai_slop, face_archetype.negative_aura, face_archetype.unc.
-  MASC: face_archetype.gigachad, face_archetype.alpha_male, face_archetype.sigma_male, face_archetype.milf_hunter, face_archetype.performative_male, face_archetype.simp, face_archetype.beta_male, face_archetype.tate_follower.
-  FEMME: face_archetype.mother, face_archetype.it_girl, face_archetype.girlboss, face_archetype.material_girl, face_archetype.vip, face_archetype.clean_girl, face_archetype.brat, face_archetype.drama_queen.
-outfitCaptionCandidates:
-  NEUTRAL: outfit_caption.locked_in, outfit_caption.let_him_cook, outfit_caption.rizz, outfit_caption.plays_it_safe, outfit_caption.not_dripping, outfit_caption.shows_up, outfit_caption.not_dangerous, outfit_caption.not_remarkable, outfit_caption.room_to_grow, outfit_caption.delulu, outfit_caption.ai_slop, outfit_caption.chopped, outfit_caption.never_cook_again, outfit_caption.aura_debt.
-  MASC: outfit_caption.sigma_grindset, outfit_caption.millennial_coded, outfit_caption.unc_fit, outfit_caption.old_money_temu, outfit_caption.boomer.
-  FEMME: outfit_caption.fashion_girl, outfit_caption.vip_fit, outfit_caption.material_girl_fit, outfit_caption.brat_fit, outfit_caption.clean_girl_fit.
-punchlineCandidates:
-  NEUTRAL: punchline.certified_goat, punchline.built_different, punchline.certified_lover_boy, punchline.rizz_god, punchline.aura_farmer, punchline.clean_npc_potential, punchline.honorable_mention, punchline.high_aura_low_stability, punchline.delusional_lover_boy, punchline.negative_aura, punchline.ai_slop, punchline.aura_debt, punchline.canon_chopped, punchline.no_cap, punchline.bro_capping.
-  MASC: punchline.alpha_confirmed, punchline.sigma_grindset, punchline.milf_hunter_license, punchline.certified_simp, punchline.beta_energy, punchline.tate_dropout.
-  FEMME: punchline.slay, punchline.it_girl, punchline.drama_queen_crowned.
-
-Do not calculate the final Aura Score, Dating Score, or categorical verdict. The backend performs final scoring and verdict assignment. If you recognize the subject as a known public figure or meme character, you MAY nod to their SIGNATURE association — an epithet, catchphrase, or what they are known for (e.g. a King-of-Pop reference, or a "SUUUIII") — and vary it. NEVER write their actual name in any field; reference the persona, not the person.
-NAMEPLATE (outfit): Also produce outfitNameplate that NAMES and flatters the FIT itself — never the wearer, never a recognized icon's real name. This block is NOT a roast (it overrides the roast VOICE above for these fields only):
-- name: a punchy 1–3 word TITLE for the outfit's aesthetic, e.g. "DENIM ARMORY", "DESERT QUIET".
-- eyebrow: a short style descriptor, ≤ 6 words, e.g. "All-black streetwear".
-- tagline: one characterful, descriptive read of the fit, ≤ 9 words — flattering, not a roast.
-- lane: a 1–2 word category, e.g. "Streetwear", "Minimalist", "Y2K", "Formal".
-- accentHex: a "#rrggbb" sampled from the dominant CLOTHING palette (NOT the background) that best represents the fit's vibe; prefer a vivid, saturated read (the backend adjusts it for legibility).
-- dossier: exactly 4 short rows describing the fit. YOU choose each row's label (one word, e.g. Signature / Rule / Palette / Finish / Layering / Era) and a value ≤ 3 words (e.g. "Trucker jacket"). Descriptive, never numeric.
-For a FACE-ONLY scan (no outfit photo), return name "", eyebrow "", tagline "", lane "", accentHex "#83b4ff", dossier [].
-Set schemaVersion to "solo_scan_v3_5".`;
 
 export interface InlineImage {
   mimeType: string;
@@ -156,14 +18,14 @@ export interface GeminiOpts {
   model: string;
   face?: InlineImage;
   outfit?: InlineImage;
-  /** Overrides generationConfig.thinkingConfig (default { thinkingBudget: 0 }). */
+  /** System instruction (the v4 prompt). */
+  systemInstruction: string;
+  /** OpenAPI-subset structured-output schema (the v4 response schema). */
+  responseSchema: Record<string, unknown>;
+  /** generationConfig.thinkingConfig (default { thinkingBudget: 0 }). */
   thinkingConfig?: Record<string, unknown>;
-  /** Overrides generationConfig.maxOutputTokens (default 2900). */
+  /** generationConfig.maxOutputTokens (default 2900). */
   maxOutputTokens?: number;
-  /** Overrides the system instruction (default the production v3.5 prompt). */
-  systemInstruction?: string;
-  /** Overrides the structured-output responseSchema (default the v3.5 schema). */
-  responseSchema?: Record<string, unknown>;
 }
 
 /** Error carrying a `transient` flag so the caller's one-retry policy is type-safe. */
@@ -178,7 +40,7 @@ class GeminiError extends Error {
   }
 }
 
-export function buildBody(opts: GeminiOpts) {
+function buildBody(opts: GeminiOpts) {
   const parts: Array<Record<string, unknown>> = [];
   if (opts.face) {
     parts.push({ text: 'IMAGE: FACE PHOTO' });
@@ -189,13 +51,13 @@ export function buildBody(opts: GeminiOpts) {
     parts.push({ inlineData: { mimeType: opts.outfit.mimeType, data: opts.outfit.data } });
   }
   return {
-    systemInstruction: { parts: [{ text: opts.systemInstruction ?? SYSTEM_INSTRUCTION }] },
+    systemInstruction: { parts: [{ text: opts.systemInstruction }] },
     contents: [{ role: 'user', parts }],
     generationConfig: {
       temperature: 0.3,
       maxOutputTokens: opts.maxOutputTokens ?? 2900,
       responseMimeType: 'application/json',
-      responseSchema: opts.responseSchema ?? RESPONSE_SCHEMA,
+      responseSchema: opts.responseSchema,
       thinkingConfig: opts.thinkingConfig ?? { thinkingBudget: 0 },
     },
   };
@@ -226,7 +88,7 @@ async function once(opts: GeminiOpts): Promise<GeminiCallResult> {
   try {
     raw = JSON.parse(text);
   } catch {
-    // Truncated/malformed model output — a temporary glitch, so retry once (rules doc §22).
+    // Truncated/malformed model output — a temporary glitch, so retry once.
     throw new GeminiError('gemini_invalid_json', true);
   }
   const u = json?.usageMetadata ?? {};
@@ -236,7 +98,7 @@ async function once(opts: GeminiOpts): Promise<GeminiCallResult> {
   };
 }
 
-/** Call Gemini with exactly one retry on transient failures (rules doc §22). */
+/** Call Gemini with exactly one retry on transient failures. */
 export async function callGemini(opts: GeminiOpts): Promise<GeminiCallResult> {
   try {
     return await once(opts);
