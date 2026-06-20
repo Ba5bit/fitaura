@@ -1,7 +1,7 @@
 // supabase/functions/solo-scan/index.ts
-import { soloScanSchema } from 'shared/solo-scan/schema.ts';
-import { assembleResult } from 'shared/solo-scan/assemble.ts';
-import { SOLO_SCAN_PROMPT_VERSION, SOLO_SCAN_SCHEMA_VERSION } from 'shared/solo-scan/constants.ts';
+import { soloScanV4Schema, SOLO_SCAN_V4_SCHEMA_VERSION } from 'shared/solo-scan/v4/schema.ts';
+import { shapeV4Result } from 'shared/solo-scan/v4/shape.ts';
+import { V4_SYSTEM_INSTRUCTION, V4_RESPONSE_SCHEMA } from 'shared/solo-scan/v4/prompt.ts';
 import { callGemini, type InlineImage } from './gemini.ts';
 
 const CORS = {
@@ -24,8 +24,10 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false, kind: 'error', message: 'method_not_allowed' }, 405);
 
   const apiKey = Deno.env.get('GEMINI_API_KEY');
-  const model = Deno.env.get('GEMINI_SOLO_SCAN_MODEL') ?? 'gemini-2.5-flash';
+  const model = Deno.env.get('GEMINI_SOLO_SCAN_MODEL') ?? 'gemini-3.5-flash';
   if (!apiKey) return json({ ok: false, kind: 'error', message: 'missing_api_key' }, 500);
+  // Gemini 3.x uses thinking_level (not thinkingBudget) and is priced higher.
+  const isGemini3 = model.startsWith('gemini-3');
 
   let body: ReqBody;
   try {
@@ -50,9 +52,13 @@ Deno.serve(async (req) => {
       apiKey, model,
       face: parts.face ? face : undefined,
       outfit: parts.outfit ? outfit : undefined,
+      systemInstruction: V4_SYSTEM_INSTRUCTION,
+      responseSchema: V4_RESPONSE_SCHEMA,
+      thinkingConfig: isGemini3 ? { thinkingLevel: 'low' } : { thinkingBudget: 0 },
+      maxOutputTokens: 4096,
     });
 
-    const parsed = soloScanSchema.safeParse(raw);
+    const parsed = soloScanV4Schema.safeParse(raw);
     if (!parsed.success) {
       console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: 'schema_invalid', latency_ms: Date.now() - started }));
       return json({ ok: false, kind: 'error', message: 'schema_invalid' }, 502);
@@ -72,7 +78,7 @@ Deno.serve(async (req) => {
 
     let result;
     try {
-      result = assembleResult(ai, scanId, SOLO_SCAN_PROMPT_VERSION, parts);
+      result = shapeV4Result(ai, scanId, parts);
     } catch {
       return json({
         ok: false, kind: 'retake', faceUsable: true, outfitUsable: true,
@@ -80,10 +86,11 @@ Deno.serve(async (req) => {
       });
     }
 
-    // rules doc §3 cost estimate; §25 logging (never logs image bytes).
-    const cost = (usage.input / 1e6) * 0.3 + (usage.output / 1e6) * 2.5;
+    // §3 cost estimate (model-aware); §25 logging (never logs image bytes).
+    const [priceIn, priceOut] = isGemini3 ? [1.5, 9.0] : [0.3, 2.5];
+    const cost = (usage.input / 1e6) * priceIn + (usage.output / 1e6) * priceOut;
     console.log(JSON.stringify({
-      scan_id: scanId, model, prompt_version: SOLO_SCAN_PROMPT_VERSION, schema_version: SOLO_SCAN_SCHEMA_VERSION,
+      scan_id: scanId, model, schema_version: SOLO_SCAN_V4_SCHEMA_VERSION,
       input_tokens: usage.input, output_tokens: usage.output, total_tokens: usage.total,
       latency_ms: Date.now() - started, success: true, estimated_cost: Number(cost.toFixed(6)),
     }));
