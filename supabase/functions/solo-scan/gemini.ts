@@ -1,7 +1,8 @@
 // supabase/functions/solo-scan/gemini.ts
 const ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models';
-/** Fail a stalled request fast so the one retry still fits the platform budget. */
-const REQUEST_TIMEOUT_MS = 30_000;
+/** 3.5 real scans run ~15-25s; 30s was clipping legit-slow ones. 45s leaves room
+ * while still failing a truly stalled request before the platform budget. */
+const REQUEST_TIMEOUT_MS = 45_000;
 
 export interface InlineImage {
   mimeType: string;

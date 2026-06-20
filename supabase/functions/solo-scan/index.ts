@@ -13,6 +13,16 @@ const CORS = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, 'content-type': 'application/json' } });
 
+/** Map an internal failure code to a short, human reason shown on the result screen
+ * (the technical code is still logged for debugging). */
+function reasonFor(code: string): string {
+  if (code === 'gemini_network_error') return 'The AI took too long or the connection dropped.';
+  if (/^gemini_http_(429|5\d\d)$/.test(code)) return 'The AI service is busy right now.';
+  if (/^gemini_http_4\d\d$/.test(code)) return 'The AI rejected the request.';
+  if (code === 'gemini_empty_response' || code === 'gemini_invalid_json') return 'The AI returned a garbled response.';
+  return 'Something went wrong on our end.';
+}
+
 interface ReqBody {
   scanId: string;
   face?: InlineImage;
@@ -54,14 +64,16 @@ Deno.serve(async (req) => {
       outfit: parts.outfit ? outfit : undefined,
       systemInstruction: V4_SYSTEM_INSTRUCTION,
       responseSchema: V4_RESPONSE_SCHEMA,
-      thinkingConfig: isGemini3 ? { thinkingLevel: 'low' } : { thinkingBudget: 0 },
+      // 'minimal' (vs 'low') trims 3.5's deliberation to cut the ~25s latency; the
+      // roast quality comes from the model, not the thinking. Re-validate output.
+      thinkingConfig: isGemini3 ? { thinkingLevel: 'minimal' } : { thinkingBudget: 0 },
       maxOutputTokens: 4096,
     });
 
     const parsed = soloScanV4Schema.safeParse(raw);
     if (!parsed.success) {
       console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: 'schema_invalid', latency_ms: Date.now() - started }));
-      return json({ ok: false, kind: 'error', message: 'schema_invalid' }, 502);
+      return json({ ok: false, kind: 'error', message: 'The AI returned an unreadable result. Give it another go.' }, 502);
     }
     const ai = parsed.data;
 
@@ -97,7 +109,8 @@ Deno.serve(async (req) => {
 
     return json({ ok: true, result });
   } catch (e) {
-    console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: e instanceof Error ? e.message : String(e), latency_ms: Date.now() - started }));
-    return json({ ok: false, kind: 'error', message: 'generation_failed' }, 502);
+    const code = e instanceof Error ? e.message : String(e);
+    console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: code, latency_ms: Date.now() - started }));
+    return json({ ok: false, kind: 'error', message: reasonFor(code) }, 502);
   }
 });
