@@ -1,16 +1,20 @@
 import { describe, it, expect } from 'vitest';
 import { renderReport } from './report.ts';
 import { sampleAIOutput } from './fixtures.ts';
+import { assembleResult } from 'shared/solo-scan/assemble.ts';
+import { SOLO_SCAN_PROMPT_VERSION } from 'shared/solo-scan/constants.ts';
 import type { ModelOutcome, RunResult, ScanInput } from './types.ts';
 
 function outcome(modelId: string, over: Partial<ModelOutcome> = {}): ModelOutcome {
   const parsed = sampleAIOutput();
+  const assembled = assembleResult(parsed, 'bob', SOLO_SCAN_PROMPT_VERSION, { face: true, outfit: true });
   return {
     modelId,
     ok: true,
     raw: parsed,
     parsed,
     schemaValid: true,
+    assembled,
     latencyMs: 1234,
     usage: { input: 1000, output: 500, total: 1500 },
     costUsd: 0.0015,
@@ -51,6 +55,14 @@ describe('renderReport', () => {
     expect(html).toContain('NO CAP DETECTED'); // receipt punchlineText
   });
 
+  it('renders the assembled final result (verdict chip + receipt rows)', () => {
+    const html = renderReport(run, inputs);
+    expect(html).toContain('VERDICT'); // assembled verdict chip
+    expect(html).toContain('Dating Score'); // receipt row from assembleResult
+    expect(html).toContain('Aura Gained'); // receipt row from assembleResult
+    expect(html).toContain('Final result'); // the assembled section heading
+  });
+
   it('embeds input images as data URIs', () => {
     const html = renderReport(run, inputs);
     expect(html).toContain('data:image/jpeg;base64,AAAA');
@@ -74,7 +86,7 @@ describe('renderReport', () => {
   });
 
   it('shows schema ✗ and the error for a failed outcome', () => {
-    const failed = outcome('gemini-2.5-flash', { ok: false, raw: null, parsed: null, schemaValid: false, error: 'gemini_http_400' });
+    const failed = outcome('gemini-2.5-flash', { ok: false, raw: null, parsed: null, schemaValid: false, assembled: null, error: 'gemini_http_400' });
     const html = renderReport({ ...run, cases: [{ name: 'x', hasFace: true, hasOutfit: false, outcomes: [failed] }] }, []);
     expect(html).toContain('✗');
     expect(html).toContain('gemini_http_400');

@@ -3,6 +3,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { callGemini } from '../gemini.ts';
 import { soloScanSchema } from 'shared/solo-scan/schema.ts';
+import { assembleResult } from 'shared/solo-scan/assemble.ts';
+import { SOLO_SCAN_PROMPT_VERSION } from 'shared/solo-scan/constants.ts';
 import { MODELS, resolveKey, estimateCost } from './models.ts';
 import { discoverCases } from './cases.ts';
 import { renderReport } from './report.ts';
@@ -25,6 +27,19 @@ export async function runModel(cfg: ModelConfig, input: ScanInput, apiKey: strin
     });
     const latencyMs = Date.now() - started;
     const parsed = soloScanSchema.safeParse(raw);
+    // Run the real production assembly on valid output. Seed it with the case
+    // name (same for both models) so any difference in the final result comes from
+    // the model, not seed noise. parts = which images this case actually has.
+    let assembled = null as ModelOutcome['assembled'];
+    let assembleError: string | undefined;
+    if (parsed.success) {
+      const parts = { face: !!input.face, outfit: !!input.outfit };
+      try {
+        assembled = assembleResult(parsed.data, input.name, SOLO_SCAN_PROMPT_VERSION, parts);
+      } catch (e) {
+        assembleError = e instanceof Error ? e.message : String(e);
+      }
+    }
     return {
       modelId: cfg.id,
       ok: true,
@@ -32,6 +47,8 @@ export async function runModel(cfg: ModelConfig, input: ScanInput, apiKey: strin
       parsed: parsed.success ? parsed.data : null,
       schemaValid: parsed.success,
       schemaErrors: parsed.success ? undefined : parsed.error.issues.map((i) => i.path.join('.')),
+      assembled,
+      assembleError,
       latencyMs,
       usage,
       costUsd: estimateCost(usage, cfg),
@@ -44,6 +61,7 @@ export async function runModel(cfg: ModelConfig, input: ScanInput, apiKey: strin
       parsed: null,
       schemaValid: false,
       error: e instanceof Error ? e.message : String(e),
+      assembled: null,
       latencyMs: Date.now() - started,
       usage: { input: 0, output: 0, total: 0 },
       costUsd: 0,

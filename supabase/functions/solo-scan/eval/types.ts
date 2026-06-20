@@ -1,4 +1,5 @@
 import type { SoloScanAIOutput } from 'shared/solo-scan/schema.ts';
+import type { FullGenerationResult } from 'shared/result.ts';
 
 /** A base64 image part, matching gemini.ts InlineImage. */
 export interface InlineImage {
@@ -29,6 +30,10 @@ export interface ModelOutcome {
   schemaValid: boolean;
   schemaErrors?: string[]; // zod issue paths when invalid
   error?: string; // GeminiError code on call failure
+  // Production assembleResult() output — the final system result. null when schema
+  // was invalid or assembly threw (see assembleError).
+  assembled: FullGenerationResult | null;
+  assembleError?: string; // e.g. 'insufficient_signal' when assembleResult throws
   latencyMs: number;
   usage: { input: number; output: number; total: number };
   costUsd: number;

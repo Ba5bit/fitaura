@@ -1,4 +1,5 @@
 import type { SoloScanAIOutput } from 'shared/solo-scan/schema.ts';
+import type { FullGenerationResult, ScoreItem } from 'shared/result.ts';
 import type { CaseResult, InlineImage, ModelOutcome, RunResult, ScanInput } from './types.ts';
 
 const esc = (s: unknown): string =>
@@ -18,6 +19,60 @@ function scoreGrid(analysis: Analysis): string {
 
 function colHead(o: ModelOutcome): string {
   return `<div class="model">${esc(o.modelId)}</div>`;
+}
+
+/** Rows of a ScoreItem[] (uses displayValue when present, e.g. "27 y.o."). */
+function scoreRows(items: ScoreItem[]): string {
+  return items
+    .map((s) => `<tr><td class="k">${esc(s.label)}</td><td class="n">${esc(s.displayValue ?? s.value)}</td></tr>`)
+    .join('');
+}
+
+/** The final assembled result — what the live product would actually render. */
+function assembledCard(o: ModelOutcome): string {
+  if (o.assembleError) {
+    return `<div class="card-col empty">${colHead(o)}assembly failed: ${esc(o.assembleError)}</div>`;
+  }
+  const a: FullGenerationResult | null = o.assembled;
+  if (!a) return `<div class="card-col empty">${colHead(o)}no result (${esc(o.error ?? 'schema invalid')})</div>`;
+
+  const faceBlock = a.face
+    ? `<div class="ab-block">
+        <div class="ab-h">FACE · ${esc(a.face.card.verdict[0])} <b>${esc(a.face.card.verdict[1])}</b></div>
+        <div class="muted">${esc(a.face.card.index)}</div>
+        <table class="scores">${scoreRows(a.face.card.scores)}</table>
+        <div class="traits">${a.face.analysis.breakdown
+          .map((t) => `<span>${esc(t.label)} <b>${t.value}</b> ${esc(t.descriptor)}</span>`)
+          .join('')}</div>
+      </div>`
+    : '';
+
+  const np = a.outfit?.card.nameplate;
+  const outfitBlock = a.outfit
+    ? `<div class="ab-block">
+        <div class="ab-h">OUTFIT · ${esc(a.outfit.card.caption)}</div>
+        <div class="muted">Overall ${esc(a.outfit.card.overallScore)}${np ? ` · &ldquo;${esc(np.name)}&rdquo;` : ''}</div>
+        <table class="scores">${scoreRows(a.outfit.card.scores)}</table>
+        <div class="tags">${a.outfit.analysis.tags
+          .map((t) => `<span class="tag ${t.tone}">${esc(t.label)}</span>`)
+          .join('')}</div>
+      </div>`
+    : '';
+
+  const r = a.receipt;
+  const receiptBlock = `<div class="ab-block">
+      <div class="ab-h">RECEIPT</div>
+      <table class="scores">${r.rows
+        .map((row) => `<tr><td class="k">${esc(row.label)}</td><td class="n">${esc(row.value)}</td></tr>`)
+        .join('')}</table>
+      <div class="punch">&ldquo;${esc(r.finalPunchline)}&rdquo;</div>
+      <div class="muted">${esc(r.summary)}</div>
+    </div>`;
+
+  return `<div class="card-col assembled">${colHead(o)}
+    <div class="chip ${esc(a.verdict)}">${esc(a.chip)} · <span class="g">${esc(a.gender)}</span></div>
+    ${faceBlock}${outfitBlock}${receiptBlock}
+  </div>`;
 }
 
 function faceCard(o: ModelOutcome): string {
@@ -98,11 +153,14 @@ function caseSection(c: CaseResult, input?: ScanInput): string {
   return `<section class="case">
     <h2>${esc(c.name)}</h2>
     ${imageStrip(input)}
-    <h3>Face Card</h3>
+    <h3>Final result — assembled (current system)</h3>
+    <div class="cards">${c.outcomes.map(assembledCard).join('')}</div>
+    <h3 class="raw-h">Raw Gemini output — the &ldquo;why&rdquo;</h3>
+    <h4>Face Card</h4>
     <div class="cards">${c.outcomes.map(faceCard).join('')}</div>
-    <h3>Outfit Card</h3>
+    <h4>Outfit Card</h4>
     <div class="cards">${c.outcomes.map(outfitCard).join('')}</div>
-    <h3>Banks</h3>
+    <h4>Banks</h4>
     ${banksTable(c.outcomes)}
     <div class="metas">${c.outcomes.map(metaFooter).join('')}</div>
   </section>`;
@@ -138,6 +196,24 @@ const STYLE = `
   .banks .k { font-weight: 700; }
   .metas { margin-top: 10px; display: flex; gap: 16px; flex-wrap: wrap; }
   .meta { color: #555; font-size: 12px; }
+  h4 { margin: 14px 0 6px; font-size: 13px; color: #71717a; text-transform: uppercase; letter-spacing: .05em; }
+  .raw-h { margin-top: 22px; color: #a1a1aa; font-size: 14px; border-top: 1px dashed #e4e4e7; padding-top: 14px; }
+  .card-col.assembled { background: #fff; border-color: #d4d4d8; }
+  .chip { display: inline-block; font-weight: 800; font-size: 12px; letter-spacing: .03em; padding: 3px 10px; border-radius: 999px; background: #f4f4f5; margin-bottom: 8px; }
+  .chip .g { font-weight: 600; color: #71717a; text-transform: capitalize; }
+  .chip.green_flag { background: #dcfce7; color: #166534; }
+  .chip.red_flag { background: #fee2e2; color: #991b1b; }
+  .ab-block { margin: 8px 0; padding-top: 6px; border-top: 1px solid #f0f0f0; }
+  .ab-h { font-weight: 800; font-size: 13px; margin-bottom: 2px; }
+  .ab-h b { color: #c026d3; }
+  .muted { color: #71717a; font-size: 12px; margin-bottom: 4px; }
+  .traits { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: #555; margin-top: 4px; }
+  .traits b { color: #111; }
+  .tags { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag { font-size: 11px; padding: 1px 8px; border-radius: 999px; }
+  .tag.good { background: #dcfce7; color: #166534; }
+  .tag.bad { background: #fee2e2; color: #991b1b; }
+  .punch { font-weight: 700; margin-top: 6px; }
 `;
 
 /** Render the full comparison report. `inputs` supplies the per-case images. */
