@@ -12,14 +12,7 @@
     "build": "npm run build --workspace @fitaura/web",
     "preview": "npm run preview --workspace @fitaura/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "lint": "npm run lint --workspaces --if-present",
-    "scan:compare": "tsx --tsconfig supabase/functions/solo-scan/eval/tsconfig.json supabase/functions/solo-scan/eval/compare.ts",
-    "scan:compare:serve": "tsx --tsconfig supabase/functions/solo-scan/eval/tsconfig.json supabase/functions/solo-scan/eval/server.ts",
-    "scan:compare:test": "vitest run -c supabase/functions/solo-scan/eval/vitest.config.ts"
-  },
-  "devDependencies": {
-    "tsx": "^4.19.2",
-    "vitest": "^4.1.8"
+    "lint": "npm run lint --workspaces --if-present"
   },
   "engines": {
     "node": ">=20"
