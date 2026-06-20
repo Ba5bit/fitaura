@@ -34,7 +34,10 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ ok: false, kind: 'error', message: 'method_not_allowed' }, 405);
 
   const apiKey = Deno.env.get('GEMINI_API_KEY');
-  const model = Deno.env.get('GEMINI_SOLO_SCAN_MODEL') ?? 'gemini-3.5-flash';
+  // 2.5-flash: proven 100% reliable + fast (~8s) on this app. 3.5-flash was too slow
+  // (27-47s → timeouts) and rate-limited to be production-reliable. Override via the
+  // GEMINI_SOLO_SCAN_MODEL secret if needed.
+  const model = Deno.env.get('GEMINI_SOLO_SCAN_MODEL') ?? 'gemini-2.5-flash';
   if (!apiKey) return json({ ok: false, kind: 'error', message: 'missing_api_key' }, 500);
   // Gemini 3.x uses thinking_level (not thinkingBudget) and is priced higher.
   const isGemini3 = model.startsWith('gemini-3');
