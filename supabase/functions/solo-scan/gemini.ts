@@ -151,11 +151,15 @@ export interface GeminiCallResult {
   usage: { input: number; output: number; total: number };
 }
 
-interface GeminiOpts {
+export interface GeminiOpts {
   apiKey: string;
   model: string;
   face?: InlineImage;
   outfit?: InlineImage;
+  /** Overrides generationConfig.thinkingConfig (default { thinkingBudget: 0 }). */
+  thinkingConfig?: Record<string, unknown>;
+  /** Overrides generationConfig.maxOutputTokens (default 2900). */
+  maxOutputTokens?: number;
 }
 
 /** Error carrying a `transient` flag so the caller's one-retry policy is type-safe. */
@@ -170,25 +174,25 @@ class GeminiError extends Error {
   }
 }
 
-function buildBody(face?: InlineImage, outfit?: InlineImage) {
+export function buildBody(opts: GeminiOpts) {
   const parts: Array<Record<string, unknown>> = [];
-  if (face) {
+  if (opts.face) {
     parts.push({ text: 'IMAGE: FACE PHOTO' });
-    parts.push({ inlineData: { mimeType: face.mimeType, data: face.data } });
+    parts.push({ inlineData: { mimeType: opts.face.mimeType, data: opts.face.data } });
   }
-  if (outfit) {
+  if (opts.outfit) {
     parts.push({ text: 'IMAGE: OUTFIT PHOTO' });
-    parts.push({ inlineData: { mimeType: outfit.mimeType, data: outfit.data } });
+    parts.push({ inlineData: { mimeType: opts.outfit.mimeType, data: opts.outfit.data } });
   }
   return {
     systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
     contents: [{ role: 'user', parts }],
     generationConfig: {
       temperature: 0.3,
-      maxOutputTokens: 2900,
+      maxOutputTokens: opts.maxOutputTokens ?? 2900,
       responseMimeType: 'application/json',
       responseSchema: RESPONSE_SCHEMA,
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: opts.thinkingConfig ?? { thinkingBudget: 0 },
     },
   };
 }
@@ -200,7 +204,7 @@ async function once(opts: GeminiOpts): Promise<GeminiCallResult> {
     res = await fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'x-goog-api-key': opts.apiKey },
-      body: JSON.stringify(buildBody(opts.face, opts.outfit)),
+      body: JSON.stringify(buildBody(opts)),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
   } catch (e) {
