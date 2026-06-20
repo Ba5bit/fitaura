@@ -31,13 +31,20 @@ per-model thinking parameter. No forked prompt to drift out of sync.
 
 ## Runtime & location
 
-- **Deno script** at `supabase/functions/solo-scan/compare.ts`. Placing it beside the
-  edge function means it inherits the existing `deno.json` import map
-  (`shared/` → `../../../packages/shared/src/`) and can `import './gemini.ts'` and
-  `import 'shared/solo-scan/schema.ts'` directly with no extra config.
-- **Run:** `deno run --allow-net --allow-read --allow-env supabase/functions/solo-scan/compare.ts`
-- **Prerequisite:** the `deno` CLI on PATH. If unavailable, fallback is a Node + `tsx`
-  variant with tsconfig path aliases (more setup); confirm at implementation time.
+Deno is not installed; the environment has **Node 24 + npm workspaces**. The harness
+runs under **Node via `tsx`**.
+
+- Harness lives under `supabase/functions/solo-scan/eval/` (entry `compare.ts`), beside
+  the edge function so it imports the production call path with `import '../gemini.ts'`.
+- `gemini.ts` uses only web-standard APIs (`fetch`, `AbortSignal.timeout`, `setTimeout`),
+  no `Deno.*`, so it runs unmodified under Node 24.
+- The `shared/...` bare specifier (which only `deno.json` knows) is resolved for Node by
+  a tsconfig `paths` alias: `"shared/*": ["<repo>/packages/shared/src/*"]`, in a dedicated
+  `eval/tsconfig.json`. `zod` resolves from the workspace `node_modules`. `tsx`/esbuild
+  resolves the `.ts` import extensions at runtime (no `tsc` step).
+- **New dev dependency:** add `tsx` (root devDependency). Provide an npm script, e.g.
+  `"scan:compare": "tsx --tsconfig supabase/functions/solo-scan/eval/tsconfig.json supabase/functions/solo-scan/eval/compare.ts"`.
+- **Run:** `GEMINI_API_KEY=... GEMINI_API_KEY_35=... npm run scan:compare`
 
 ## Inputs (test cases)
 
