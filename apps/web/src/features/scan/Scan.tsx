@@ -239,7 +239,10 @@ export function Scan() {
   // fixed teaser to 100 (nothing to sync to until they sign up at the reveal).
   useEffect(() => {
     if (!canScanPhotos) return;
-    const TAU = 2200; // ease time-constant (ms) while analyzing — slows near the cap
+    // Ease time-constant (ms). Tuned to gemini-3.5's ~20-25s real latency so the bar
+    // keeps creeping the whole time instead of hitting the cap early and holding (which
+    // reads as "stuck"). At 25s it sits ~89%, then sprints to 100 when the AI settles.
+    const TAU = 7000;
     const CAP = 92; // soft ceiling held until the AI settles
     const FLOOR = reduced ? 1100 : 1600; // min elapsed before we let it complete
     const SPRINT = reduced ? 220 : 600; // ms to run current → 100 once settled
