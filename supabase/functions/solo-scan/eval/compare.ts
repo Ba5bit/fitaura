@@ -5,6 +5,10 @@ import { callGemini } from '../gemini.ts';
 import { soloScanSchema } from 'shared/solo-scan/schema.ts';
 import { assembleResult } from 'shared/solo-scan/assemble.ts';
 import { SOLO_SCAN_PROMPT_VERSION } from 'shared/solo-scan/constants.ts';
+import { soloScanV4Schema, type SoloScanV4Output } from 'shared/solo-scan/v4/schema.ts';
+import { V4_SYSTEM_INSTRUCTION, V4_RESPONSE_SCHEMA } from 'shared/solo-scan/v4/prompt.ts';
+import { shapeV4Result } from 'shared/solo-scan/v4/shape.ts';
+import type { SoloScanAIOutput } from 'shared/solo-scan/schema.ts';
 import { MODELS, resolveKey, estimateCost } from './models.ts';
 import { discoverCases } from './cases.ts';
 import { renderReport, summarizeCost } from './report.ts';
@@ -13,9 +17,12 @@ import type { CaseResult, ModelConfig, ModelOutcome, RunResult, ScanInput } from
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-/** Run one model against one case input, capturing timing, schema validity, cost. */
+/** Run one target (model + contract) against one case input. */
 export async function runModel(cfg: ModelConfig, input: ScanInput, apiKey: string): Promise<ModelOutcome> {
   const started = Date.now();
+  const isV4 = cfg.contract === 'v4';
+  const parts = { face: !!input.face, outfit: !!input.outfit };
+  const base = { modelId: cfg.id, label: cfg.label, contract: cfg.contract };
   try {
     const { raw, usage } = await callGemini({
       apiKey,
@@ -24,24 +31,26 @@ export async function runModel(cfg: ModelConfig, input: ScanInput, apiKey: strin
       outfit: input.outfit,
       thinkingConfig: cfg.thinkingConfig,
       maxOutputTokens: cfg.maxOutputTokens,
+      systemInstruction: isV4 ? V4_SYSTEM_INSTRUCTION : undefined,
+      responseSchema: isV4 ? V4_RESPONSE_SCHEMA : undefined,
     });
     const latencyMs = Date.now() - started;
-    const parsed = soloScanSchema.safeParse(raw);
-    // Run the real production assembly on valid output. Seed it with the case
-    // name (same for both models) so any difference in the final result comes from
-    // the model, not seed noise. parts = which images this case actually has.
+    // Validate with the matching contract's schema, then shape with the matching
+    // pipeline. Both shapers seed off the case name → fair, seed-stable compare.
+    const parsed = isV4 ? soloScanV4Schema.safeParse(raw) : soloScanSchema.safeParse(raw);
     let assembled = null as ModelOutcome['assembled'];
     let assembleError: string | undefined;
     if (parsed.success) {
-      const parts = { face: !!input.face, outfit: !!input.outfit };
       try {
-        assembled = assembleResult(parsed.data, input.name, SOLO_SCAN_PROMPT_VERSION, parts);
+        assembled = isV4
+          ? shapeV4Result(parsed.data as SoloScanV4Output, input.name, parts)
+          : assembleResult(parsed.data as SoloScanAIOutput, input.name, SOLO_SCAN_PROMPT_VERSION, parts);
       } catch (e) {
         assembleError = e instanceof Error ? e.message : String(e);
       }
     }
     return {
-      modelId: cfg.id,
+      ...base,
       ok: true,
       raw,
       parsed: parsed.success ? parsed.data : null,
@@ -55,7 +64,7 @@ export async function runModel(cfg: ModelConfig, input: ScanInput, apiKey: strin
     };
   } catch (e) {
     return {
-      modelId: cfg.id,
+      ...base,
       ok: false,
       raw: null,
       parsed: null,
@@ -94,14 +103,14 @@ export async function runCompare(opts: RunCompareOpts): Promise<{ dir: string; r
       const apiKey = resolveKey(cfg, opts.env)!;
       const outcome = await runModel(cfg, input, apiKey);
       console.log(
-        `· ${input.name} → ${cfg.id} : ${outcome.ok ? `${outcome.latencyMs}ms ${outcome.schemaValid ? 'valid' : 'INVALID'}` : `FAILED ${outcome.error}`}`,
+        `· ${input.name} → ${cfg.label} : ${outcome.ok ? `${outcome.latencyMs}ms ${outcome.schemaValid ? 'valid' : 'INVALID'}` : `FAILED ${outcome.error}`}`,
       );
       outcomes.push(outcome);
     }
     cases.push({ name: input.name, hasFace: !!input.face, hasOutfit: !!input.outfit, outcomes });
   }
 
-  const run: RunResult = { startedAt: new Date().toISOString(), models: MODELS.map((m) => m.id), cases };
+  const run: RunResult = { startedAt: new Date().toISOString(), models: MODELS.map((m) => m.label), cases };
   const dir = join(opts.outDir, run.startedAt.replace(/[:.]/g, '-'));
   mkdirSync(dir, { recursive: true });
   writeFileSync(join(dir, 'results.json'), JSON.stringify(run, null, 2));

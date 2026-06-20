@@ -1,9 +1,14 @@
 import type { SoloScanAIOutput } from 'shared/solo-scan/schema.ts';
+import type { SoloScanV4Output } from 'shared/solo-scan/v4/schema.ts';
 import type { FullGenerationResult, ScoreItem } from 'shared/result.ts';
 import type { CaseResult, InlineImage, ModelOutcome, RunResult, ScanInput } from './types.ts';
 
 const esc = (s: unknown): string =>
   String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
+
+/** Unique column key (model + contract differ, so prefer the label). */
+const keyOf = (o: ModelOutcome): string => o.label ?? o.modelId;
+const isV4 = (o: ModelOutcome): boolean => (o.contract ?? 'v3_5') === 'v4';
 
 type Analysis = Record<string, { rating: number | null; confidence: number; evidence: string }>;
 
@@ -18,7 +23,7 @@ function scoreGrid(analysis: Analysis): string {
 }
 
 function colHead(o: ModelOutcome): string {
-  return `<div class="model">${esc(o.modelId)}</div>`;
+  return `<div class="model">${esc(keyOf(o))}</div>`;
 }
 
 /** Rows of a ScoreItem[] (uses displayValue when present, e.g. "27 y.o."). */
@@ -75,9 +80,46 @@ function assembledCard(o: ModelOutcome): string {
   </div>`;
 }
 
+/** Raw v4 face fields (the lines the model wrote, before shaping). */
+function faceCardV4(o: ModelOutcome): string {
+  const p = o.parsed as SoloScanV4Output;
+  const h = p.face.headline;
+  const pr = p.presentation;
+  return `<div class="card-col">${colHead(o)}
+    <div class="title">${esc(h.lead)} <b>${esc(h.punch)}</b></div>
+    <div class="row"><span>strongest</span>${esc(p.face.strongest)}</div>
+    <div class="row"><span>roast</span>${esc(p.face.roast)}</div>
+    <div class="row"><span>summary</span>${esc(p.face.summary)}</div>
+    <div class="row"><span>sticker</span>${esc(p.face.stickerId)}</div>
+    <div class="present">verdict <b>${esc(p.verdict)}</b> · gender ${esc(pr.gender)} (${esc(pr.genderConfidence)}) · age ${esc(pr.ageEstimate ?? '—')} · icon ${esc(pr.recognizedIcon ?? '—')}</div>
+    ${scoreGrid(p.faceAnalysis as Analysis)}
+  </div>`;
+}
+
+function outfitCardV4(o: ModelOutcome): string {
+  const p = o.parsed as SoloScanV4Output;
+  const n = p.outfit.nameplate;
+  const dossier = n.dossier.map((d) => `<li><b>${esc(d.label)}</b> ${esc(d.value)}</li>`).join('');
+  return `<div class="card-col">${colHead(o)}
+    <div class="nameplate" style="border-color:${esc(n.accentHex)}">
+      <div class="eyebrow">${esc(n.eyebrow)}</div>
+      <div class="name">${esc(n.name)} <span class="swatch" style="background:${esc(n.accentHex)}"></span></div>
+      <div class="tagline">${esc(n.tagline)} · <i>${esc(n.lane)}</i></div>
+      <ul class="dossier">${dossier}</ul>
+    </div>
+    <div class="row"><span>caption</span>${esc(p.outfit.caption)}</div>
+    <div class="row"><span>works</span>${esc(p.outfit.works)}</div>
+    <div class="row"><span>hurts</span>${esc(p.outfit.hurts)}</div>
+    <div class="row"><span>verdict</span>${esc(p.outfit.verdict)}</div>
+    <div class="row"><span>sticker</span>${esc(p.outfit.stickerId)}</div>
+    ${scoreGrid(p.outfitAnalysis as Analysis)}
+  </div>`;
+}
+
 function faceCard(o: ModelOutcome): string {
   if (!o.parsed) return `<div class="card-col empty">${colHead(o)}${esc(o.error ?? 'schema invalid')}</div>`;
-  const p = o.parsed;
+  if (isV4(o)) return faceCardV4(o);
+  const p = o.parsed as SoloScanAIOutput;
   const v = p.faceCopy.verdictLine;
   const pr = p.presentation;
   return `<div class="card-col">${colHead(o)}
@@ -92,7 +134,8 @@ function faceCard(o: ModelOutcome): string {
 
 function outfitCard(o: ModelOutcome): string {
   if (!o.parsed) return `<div class="card-col empty">${colHead(o)}${esc(o.error ?? 'schema invalid')}</div>`;
-  const p = o.parsed;
+  if (isV4(o)) return outfitCardV4(o);
+  const p = o.parsed as SoloScanAIOutput;
   const n = p.outfitNameplate;
   const dossier = n.dossier.map((d) => `<li><b>${esc(d.label)}</b> ${esc(d.value)}</li>`).join('');
   return `<div class="card-col">${colHead(o)}
@@ -120,13 +163,13 @@ function banksTable(outcomes: ModelOutcome[]): string {
     ['punchlineCandidates', (p) => p.receiptContent.punchlineCandidates],
     ['punchlineText', (p) => p.receiptContent.punchlineText],
   ];
-  const head = `<tr><th>bank</th>${outcomes.map((o) => `<th>${esc(o.modelId)}</th>`).join('')}</tr>`;
+  const head = `<tr><th>bank</th>${outcomes.map((o) => `<th>${esc(keyOf(o))}</th>`).join('')}</tr>`;
   const rows = fields
     .map(([label, get]) => {
       const cells = outcomes
         .map((o) => {
-          if (!o.parsed) return '<td>—</td>';
-          const val = get(o.parsed);
+          if (!o.parsed || isV4(o)) return '<td>—</td>'; // v4 has no banks (model writes lines)
+          const val = get(o.parsed as SoloScanAIOutput);
           return `<td>${Array.isArray(val) ? val.map(esc).join('<br>') : esc(val)}</td>`;
         })
         .join('');
@@ -139,7 +182,7 @@ function banksTable(outcomes: ModelOutcome[]): string {
 function metaFooter(o: ModelOutcome): string {
   const mark = o.schemaValid ? '✓' : '✗';
   const err = o.error ? ` · ${esc(o.error)}` : '';
-  return `<span class="meta">${esc(o.modelId)} · schema ${mark} · ${o.latencyMs}ms · ${o.usage.total} tok · $${o.costUsd}${err}</span>`;
+  return `<span class="meta">${esc(keyOf(o))} · schema ${mark} · ${o.latencyMs}ms · ${o.usage.total} tok · $${o.costUsd}${err}</span>`;
 }
 
 function imageStrip(input?: ScanInput): string {
@@ -232,7 +275,7 @@ export function summarizeCost(run: RunResult): ModelTotals[] {
     let costUsd = 0;
     let generations = 0;
     for (const c of run.cases) {
-      const o = c.outcomes.find((x) => x.modelId === modelId);
+      const o = c.outcomes.find((x) => (x.label ?? x.modelId) === modelId);
       if (o) {
         tokens += o.usage.total;
         costUsd += o.costUsd;

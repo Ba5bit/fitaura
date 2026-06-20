@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { sampleAIOutput } from './fixtures.ts';
+import { sampleAIOutput, sampleV4Output } from './fixtures.ts';
 
 const { callGemini } = vi.hoisted(() => ({ callGemini: vi.fn() }));
 vi.mock('../gemini.ts', () => ({ callGemini }));
@@ -12,18 +12,23 @@ import { loadEnvFile } from './env.ts';
 
 beforeEach(() => {
   callGemini.mockReset();
-  callGemini.mockResolvedValue({ raw: sampleAIOutput(), usage: { input: 1000, output: 500, total: 1500 } });
+  callGemini.mockImplementation((opts: { systemInstruction?: string }) =>
+    Promise.resolve({
+      raw: opts?.systemInstruction != null ? sampleV4Output() : sampleAIOutput(),
+      usage: { input: 1000, output: 500, total: 1500 },
+    }),
+  );
 });
 
 describe('handleCompare', () => {
-  it('runs every model on the uploaded image and returns report HTML', async () => {
+  it('runs every target on the uploaded image and returns report HTML', async () => {
     const html = await handleCompare(
       { name: 'web', face: { mimeType: 'image/jpeg', data: 'AAAA' } },
       { GEMINI_API_KEY: 'k' },
     );
     expect(callGemini).toHaveBeenCalledTimes(2);
-    expect(html).toContain('gemini-2.5-flash');
-    expect(html).toContain('gemini-3.5-flash');
+    expect(html).toContain('3.5 · current (v3.5)');
+    expect(html).toContain('3.5 · rebuild (v4)');
     expect(html).toContain('DENIM ARMORY');
   });
 

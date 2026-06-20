@@ -1,6 +1,26 @@
 import type { SoloScanAIOutput } from 'shared/solo-scan/schema.ts';
+import { FACE_KEYS, OUTFIT_KEYS } from 'shared/solo-scan/schema.ts';
+import type { SoloScanV4Output } from 'shared/solo-scan/v4/schema.ts';
 
-/** A fully schema-valid Gemini output for tests. Pass overrides to vary fields. */
+/** A fully schema-valid v4 (AI-owns-result) output for tests. */
+export function sampleV4Output(over: Partial<SoloScanV4Output> = {}): SoloScanV4Output {
+  const rr = (rating: number) => ({ rating, confidence: 1, evidence: 'ok' });
+  const analysis = (keys: readonly string[]) => Object.fromEntries(keys.map((k) => [k, rr(70)]));
+  return {
+    schemaVersion: 'solo_scan_v4',
+    inputQuality: { usable: true, faceUsable: true, outfitUsable: true, samePersonLikely: null, issues: [], retakeInstruction: null },
+    presentation: { gender: 'masc', genderConfidence: 0.9, expressionStrength: 55, ageEstimate: 27, recognizedIcon: null, recognizedConfidence: 0, recognizedKind: null },
+    verdict: 'green_flag',
+    faceAnalysis: analysis(FACE_KEYS) as SoloScanV4Output['faceAnalysis'],
+    outfitAnalysis: analysis(OUTFIT_KEYS) as SoloScanV4Output['outfitAnalysis'],
+    face: { headline: { lead: 'JAW DID', punch: 'THE TALKING' }, stickerId: 'main-character', strongest: 'jaw loaded', roast: 'eyes asleep', summary: 'boss energy' },
+    outfit: { caption: 'QUIET LUXURY LOUD EGO', stickerId: 'rizz', nameplate: { name: 'DENIM ARMORY', eyebrow: 'streetwear', tagline: 'controlled chaos', lane: 'Streetwear', accentHex: '#3344ff', dossier: [{ label: 'Signature', value: 'Trucker jacket' }] }, works: 'tonal armor', hurts: 'shoes betrayed you', verdict: 'eats, no crumbs' },
+    receipt: { punchline: 'BUILT DIFFERENT', summary: 'mid boss energy' },
+    ...over,
+  };
+}
+
+/** A fully schema-valid v3.5 Gemini output for tests. Pass overrides to vary fields. */
 export function sampleAIOutput(over: Partial<SoloScanAIOutput> = {}): SoloScanAIOutput {
   const r = (rating: number, evidence: string) => ({ rating, confidence: 1, evidence });
   return {

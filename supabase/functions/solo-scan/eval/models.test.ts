@@ -28,9 +28,10 @@ describe('estimateCost', () => {
 });
 
 describe('MODELS', () => {
-  it('compares 2.5 and 3.5 flash with distinct key env vars', () => {
-    expect(MODELS.map((m) => m.id)).toEqual(['gemini-2.5-flash', 'gemini-3.5-flash']);
-    expect(MODELS[0].keyEnv).toBe('GEMINI_API_KEY');
-    expect(MODELS[1].keyEnv).toBe('GEMINI_API_KEY_35');
+  it('compares the v3.5 and v4 contracts on gemini-3.5-flash', () => {
+    expect(MODELS.map((m) => m.contract)).toEqual(['v3_5', 'v4']);
+    expect(MODELS.every((m) => m.id === 'gemini-3.5-flash')).toBe(true);
+    expect(MODELS.map((m) => m.label)).toEqual(['3.5 · current (v3.5)', '3.5 · rebuild (v4)']);
+    expect(MODELS.every((m) => m.keyEnv === 'GEMINI_API_KEY_35')).toBe(true);
   });
 });

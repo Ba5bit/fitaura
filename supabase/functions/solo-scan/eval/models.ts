@@ -1,26 +1,20 @@
 import type { ModelConfig } from './types.ts';
 
+// 3.5-flash pricing (Google pricing page, verified 2026-06-20): $1.50/1M in, $9.00/1M out.
+// Same model on both targets isolates the v3.5→v4 generation change.
+const FLASH_35 = {
+  id: 'gemini-3.5-flash',
+  keyEnv: 'GEMINI_API_KEY_35',
+  // Gemini 3.x uses thinking_level (minimal|low|medium|high), not thinkingBudget.
+  thinkingConfig: { thinkingLevel: 'low' },
+  maxOutputTokens: 4096,
+  priceIn: 1.5,
+  priceOut: 9.0,
+} as const;
+
 export const MODELS: ModelConfig[] = [
-  {
-    id: 'gemini-2.5-flash',
-    keyEnv: 'GEMINI_API_KEY',
-    thinkingConfig: { thinkingBudget: 0 },
-    priceIn: 0.3,
-    priceOut: 2.5,
-  },
-  {
-    id: 'gemini-3.5-flash',
-    keyEnv: 'GEMINI_API_KEY_35',
-    // Gemini 3.x replaces thinkingBudget with thinking_level (minimal|low|medium|high).
-    // If the API 400s on this value, adjust per the model's current docs.
-    thinkingConfig: { thinkingLevel: 'low' },
-    // Thinking can consume output budget; give 3.5 a little more headroom than 2.5's 2900.
-    maxOutputTokens: 4096,
-    // Standard paid-tier pricing per Google's pricing page (verified 2026-06-20):
-    // $1.50 / 1M input, $9.00 / 1M output (output incl. thinking tokens).
-    priceIn: 1.5,
-    priceOut: 9.0,
-  },
+  { ...FLASH_35, label: '3.5 · current (v3.5)', contract: 'v3_5' },
+  { ...FLASH_35, label: '3.5 · rebuild (v4)', contract: 'v4' },
 ];
 
 /** Resolve a model's API key: its own env var first, then GEMINI_API_KEY fallback. */

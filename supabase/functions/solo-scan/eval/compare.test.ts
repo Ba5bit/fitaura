@@ -2,21 +2,21 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { sampleAIOutput } from './fixtures.ts';
+import { sampleAIOutput, sampleV4Output } from './fixtures.ts';
 
 const { callGemini } = vi.hoisted(() => ({ callGemini: vi.fn() }));
 vi.mock('../gemini.ts', () => ({ callGemini }));
 
 import { runCompare } from './compare.ts';
 
+const usage = { input: 1000, output: 500, total: 1500 };
+
 beforeEach(() => {
   callGemini.mockReset();
-  callGemini.mockImplementation(({ model }: { model: string }) => {
-    if (model === 'gemini-3.5-flash') {
-      return Promise.reject(new Error('gemini_http_400'));
-    }
-    return Promise.resolve({ raw: sampleAIOutput(), usage: { input: 1000, output: 500, total: 1500 } });
-  });
+  // The v4 target sends a systemInstruction override; return the matching shape.
+  callGemini.mockImplementation((opts: { systemInstruction?: string }) =>
+    Promise.resolve({ raw: opts?.systemInstruction != null ? sampleV4Output() : sampleAIOutput(), usage }),
+  );
 });
 
 function makeCases(): string {
@@ -26,41 +26,49 @@ function makeCases(): string {
   return root;
 }
 
+const KEYS = { GEMINI_API_KEY_35: 'k35', GEMINI_API_KEY: 'k' };
+
 describe('runCompare', () => {
-  it('calls every model per case and writes report.html + results.json', async () => {
+  it('runs both contracts per case and writes report.html + results.json', async () => {
     const casesDir = makeCases();
     const outDir = mkdtempSync(join(tmpdir(), 'out-'));
-    const env = { GEMINI_API_KEY: 'k', GEMINI_API_KEY_35: 'k35' };
 
-    const { dir, run } = await runCompare({ casesDir, outDir, env });
+    const { dir, run } = await runCompare({ casesDir, outDir, env: KEYS });
 
-    // both models attempted for the one case
     expect(callGemini).toHaveBeenCalledTimes(2);
     expect(run.cases).toHaveLength(1);
-    expect(run.cases[0].outcomes.map((o) => o.modelId)).toEqual(['gemini-2.5-flash', 'gemini-3.5-flash']);
-    expect(run.cases[0].outcomes[0].schemaValid).toBe(true);
-    expect(run.cases[0].outcomes[1].ok).toBe(false);
-    expect(run.cases[0].outcomes[1].error).toBe('gemini_http_400');
+    expect(run.cases[0].outcomes.map((o) => o.label)).toEqual(['3.5 · current (v3.5)', '3.5 · rebuild (v4)']);
+    expect(run.cases[0].outcomes.every((o) => o.schemaValid)).toBe(true);
 
-    // files exist
     expect(existsSync(join(dir, 'report.html'))).toBe(true);
     expect(existsSync(join(dir, 'results.json'))).toBe(true);
-    const html = readFileSync(join(dir, 'report.html'), 'utf8');
-    expect(html).toContain('DENIM ARMORY'); // valid column rendered
-    expect(html).toContain('gemini_http_400'); // failed column surfaced
+    expect(readFileSync(join(dir, 'report.html'), 'utf8')).toContain('DENIM ARMORY');
   });
 
-  it('throws when a model has no resolvable key', async () => {
-    const casesDir = makeCases();
-    const outDir = mkdtempSync(join(tmpdir(), 'out-'));
-    await expect(runCompare({ casesDir, outDir, env: {} })).rejects.toThrow(/API key/);
+  it('captures a per-target failure without sinking the other', async () => {
+    callGemini.mockImplementation((opts: { systemInstruction?: string }) =>
+      opts?.systemInstruction != null
+        ? Promise.reject(new Error('gemini_http_400'))
+        : Promise.resolve({ raw: sampleAIOutput(), usage }),
+    );
+    const { run } = await runCompare({ casesDir: makeCases(), outDir: mkdtempSync(join(tmpdir(), 'out-')), env: KEYS });
+
+    const v4 = run.cases[0].outcomes.find((o) => o.contract === 'v4');
+    const v35 = run.cases[0].outcomes.find((o) => o.contract === 'v3_5');
+    expect(v4?.ok).toBe(false);
+    expect(v4?.error).toBe('gemini_http_400');
+    expect(v35?.schemaValid).toBe(true);
+  });
+
+  it('throws when a target has no resolvable key', async () => {
+    await expect(
+      runCompare({ casesDir: makeCases(), outDir: mkdtempSync(join(tmpdir(), 'out-')), env: {} }),
+    ).rejects.toThrow(/API key/);
   });
 
   it('throws when there are no cases', async () => {
-    const outDir = mkdtempSync(join(tmpdir(), 'out-'));
-    const emptyCases = mkdtempSync(join(tmpdir(), 'empty-'));
     await expect(
-      runCompare({ casesDir: emptyCases, outDir, env: { GEMINI_API_KEY: 'k', GEMINI_API_KEY_35: 'k' } }),
+      runCompare({ casesDir: mkdtempSync(join(tmpdir(), 'empty-')), outDir: mkdtempSync(join(tmpdir(), 'out-')), env: KEYS }),
     ).rejects.toThrow(/No cases/);
   });
 });

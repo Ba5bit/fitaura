@@ -160,6 +160,10 @@ export interface GeminiOpts {
   thinkingConfig?: Record<string, unknown>;
   /** Overrides generationConfig.maxOutputTokens (default 2900). */
   maxOutputTokens?: number;
+  /** Overrides the system instruction (default the production v3.5 prompt). */
+  systemInstruction?: string;
+  /** Overrides the structured-output responseSchema (default the v3.5 schema). */
+  responseSchema?: Record<string, unknown>;
 }
 
 /** Error carrying a `transient` flag so the caller's one-retry policy is type-safe. */
@@ -185,13 +189,13 @@ export function buildBody(opts: GeminiOpts) {
     parts.push({ inlineData: { mimeType: opts.outfit.mimeType, data: opts.outfit.data } });
   }
   return {
-    systemInstruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+    systemInstruction: { parts: [{ text: opts.systemInstruction ?? SYSTEM_INSTRUCTION }] },
     contents: [{ role: 'user', parts }],
     generationConfig: {
       temperature: 0.3,
       maxOutputTokens: opts.maxOutputTokens ?? 2900,
       responseMimeType: 'application/json',
-      responseSchema: RESPONSE_SCHEMA,
+      responseSchema: opts.responseSchema ?? RESPONSE_SCHEMA,
       thinkingConfig: opts.thinkingConfig ?? { thinkingBudget: 0 },
     },
   };
