@@ -21,3 +21,8 @@ coverage/
 # Supabase CLI local state (machine-specific; not for version control)
 supabase/.temp/
 supabase/.branches/
+
+# Solo Scan model-comparison harness (local test photos + run output)
+supabase/functions/solo-scan/eval/cases/*
+!supabase/functions/solo-scan/eval/cases/.gitkeep
+supabase/functions/solo-scan/eval/out/
