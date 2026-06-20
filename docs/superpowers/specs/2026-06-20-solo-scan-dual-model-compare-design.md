@@ -90,18 +90,28 @@ only edit to shipping code; everything else is new files.
 
 ## Output (the side-by-side)
 
-Each run writes to `eval/out/<timestamp>/`:
+Each run writes to `eval/out/<timestamp>/`. The report is organized **by card**, with
+the two models side-by-side (`gemini-2.5-flash` | `gemini-3.5-flash`), built from raw
+Gemini fields (these are card-shaped HTML panels, NOT the production React card
+components and NOT `assembleResult`).
 
 - **`report.html`** — one section per case:
-  - The input image(s) rendered at the top of the section.
-  - A **2-column table** (`gemini-2.5-flash` | `gemini-3.5-flash`) with rows for:
-    - copy fields: `faceCopy` (strongestPoint, improvement, summary, verdictLine),
-      `outfitCopy` (works, hurts, verdict, captionLine), `outfitNameplate`
-      (name, eyebrow, tagline, lane, accentHex, dossier)
-    - category scores: `faceAnalysis` + `outfitAnalysis` ratings
+  - Input image(s) rendered at the top of the section.
+  - **Face Card** — a 2-column panel (2.5 | 3.5):
+    - `faceCopy.verdictLine` (lead / punch) as the title, then `strongestPoint`,
+      `improvement`, `summary`
+    - `faceAnalysis` category scores (the 7 face ratings)
     - `presentation`: gender / genderConfidence / ageEstimate / recognizedIcon / kind
-    - meta footer: ✓/✗ schema valid, latency, tokens, estimated cost
-  - Open in a browser; compare the columns directly.
+  - **Outfit Card** — a 2-column panel (2.5 | 3.5):
+    - `outfitCopy` (works / hurts / verdict / captionLine)
+    - `outfitNameplate` (name / eyebrow / tagline / lane / `accentHex` shown as a colour
+      swatch / dossier rows)
+    - `outfitAnalysis` category scores (the 9 outfit ratings)
+  - **Banks table** — a 2-column table comparing the candidate banks each model returned,
+    so you can see which IDs each picked: `faceArchetypeCandidates`,
+    `outfitCaptionCandidates`, `stickerCandidates`, `contentTags`, `metricCandidates`,
+    `punchlineCandidates`, and `punchlineText`.
+  - **Meta footer** per model: ✓/✗ schema valid, latency, tokens, estimated cost.
 - **`results.json`** — the full raw capture (both models, all cases) for diffing or
   later scripting.
 
