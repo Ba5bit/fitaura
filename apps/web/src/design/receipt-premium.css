@@ -29,6 +29,11 @@
 .rcp-passtag {
   font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: .2em; color: var(--ink-dim); text-transform: uppercase;
   padding: 4px 9px; border: 1px solid var(--hair); border-radius: 999px;
+  /* Keep "VERIFIED PASS" on one line: as a `space-between` flex child it can be
+     shrunk below its content width, and snapdom's scale-3 raster rounds the
+     content box down a fraction of a px — both make the label wrap in the
+     exported PNG (fine on-screen / iPhone). nowrap + flex:none prevent it. */
+  white-space: nowrap; flex: none;
 }
 
 .rcp-holo { position: relative; margin: 18px 0 2px; height: 28px; border-radius: 8px; overflow: hidden; border: 1px solid var(--hair-soft); }

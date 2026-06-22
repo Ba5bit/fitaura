@@ -171,6 +171,14 @@ body::before{
   background:linear-gradient(170deg, rgba(255,255,255,0.10), transparent 30%);
   mix-blend-mode:screen;
 }
+/* Export-only: full-bleed capture squares the card, but the `.asset::after`
+   sheen pseudo keeps its 26px radius (unreachable via inline style) and its
+   rounded corners leave dark wedges at the squared top corners. exportCard.ts
+   adds this class to the offscreen capture target during snapdom rasterization
+   and removes it immediately after, so on-screen cards stay rounded. */
+.asset.is-squared-export,
+.asset.is-squared-export::before,
+.asset.is-squared-export::after{ border-radius:0 !important; }
 .brand-tag{ font-family:"Hanken Grotesk"; font-weight:800; letter-spacing:0.34em; font-size:11px; text-transform:uppercase; }
 .kind-tag{ font-family:"Space Mono",monospace; font-size:10px; letter-spacing:0.2em; color:var(--ink-faint); text-transform:uppercase; }
 

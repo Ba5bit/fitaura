@@ -133,7 +133,16 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
     node.style.setProperty(prop, value, 'important');
   };
 
-  if (assetEl) force(assetEl, 'border-radius', '0');
+  if (assetEl) {
+    force(assetEl, 'border-radius', '0');
+    // An inline `border-radius` can't reach the `.asset::after` top-sheen
+    // pseudo-element, whose own 26px radius leaves dark rounded wedges in the
+    // squared top corners (the "circled corner" artifact on full-bleed exports).
+    // This reversible class squares the element AND its pseudo-elements for the
+    // capture; it's removed in the `finally` via `restore`.
+    assetEl.classList.add('is-squared-export');
+    restore.push(() => assetEl.classList.remove('is-squared-export'));
+  }
   if (isNarrowReceipt && assetEl) {
     const targetW = `${Math.round(el.offsetHeight * frameAr)}px`; // 640 → 360
     force(el, 'width', targetW);
