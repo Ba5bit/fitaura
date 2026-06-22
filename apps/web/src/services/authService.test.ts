@@ -1,28 +1,39 @@
+// @vitest-environment jsdom
+// (jsdom provides window.location.origin, which authSignInWithGoogle derives its
+// OAuth redirectTo from.)
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { signUp, signInWithPassword, signOut, resend, resetPasswordForEmail, verifyOtp, updateUser } =
-  vi.hoisted(() => ({
+const {
+  signUp, signInWithPassword, signInWithOAuth, signOut, resend, resetPasswordForEmail, verifyOtp, updateUser, rpc,
+} = vi.hoisted(() => ({
     signUp: vi.fn(),
     signInWithPassword: vi.fn(),
+    signInWithOAuth: vi.fn(),
     signOut: vi.fn(),
     resend: vi.fn(),
     resetPasswordForEmail: vi.fn(),
     verifyOtp: vi.fn(),
     updateUser: vi.fn(),
+    rpc: vi.fn(),
   }));
 
 vi.mock('../lib/supabase', () => ({
   supabase: {
-    auth: { signUp, signInWithPassword, signOut, resend, resetPasswordForEmail, verifyOtp, updateUser },
+    auth: {
+      signUp, signInWithPassword, signInWithOAuth, signOut, resend, resetPasswordForEmail, verifyOtp, updateUser,
+    },
+    rpc,
   },
 }));
 
 import {
-  authSignUp, authSignIn, authSignOut, authResend, authResetPassword, authVerifyOtp, authUpdatePassword,
+  authSignUp, authSignIn, authSignInWithGoogle, authSignOut, authResend, authResetPassword, authVerifyOtp,
+  authUpdatePassword, authDeleteAccount,
 } from './authService';
 
 beforeEach(() => {
-  [signUp, signInWithPassword, signOut, resend, resetPasswordForEmail, verifyOtp, updateUser].forEach((m) => m.mockReset());
+  [signUp, signInWithPassword, signInWithOAuth, signOut, resend, resetPasswordForEmail, verifyOtp, updateUser, rpc]
+    .forEach((m) => m.mockReset());
 });
 
 describe('authSignUp', () => {
@@ -70,6 +81,27 @@ describe('authSignIn', () => {
   });
 });
 
+describe('authSignInWithGoogle', () => {
+  it('starts the Google OAuth redirect with an origin-derived callback and account picker', async () => {
+    signInWithOAuth.mockResolvedValue({ data: { provider: 'google', url: 'https://accounts.google…' }, error: null });
+    const res = await authSignInWithGoogle();
+    expect(res).toEqual({ ok: true });
+    expect(signInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { prompt: 'select_account' },
+      },
+    });
+  });
+
+  it('returns a friendly error when the OAuth handshake cannot start', async () => {
+    signInWithOAuth.mockResolvedValue({ data: { provider: 'google', url: null }, error: { message: 'rate limit exceeded' } });
+    const res = await authSignInWithGoogle();
+    expect(res).toEqual({ ok: false, error: 'Too many attempts — wait a minute and try again.' });
+  });
+});
+
 describe('authResend / authResetPassword / authVerifyOtp / authUpdatePassword', () => {
   it('authResend resends the signup confirmation', async () => {
     resend.mockResolvedValue({ error: null });
@@ -114,5 +146,30 @@ describe('authSignOut', () => {
     signOut.mockResolvedValue({ error: null });
     await authSignOut();
     expect(signOut).toHaveBeenCalledOnce();
+  });
+});
+
+describe('authDeleteAccount', () => {
+  it('calls the delete_own_account RPC then signs out on success', async () => {
+    rpc.mockResolvedValue({ error: null });
+    signOut.mockResolvedValue({ error: null });
+    const res = await authDeleteAccount();
+    expect(res).toEqual({ ok: true });
+    expect(rpc).toHaveBeenCalledWith('delete_own_account');
+    expect(signOut).toHaveBeenCalledOnce();
+  });
+
+  it('maps an RPC error to a friendly message and does NOT sign out', async () => {
+    rpc.mockResolvedValue({ error: { message: 'Not authenticated' } });
+    const res = await authDeleteAccount();
+    expect(res).toEqual({ ok: false, error: 'Something went wrong. Please try again.' });
+    expect(signOut).not.toHaveBeenCalled();
+  });
+
+  it('still resolves ok when the best-effort sign-out fails', async () => {
+    rpc.mockResolvedValue({ error: null });
+    signOut.mockRejectedValue(new Error('network'));
+    const res = await authDeleteAccount();
+    expect(res).toEqual({ ok: true });
   });
 });

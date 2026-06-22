@@ -50,8 +50,46 @@ export async function authSignIn(email: string, password: string): Promise<SignI
   return { ok: true, user: { id: data.user.id, email: data.user.email ?? email } };
 }
 
+/** Begin the "Continue with Google" OAuth flow. On success the browser is
+ * redirected to Google and never returns from this promise (Supabase navigates
+ * away), so a resolved { ok: true } only means the handshake started. The
+ * callback lands on `/auth/callback?code=…`; with flowType 'pkce' +
+ * detectSessionInUrl, the client auto-exchanges the code for a session there.
+ *
+ * `redirectTo` is derived from window.location.origin so the SAME build works in
+ * prod (https://fitaura.studio) and local dev (http://localhost:5173) — both must
+ * be listed in Supabase → Auth → URL Configuration → Redirect URLs.
+ * `prompt: 'select_account'` always shows Google's account chooser instead of
+ * silently reusing the last-used Google account. */
+export async function authSignInWithGoogle(): Promise<SimpleResult> {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`,
+      queryParams: { prompt: 'select_account' },
+    },
+  });
+  return error ? { ok: false, error: friendly(error.message) } : { ok: true };
+}
+
 export async function authSignOut(): Promise<void> {
   await supabase.auth.signOut();
+}
+
+/** Permanently delete the caller's own account (profile + credit balance + auth
+ * user) via the SECURITY DEFINER `delete_own_account` RPC. On success, revoke the
+ * now-orphaned local session (best-effort — the user no longer exists server-side). */
+export async function authDeleteAccount(): Promise<SimpleResult> {
+  // `delete_own_account` is added by a migration applied out-of-band, so it isn't
+  // in the generated `Database` types yet. Reach the rpc via a minimal shape until
+  // the types are regenerated (this is the only client-side RPC so far).
+  const rpc = (supabase as unknown as {
+    rpc: (fn: string) => Promise<{ error: { message: string } | null }>;
+  }).rpc;
+  const { error } = await rpc('delete_own_account');
+  if (error) return { ok: false, error: friendly(error.message) };
+  await supabase.auth.signOut().catch(() => {});
+  return { ok: true };
 }
 
 export async function authResend(email: string): Promise<SimpleResult> {

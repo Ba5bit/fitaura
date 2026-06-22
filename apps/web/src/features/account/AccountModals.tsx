@@ -3,14 +3,23 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { CREDIT_PACKS, type CreditPack } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
 import { signupPasswordError } from '../../lib/authValidation';
+import { authUpdatePassword } from '../../services/authService';
 import { useAccount } from './AccountContext';
 import { WebModal, WebDialogBody, WebField } from './WebModal';
 
 const packById = (id: string): CreditPack => CREDIT_PACKS.find((p) => p.id === id) ?? CREDIT_PACKS[1];
 
+// Google sign-in stays hidden on production until the Google OAuth app is
+// published — it's still in "Testing" mode, so non-test users would be blocked.
+// Shown automatically in local dev; to enable it on a deployed env, set
+// VITE_ENABLE_GOOGLE_AUTH=true (e.g. in Vercel) and redeploy.
+const GOOGLE_AUTH_ENABLED = import.meta.env.DEV || import.meta.env.VITE_ENABLE_GOOGLE_AUTH === 'true';
+
 /* ============================ AUTH GATE ============================ */
 export function AuthGate() {
-  const { closeScene, signUp, logIn, requestPasswordReset, authStatus, authError, authInitialMode } = useAccount();
+  const {
+    closeScene, signUp, logIn, signInWithGoogle, requestPasswordReset, authStatus, authError, authInitialMode,
+  } = useAccount();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [mode, setMode] = useState<'signup' | 'login' | 'reset'>(authInitialMode);
@@ -78,6 +87,16 @@ export function AuthGate() {
               <button type="button" role="tab" aria-selected={isSignup} onClick={() => switchMode('signup')}>Sign up</button>
               <button type="button" role="tab" aria-selected={mode === 'login'} onClick={() => switchMode('login')}>Log in</button>
             </div>
+          )}
+          {!isReset && GOOGLE_AUTH_ENABLED && (
+            <>
+              <div className="aw-oauth">
+                <button type="button" disabled={pending} onClick={() => void signInWithGoogle()}>
+                  <Icon.google /> Continue with Google
+                </button>
+              </div>
+              <div className="aw-or"><span className="ln" /> or <span className="ln" /></div>
+            </>
           )}
           <form
             style={{ display: 'contents' }}
@@ -396,6 +415,103 @@ export function LogoutConfirm() {
         </button>
         <button className="aw-linkbtn" onClick={closeScene}>
           Stay logged in
+        </button>
+      </WebDialogBody>
+    </WebModal>
+  );
+}
+
+/* ============================ CHANGE PASSWORD ============================ */
+export function ChangePassword() {
+  const { closeScene, flash } = useAccount();
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const submit = async () => {
+    if (busy) return;
+    const err = signupPasswordError(password, confirm);
+    if (err) {
+      setError(err);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const res = await authUpdatePassword(password);
+    setBusy(false);
+    if (!res.ok) {
+      setError(res.error);
+      return;
+    }
+    flash('Password updated.');
+    closeScene();
+  };
+
+  return (
+    <WebModal size="sm" onClose={closeScene}>
+      <WebDialogBody>
+        <div className="aw-glyph neutral">
+          <Icon.key />
+        </div>
+        <h2 className="aw-modal-title" style={{ marginTop: '18px' }}>
+          CHANGE PASSWORD
+        </h2>
+        <p className="aw-modal-sub">
+          Set a new password for <b style={{ color: 'var(--ink)' }}>this account</b>. You'll stay logged in on this
+          device.
+        </p>
+        <form
+          style={{ display: 'contents' }}
+          onSubmit={(e) => { e.preventDefault(); void submit(); }}
+        >
+          <WebField label="New password" type="password" placeholder="Create a password" value={password} onChange={setPassword} />
+          <WebField label="Confirm password" type="password" placeholder="Re-enter your password" value={confirm} onChange={setConfirm} />
+          {error && <p className="aw-formerror" role="alert">{error}</p>}
+          <button type="submit" className="aw-btn primary block" style={{ marginTop: '18px' }} disabled={busy}>
+            {busy ? 'Working…' : 'Update password'}
+          </button>
+        </form>
+        <button className="aw-linkbtn" onClick={closeScene}>
+          Cancel
+        </button>
+      </WebDialogBody>
+    </WebModal>
+  );
+}
+
+/* ============================ DELETE ACCOUNT CONFIRM ============================ */
+export function DeleteAccountConfirm() {
+  const { confirmDeleteAccount, closeScene } = useAccount();
+  const [busy, setBusy] = useState(false);
+
+  const onConfirm = async () => {
+    if (busy) return;
+    setBusy(true);
+    const ok = await confirmDeleteAccount();
+    // On success the scene/account state is reset for us; only re-enable on failure.
+    if (!ok) setBusy(false);
+  };
+
+  return (
+    <WebModal size="sm" onClose={busy ? undefined : closeScene} closeable={!busy}>
+      <WebDialogBody>
+        <div className="aw-glyph bad">
+          <Icon.trash />
+        </div>
+        <h2 className="aw-modal-title" style={{ marginTop: '18px' }}>
+          DELETE ACCOUNT?
+        </h2>
+        <p className="aw-modal-sub">
+          This <b style={{ color: 'var(--ink)' }}>permanently</b> deletes your account, your profile, and your credit
+          balance from our servers, and wipes the saved results and receipts on this device.{' '}
+          <b style={{ color: 'var(--ink)' }}>Any remaining credits are forfeited.</b> This can't be undone.
+        </p>
+        <button className="aw-btn danger block" style={{ marginTop: '22px' }} onClick={() => void onConfirm()} disabled={busy}>
+          <Icon.trash /> {busy ? 'Deleting…' : 'Delete my account'}
+        </button>
+        <button className="aw-linkbtn" onClick={closeScene} disabled={busy}>
+          Keep my account
         </button>
       </WebDialogBody>
     </WebModal>

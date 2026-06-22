@@ -22,6 +22,7 @@ const AccountInfo = lazy(() => import('./features/vault/AccountInfo').then((m) =
 const Pricing = lazy(() => import('./features/vault/Pricing').then((m) => ({ default: m.Pricing })));
 const Settings = lazy(() => import('./features/vault/Settings').then((m) => ({ default: m.Settings })));
 const AuthConfirm = lazy(() => import('./features/auth/AuthConfirm').then((m) => ({ default: m.AuthConfirm })));
+const AuthCallback = lazy(() => import('./features/auth/AuthCallback').then((m) => ({ default: m.AuthCallback })));
 const UpdatePassword = lazy(() => import('./features/auth/UpdatePassword').then((m) => ({ default: m.UpdatePassword })));
 // DEV-only: a local preview of the card skins (the AI-driven Nameplate content
 // can't be seen in dev until the edge function is deployed). Never routed in prod.
@@ -63,6 +64,7 @@ export function App() {
             <Route path="/storage" element={<Navigate to="/settings" replace />} />
             <Route path="/results" element={<Navigate to="/vault" replace />} />
             <Route path="/auth/confirm" element={<AuthConfirm />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/update-password" element={<UpdatePassword />} />
             {import.meta.env.DEV && <Route path="/dev/cards" element={<CardPreview />} />}
             <Route path="*" element={<Navigate to="/" replace />} />

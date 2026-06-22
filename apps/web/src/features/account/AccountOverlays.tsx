@@ -9,6 +9,8 @@ import {
   PaySuccess,
   PayFailure,
   LogoutConfirm,
+  ChangePassword,
+  DeleteAccountConfirm,
   MissingResult,
 } from './AccountModals';
 
@@ -28,6 +30,8 @@ export function AccountOverlays() {
       {scene === 'success' && <PaySuccess />}
       {scene === 'failure' && <PayFailure />}
       {scene === 'logout' && <LogoutConfirm />}
+      {scene === 'changePassword' && <ChangePassword />}
+      {scene === 'deleteAccount' && <DeleteAccountConfirm />}
       {scene === 'missing' && <MissingResult />}
       {toast && (
         <div className="aw-toast">

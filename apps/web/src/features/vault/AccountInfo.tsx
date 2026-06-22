@@ -8,7 +8,7 @@ import { SubHead } from './SubHead';
 /** Account info — login & account status (the only data kept on our servers). */
 export function AccountInfo() {
   const navigate = useNavigate();
-  const { signedIn, user, openAuth, requestLogout, flash } = useAccount();
+  const { signedIn, user, openAuth, requestLogout, openChangePassword, requestDeleteAccount } = useAccount();
 
   // Account info requires an account — bounce guests home and offer sign-in.
   useEffect(() => {
@@ -73,7 +73,7 @@ export function AccountInfo() {
                   <div className="k">Security</div>
                   <div className="v">Password &amp; sign-in</div>
                 </div>
-                <button className="vlt-btn sm act" onClick={() => flash('Opening security settings…')}>
+                <button className="vlt-btn sm act" onClick={openChangePassword}>
                   Manage
                 </button>
               </div>
@@ -86,15 +86,24 @@ export function AccountInfo() {
             </h3>
             <div className="vlt-rows">
               <div className="vlt-row">
-                <span className="ic">
-                  <Icon.download />
+                <span
+                  className="ic"
+                  style={{ color: 'var(--red)', borderColor: 'color-mix(in oklab, var(--red) 30%, var(--hair))' }}
+                >
+                  <Icon.trash />
                 </span>
                 <div className="tx">
                   <div className="k">Your data</div>
-                  <div className="v">Export account data</div>
+                  <div className="v" style={{ color: 'var(--red)' }}>
+                    Delete account
+                  </div>
                 </div>
-                <button className="vlt-btn sm act" onClick={() => flash('Preparing your data export…')}>
-                  Export
+                <button
+                  className="vlt-btn sm act danger"
+                  onClick={requestDeleteAccount}
+                  style={{ borderColor: 'color-mix(in oklab, var(--red) 45%, var(--hair))', color: 'var(--red)' }}
+                >
+                  Delete
                 </button>
               </div>
               <div className="vlt-row">
