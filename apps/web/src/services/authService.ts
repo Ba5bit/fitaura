@@ -80,15 +80,18 @@ export async function authSignOut(): Promise<void> {
  * user) via the SECURITY DEFINER `delete_own_account` RPC. On success, revoke the
  * now-orphaned local session (best-effort — the user no longer exists server-side). */
 export async function authDeleteAccount(): Promise<SimpleResult> {
-  // `delete_own_account` is added by a migration applied out-of-band, so it isn't
-  // in the generated `Database` types yet. Reach the rpc via a minimal shape until
-  // the types are regenerated (this is the only client-side RPC so far).
-  const rpc = (supabase as unknown as {
+  // `delete_own_account` isn't in the generated `Database` types yet, so cast the
+  // client to reach the rpc. IMPORTANT: invoke it as `client.rpc(...)` — do NOT
+  // pull `.rpc` into a variable first (`const rpc = client.rpc`), or the method
+  // loses its `this` binding and throws before any request is sent.
+  const client = supabase as unknown as {
     rpc: (fn: string) => Promise<{ error: { message: string } | null }>;
-  }).rpc;
-  const { error } = await rpc('delete_own_account');
+  };
+  const { error } = await client.rpc('delete_own_account');
   if (error) return { ok: false, error: friendly(error.message) };
-  await supabase.auth.signOut().catch(() => {});
+  // Don't await sign-out: the user no longer exists server-side and the local
+  // session is cleared by the UI reset; awaiting could stall on the auth lock.
+  void supabase.auth.signOut().catch(() => {});
   return { ok: true };
 }
 

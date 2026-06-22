@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CREDIT_PACKS } from '@fitaura/shared';
 import {
   authDeleteAccount, authResend, authResetPassword, authSignIn, authSignInWithGoogle, authSignOut, authSignUp,
-  getCurrentSession, onAuthChange,
+  getCurrentSession, onAuthChange, type SimpleResult,
 } from '../../services/authService';
 import { getBalance, refundCredit, spendCredit } from '../../services/creditsService';
 import { createCheckout, openCheckoutOverlay, pollBalanceUntilChange } from '../../services/checkoutService';
@@ -347,7 +347,15 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const requestDeleteAccount = useCallback(() => setScene('deleteAccount'), []);
   const confirmDeleteAccount = useCallback<AccountContextValue['confirmDeleteAccount']>(async () => {
     // Server first: if the account delete fails, we keep the local data intact.
-    const res = await authDeleteAccount();
+    // Guard the whole call so an unexpected throw can never strand the modal on
+    // its "Deleting…" state — always resolve to false so the UI re-enables.
+    let res: SimpleResult;
+    try {
+      res = await authDeleteAccount();
+    } catch {
+      flash('Could not delete your account. Please try again.');
+      return false;
+    }
     if (!res.ok) {
       flash(res.error);
       return false;
