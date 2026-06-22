@@ -8,15 +8,15 @@ import { SubHead } from './SubHead';
 /** Account info — login & account status (the only data kept on our servers). */
 export function AccountInfo() {
   const navigate = useNavigate();
-  const { signedIn, user, openAuth, requestLogout, openChangePassword, requestDeleteAccount } = useAccount();
+  const { signedIn, user, requestLogout, openChangePassword, requestDeleteAccount } = useAccount();
 
-  // Account info requires an account — bounce guests home and offer sign-in.
+  // Account info requires an account — bounce non-signed-in visitors home. We
+  // deliberately do NOT pop the auth modal here: a just-deleted user should land
+  // cleanly on the home page, and the landing has its own sign-in entry points
+  // for anyone who navigates here directly.
   useEffect(() => {
-    if (!signedIn) {
-      navigate('/', { replace: true });
-      openAuth();
-    }
-  }, [signedIn, navigate, openAuth]);
+    if (!signedIn) navigate('/', { replace: true });
+  }, [signedIn, navigate]);
   if (!signedIn || !user) return null;
 
   return (
