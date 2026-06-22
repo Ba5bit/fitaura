@@ -9,12 +9,6 @@ import { WebModal, WebDialogBody, WebField } from './WebModal';
 
 const packById = (id: string): CreditPack => CREDIT_PACKS.find((p) => p.id === id) ?? CREDIT_PACKS[1];
 
-// Google sign-in stays hidden on production until the Google OAuth app is
-// published — it's still in "Testing" mode, so non-test users would be blocked.
-// Shown automatically in local dev; to enable it on a deployed env, set
-// VITE_ENABLE_GOOGLE_AUTH=true (e.g. in Vercel) and redeploy.
-const GOOGLE_AUTH_ENABLED = import.meta.env.DEV || import.meta.env.VITE_ENABLE_GOOGLE_AUTH === 'true';
-
 /* ============================ AUTH GATE ============================ */
 export function AuthGate() {
   const {
@@ -88,7 +82,7 @@ export function AuthGate() {
               <button type="button" role="tab" aria-selected={mode === 'login'} onClick={() => switchMode('login')}>Log in</button>
             </div>
           )}
-          {!isReset && GOOGLE_AUTH_ENABLED && (
+          {!isReset && (
             <>
               <div className="aw-oauth">
                 <button type="button" disabled={pending} onClick={() => void signInWithGoogle()}>
