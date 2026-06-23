@@ -28,9 +28,8 @@ const UpdatePassword = lazy(() => import('./features/auth/UpdatePassword').then(
 // DEV-only: a local preview of the card skins (the AI-driven Nameplate content
 // can't be seen in dev until the edge function is deployed). Never routed in prod.
 const CardPreview = lazy(() => import('./features/dev/CardPreview').then((m) => ({ default: m.CardPreview })));
-// DEV-only: Friend vs Friend. UI-first with a deterministic placeholder verdict;
-// gated out of production until the real head-to-head analysis is wired (mirrors
-// the hidden Google sign-in + /dev/cards pattern).
+// Friend vs Friend — live in production: real comparative AI verdict (2 credits),
+// saved per-account in the Vault. No longer dev-gated.
 const VersusUpload = lazy(() => import('./features/versus/VersusUpload').then((m) => ({ default: m.VersusUpload })));
 const VersusScan = lazy(() => import('./features/versus/VersusScan').then((m) => ({ default: m.VersusScan })));
 const VersusResult = lazy(() => import('./features/versus/VersusResult').then((m) => ({ default: m.VersusResult })));

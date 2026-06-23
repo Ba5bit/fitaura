@@ -17,7 +17,7 @@
   display:flex; align-items:center; justify-content:space-between; gap:18px;
   height:var(--rs-header-h); padding:0 24px;
   background:color-mix(in oklab, var(--bg-1) 84%, transparent);
-  -webkit-backdrop-filter:blur(18px) saturate(140%); backdrop-filter:blur(18px) saturate(140%);
+  -webkit-backdrop-filter:blur(8px) saturate(140%); backdrop-filter:blur(8px) saturate(140%);
   border-bottom:1px solid var(--hair-soft);
 }
 .rs-h-left,.rs-h-right{ display:flex; align-items:center; gap:14px; min-width:0; }
@@ -74,7 +74,7 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
   display:flex; align-items:center; justify-content:space-between; gap:16px;
   height:var(--rs-nav-h); padding:0 24px;
   background:color-mix(in oklab, var(--bg-1) 72%, transparent);
-  -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
   border-bottom:1px solid var(--hair-soft);
 }
 .rs-tabs{ display:flex; gap:9px; }
@@ -233,7 +233,7 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
 /* ---- glass treatment (Face analysis) ---- */
 .rs-block.glass{
   background:linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
-  -webkit-backdrop-filter:blur(22px) saturate(150%); backdrop-filter:blur(22px) saturate(150%);
+  -webkit-backdrop-filter:blur(10px) saturate(150%); backdrop-filter:blur(10px) saturate(150%);
   border:1px solid rgba(255,255,255,0.11);
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.10), 0 24px 60px -38px #000;
 }
@@ -384,7 +384,7 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
   .rs-mobilebar{ display:flex; position:fixed; left:0; right:0; bottom:0; z-index:50; gap:10px;
     padding:12px 14px calc(12px + env(safe-area-inset-bottom)); align-items:center;
     background:color-mix(in oklab,var(--bg-1) 92%,transparent);
-    -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
     border-top:1px solid var(--hair); }
   .rs-mobilebar .mb-btn{ flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
     min-height:48px; border-radius:12px; cursor:pointer; font-family:"Hanken Grotesk"; font-weight:700;

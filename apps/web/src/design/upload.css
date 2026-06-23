@@ -25,7 +25,7 @@ body { overflow-y: auto; }
 .rev {
   position: sticky; top: 0; z-index: 80;
   background: color-mix(in oklab, var(--bg-0) 90%, transparent);
-  backdrop-filter: blur(16px); border-bottom: 1px solid var(--hair-soft);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--hair-soft);
 }
 .rev-in { display: flex; align-items: center; gap: 22px 30px; flex-wrap: wrap; padding: 12px 32px; }
 .rev-brand { display: flex; align-items: center; gap: 11px; margin-right: auto; }
@@ -259,7 +259,7 @@ body { overflow-y: auto; }
    the (intentionally tall) cards scroll. .ua-pad reserves room via a measured
    inline padding-bottom. */
 .ua-foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-  border-top: 1px solid var(--hair-soft); background: color-mix(in oklab, var(--bg-0) 86%, transparent); backdrop-filter: blur(14px); }
+  border-top: 1px solid var(--hair-soft); background: color-mix(in oklab, var(--bg-0) 86%, transparent); backdrop-filter: blur(8px); }
 .ua-foot-inner { max-width: 880px; margin: 0 auto; padding: 14px 26px calc(16px + env(safe-area-inset-bottom, 0px)); }
 .ua[data-mobile="true"] .ua-foot-inner { padding-left: 16px; padding-right: 16px; }
 .review-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }

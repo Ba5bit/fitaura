@@ -1,5 +1,5 @@
 import { useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react';
-import { splitPercent, type BattleWinner, type Side, type Superlative, type VersusMode } from '@fitaura/shared';
+import { splitPercent, type BattleWinner, type Superlative, type VersusMode } from '@fitaura/shared';
 import { Icon } from '../../../lib/icons';
 
 /**
@@ -184,6 +184,3 @@ export function SuperlativesRow({
     </div>
   );
 }
-
-/** Stable side helpers. */
-export const SIDES: readonly Side[] = ['a', 'b'];
