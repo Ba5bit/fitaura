@@ -37,6 +37,12 @@ body { overflow-y: auto; }
 }
 .ln-section { padding: clamp(48px, 6vw, 84px) 0; position: relative; }
 .ln-section.alt { background: linear-gradient(180deg, transparent, rgba(255,255,255,0.014) 12%, rgba(255,255,255,0.014) 88%, transparent); }
+/* On desktop, where the section-rail jump-nav exists (≥1321px — the rail hides at
+   max-width:1320px), each rail-target section fills the viewport so jumping to one
+   never reveals the next section's headline beneath it. */
+@media (min-width: 1321px) {
+  #how, #outputs, #modes, #credits { min-height: 100vh; }
+}
 .ln-hr { border: 0; border-top: 1px solid var(--hair-soft); margin: 0; }
 
 /* buttons */
