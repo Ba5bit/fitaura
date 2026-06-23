@@ -527,7 +527,7 @@ export function VersusResult() {
   const oWho = whoLabel(verdict.winner, names);
 
   return (
-    <div className="rs-app">
+    <div className="rs-app vs-result-app">
       {/* Header — mirrors the Solo Scan result header (rs-* classes). */}
       <header className="rs-header">
         <div className="rs-h-left">
@@ -581,7 +581,7 @@ export function VersusResult() {
         </div>
       </nav>
 
-      <main className="vs-wrap" style={{ paddingTop: 22 }}>
+      <main className="vs-wrap" style={{ padding: '14px 24px 18px' }}>
         {activeTab === 'face' && verdict.face && (
           <ComparisonTab category="face" group={verdict.face} names={names} battle={battle} />
         )}
