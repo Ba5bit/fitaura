@@ -1,10 +1,12 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Side } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
 import { CardImage } from '../../components/cards';
 import { useMediaQuery } from '../../lib/useMediaQuery';
 import { battleNames, useBattle } from '../../state/battle';
+import { useAccount } from '../account/AccountContext';
+import { runVersusScan } from '../../services/versusScanService';
 import '../../design/scanner.css';
 
 /**
@@ -49,7 +51,8 @@ function prefersReducedMotion() {
 
 export function VersusScan() {
   const navigate = useNavigate();
-  const { battle, hydrated } = useBattle();
+  const { battle, hydrated, commitResult, saveBattle } = useBattle();
+  const { spendForBattle, refundBattle } = useAccount();
   const mobile = useMediaQuery('(max-width: 760px)');
 
   const [progress, setProgress] = useState(0);
@@ -57,9 +60,68 @@ export function VersusScan() {
   const [side, setSide] = useState<Side>('a');
   const [microIdx, setMicroIdx] = useState(0);
 
+  // Real AI lifecycle, run DURING the cosmetic timeline. The verdict comes back
+  // from `versus-scan`; the reveal gates on BOTH this settling AND the timeline.
+  const [aiState, setAiState] = useState<'pending' | 'done' | 'error'>('pending');
+  const [aiError, setAiError] = useState<string | null>(null);
+  // Tracks real mount across StrictMode's double-invoke so a settled call never
+  // writes state onto an unmounted tree. The in-flight request is NOT aborted on
+  // cleanup — StrictMode's transient unmount must not cancel the live scan.
+  const mountedRef = useRef(true);
+  // Guards the one-time spend + network call against StrictMode's double-invoke
+  // (a double run here would double-spend 2 credits / double-call the AI). NOT
+  // reset on cleanup — the spend must survive the second mount.
+  const startedRef = useRef(false);
+
   useEffect(() => {
     if (hydrated && !battle) navigate('/versus', { replace: true });
   }, [hydrated, battle, navigate]);
+
+  // Spend 2 credits up front, then fire the comparative scan. On success commit
+  // the verdict; on failure refund and surface an inline error. Runs exactly once
+  // (startedRef + StrictMode); the in-flight call is never aborted on cleanup —
+  // we only skip the state write if the tree unmounted for real.
+  const startScan = useCallback(async () => {
+    if (!battle) return;
+    const ok = await spendForBattle();
+    if (!ok) {
+      navigate('/credits');
+      return;
+    }
+    const outcome = await runVersusScan(battle);
+    if (!mountedRef.current) return;
+    if (outcome.kind === 'result') {
+      commitResult(outcome.result);
+      // Persist to the on-device vault so the battle shows as a saved card.
+      saveBattle(battle, outcome.result);
+      setAiState('done');
+      return;
+    }
+    await refundBattle();
+    if (!mountedRef.current) return;
+    setAiError('That battle did not go through. Your 2 credits were refunded, give it another go.');
+    setAiState('error');
+  }, [battle, spendForBattle, refundBattle, commitResult, saveBattle, navigate]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated || !battle || startedRef.current) return;
+    startedRef.current = true;
+    void startScan();
+  }, [hydrated, battle, startScan]);
+
+  // Retry re-arms the kickoff (a fresh spend + call) after an inline error.
+  const retry = useCallback(() => {
+    setAiError(null);
+    setAiState('pending');
+    void startScan();
+  }, [startScan]);
 
   // Timeline — no re-entry guard (StrictMode runs effects twice with cleanup
   // between; a guard would let the second mount bail and freeze the bar at 0%).
@@ -92,6 +154,12 @@ export function VersusScan() {
 
   const names = battleNames(battle);
   const rm = prefersReducedMotion();
+  // The reveal CTA needs BOTH the timeline finished AND the verdict landed.
+  const revealReady = done && aiState === 'done';
+  // Timeline finished but the AI is still in flight → a brief "finishing up" hold.
+  const finishingUp = done && aiState === 'pending';
+  // Timeline finished and the AI failed → inline error (refund already issued).
+  const errored = done && aiState === 'error';
   const stageIndex = done ? STAGES.length - 1 : Math.min(STAGES.length - 1, Math.floor(progress / 20));
   const stage = STAGES[stageIndex];
   const accent = side === 'a' ? 'var(--icy)' : 'var(--gold)';
@@ -123,7 +191,7 @@ export function VersusScan() {
             <div className="right">
               <span className="live-chip">
                 <span className="d" />
-                {done ? 'Verdict ready' : 'Scanning'}
+                {revealReady ? 'Verdict ready' : errored ? 'Battle hiccup' : 'Scanning'}
               </span>
               <button className="leave-btn" onClick={() => navigate('/versus')} aria-label="Leave scan">
                 <Icon.x />
@@ -132,18 +200,55 @@ export function VersusScan() {
           </div>
 
           {done ? (
-            <div className="reveal">
-              <span className="stamp">✶ Battle scored ✶</span>
-              <h2>
-                Verdict is <span className="hl">in</span>
-              </h2>
-              <p className="sub">
-                {names.a} vs {names.b} — both contenders scored. Reveal the head-to-head.
-              </p>
-              <button className="go" onClick={() => navigate('/versus/result')}>
-                <Icon.bolt /> Reveal the verdict
-              </button>
-            </div>
+            errored ? (
+              <div className="reveal">
+                <span className="stamp" style={{ color: 'var(--red)' }}>
+                  ✶ Battle hiccup ✶
+                </span>
+                <h2>
+                  Let's try <span className="hl">again</span>
+                </h2>
+                <p className="sub">{aiError}</p>
+                <button className="go retry" onClick={retry}>
+                  <Icon.refresh /> Try again
+                </button>
+                <div className="reveal-err">
+                  <Icon.alert />
+                  <span>
+                    Photos analyzed in-session only.{' '}
+                    <button className="linkbtn" onClick={() => navigate('/versus')}>
+                      Back to upload
+                    </button>
+                  </span>
+                </div>
+              </div>
+            ) : finishingUp ? (
+              <div className="reveal">
+                <span className="stamp">✶ Crowning a winner ✶</span>
+                <h2>
+                  Finishing <span className="hl">up</span>
+                </h2>
+                <p className="sub">
+                  {names.a} vs {names.b} — tallying the head-to-head. Almost there…
+                </p>
+                <button className="go" disabled>
+                  Crowning the winner…
+                </button>
+              </div>
+            ) : (
+              <div className="reveal">
+                <span className="stamp">✶ Battle scored ✶</span>
+                <h2>
+                  Verdict is <span className="hl">in</span>
+                </h2>
+                <p className="sub">
+                  {names.a} vs {names.b} — both contenders scored. Reveal the head-to-head.
+                </p>
+                <button className="go" onClick={() => navigate('/versus/result')}>
+                  <Icon.bolt /> Reveal the verdict
+                </button>
+              </div>
+            )
           ) : (
             <div className="sa-stage">
               <div className="specimen ignite">

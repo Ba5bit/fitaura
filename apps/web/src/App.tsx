@@ -75,9 +75,9 @@ export function App() {
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/update-password" element={<UpdatePassword />} />
             {import.meta.env.DEV && <Route path="/dev/cards" element={<CardPreview />} />}
-            {import.meta.env.DEV && <Route path="/versus" element={<VersusUpload />} />}
-            {import.meta.env.DEV && <Route path="/versus/run" element={<VersusScan />} />}
-            {import.meta.env.DEV && <Route path="/versus/result" element={<VersusResult />} />}
+            <Route path="/versus" element={<VersusUpload />} />
+            <Route path="/versus/run" element={<VersusScan />} />
+            <Route path="/versus/result" element={<VersusResult />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>

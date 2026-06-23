@@ -1,5 +1,6 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { splitPercent, type BattleWinner, type Side, type VersusMode } from '@fitaura/shared';
+import { useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react';
+import { splitPercent, type BattleWinner, type Side, type Superlative, type VersusMode } from '@fitaura/shared';
+import { Icon } from '../../../lib/icons';
 
 /**
  * Small, stateless view primitives for Friend vs Friend. All contender coloring
@@ -106,6 +107,78 @@ export function ModeSelector({ mode, onChange }: { mode: VersusMode; onChange: (
           >
             {MODE_LABELS[m]}
           </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A single crowned superlative chip. A=icy, B=gold; the crowned side's colour
+ * flows via `--c` (set on the chip). The locked chip starts as a "tap to reveal"
+ * wildcard and reveals its winner on click/Enter/Space (local state).
+ */
+function SuperlativeChip({ item, names }: { item: Superlative; names: { a: string; b: string } }) {
+  const [revealed, setRevealed] = useState(false);
+  const sideVar = item.winner === 'a' ? 'var(--icy)' : 'var(--gold)';
+  const who = item.winner === 'a' ? names.a : names.b;
+  const locked = item.locked && !revealed;
+
+  if (locked) {
+    return (
+      <button
+        type="button"
+        className="vs-superlative locked"
+        onClick={() => setRevealed(true)}
+        aria-label={`${item.label} — tap to reveal the winner`}
+      >
+        <span className="ic">
+          <Icon.lock />
+        </span>
+        <span className="txt">
+          <span className="lbl">{item.label}</span>
+          <span className="reveal">
+            <Icon.eye /> Tap to reveal
+          </span>
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="vs-superlative" data-side={item.winner} style={{ ['--c']: sideVar } as CSSProperties}>
+      <span className="ic crown">
+        <CrownGlyph size={13} />
+      </span>
+      <span className="txt">
+        <span className="lbl">{item.label}</span>
+        <span className="who">{who}</span>
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The superlatives row — a row of crowned chips (A=icy, B=gold) with exactly one
+ * locked "tap to reveal" wildcard. Renders nothing when there are no superlatives
+ * (e.g. the dev no-AI fallback path).
+ */
+export function SuperlativesRow({
+  items,
+  names,
+  heading = 'Superlatives',
+}: {
+  items: Superlative[];
+  names: { a: string; b: string };
+  heading?: string;
+}) {
+  if (!items.length) return null;
+  return (
+    <div className="vs-superlatives">
+      <div className="hd">{heading}</div>
+      <div className="row">
+        {items.map((item, i) => (
+          <SuperlativeChip key={`${item.label}-${i}`} item={item} names={names} />
         ))}
       </div>
     </div>

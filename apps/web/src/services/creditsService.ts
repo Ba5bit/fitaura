@@ -11,11 +11,11 @@ export async function getBalance(userId: string): Promise<number> {
   return data.credits;
 }
 
-/** Spend one credit. Refuses (without writing) when the balance is empty. */
-export async function spendCredit(userId: string): Promise<SpendResult> {
+/** Spend `amount` credits (default 1). Refuses (without writing) when the balance is short. */
+export async function spendCredit(userId: string, amount = 1): Promise<SpendResult> {
   const balance = await getBalance(userId);
-  if (balance <= 0) return { ok: false, balance: 0 };
-  const next = balance - 1;
+  if (balance < amount) return { ok: false, balance };
+  const next = balance - amount;
   const { error } = await supabase.from('profiles').update({ credits: next }).eq('id', userId);
   if (error) return { ok: false, balance };
   return { ok: true, balance: next };
@@ -38,11 +38,11 @@ export function markFreeScanUsed(): void {
   localStorage.setItem(FREE_SCAN_KEY, '1');
 }
 
-/** Refund one credit (used when a scan fails after spending). Returns new balance.
+/** Refund `amount` credits (default 1, used when a scan fails after spending). Returns new balance.
  * NOTE: reuses grantCredits' read-modify-write, so it is NOT concurrency-safe — a
  * double-call could over-grant. Cycle 1 replaces this with a reserve/release RPC. */
-export async function refundCredit(userId: string): Promise<number> {
-  return grantCredits(userId, 1);
+export async function refundCredit(userId: string, amount = 1): Promise<number> {
+  return grantCredits(userId, amount);
 }
 
 /** Restore the guest free-scan eligibility (used to refund a failed free scan). */

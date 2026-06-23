@@ -36,15 +36,26 @@ interface UploadZoneProps {
   kind: ZoneKind;
   mobile?: boolean;
   missing?: boolean;
+  /**
+   * Override the uploaded-image crop frame (display px). Only resizes the live
+   * crop preview — the empty dropzone is untouched. `out` is re-derived to match
+   * the override's aspect ratio so the baked image is never distorted. Used by
+   * the wider Versus cards (taller width, shorter height than Solo's defaults).
+   */
+  frame?: Frame;
   /** Fires with the baked crop data URL when confirmed, or null when removed. */
   onConfirm: (url: string | null) => void;
   /** Fires whenever the zone has/loses a (not-yet-confirmed) image. */
   onReadyChange?: (ready: boolean) => void;
 }
 
-export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: UploadZoneProps) {
+export function UploadZone({ kind, mobile, missing, frame: frameOverride, onConfirm, onReadyChange }: UploadZoneProps) {
   const spec = CROP[kind];
-  const frame = spec.frame;
+  const frame: Frame = frameOverride ?? spec.frame;
+  // Keep the baked output at the frame's aspect ratio (else drawImage stretches it).
+  const out = frameOverride
+    ? { w: spec.out.w, h: Math.round((spec.out.w * frameOverride.h) / frameOverride.w) }
+    : spec.out;
 
   const [status, setStatus] = useState<Status>('empty');
   const [errorType, setErrorType] = useState<ErrorType | null>(null);
@@ -148,7 +159,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
   }
 
   function bakeAndConfirm(im: HTMLImageElement, v: View) {
-    const url = bakeCrop(im, v, frame, spec.out);
+    const url = bakeCrop(im, v, frame, out);
     if (url) onConfirm(url);
   }
 
@@ -412,6 +423,7 @@ export function UploadZone({ kind, mobile, missing, onConfirm, onReadyChange }: 
           <div
             ref={cropRef}
             className={'crop ' + kind}
+            style={frameOverride ? { width: frame.w, height: frame.h } : undefined}
             data-panning={pointers.current.size > 0}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}

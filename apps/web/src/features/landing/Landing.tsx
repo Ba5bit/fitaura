@@ -429,6 +429,10 @@ function Modes() {
                     <button className="lm-cta locked" type="button" disabled>
                       <Icon.lock /> Coming soon
                     </button>
+                  ) : m.id === 'friend' ? (
+                    <button className="lm-cta" type="button" onClick={() => navigate('/versus')}>
+                      Start a battle
+                    </button>
                   ) : (
                     <button className="lm-cta" type="button" onClick={startSolo}>
                       Start a Solo Scan

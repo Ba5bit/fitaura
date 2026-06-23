@@ -4,13 +4,17 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
   loadAccount, putResult, deleteResult, renameResultDb, putSession,
   pruneExpired, moveAccountData, migrateLegacyLocalStorage, resetDbForTests,
+  clearAccount, putBattle, loadBattles, deleteBattle, renameBattleDb,
   SAFETY_CAP,
-  type GenerationResult,
+  type GenerationResult, type SavedBattle,
 } from './generationDb';
 
 const DAY = 86_400_000;
 const res = (id: string, producedAt: string, name?: string): GenerationResult =>
   ({ receipt: { generationId: id }, verdict: 'normie', producedAt, name } as unknown as GenerationResult);
+const bat = (id: string, producedAt: string, name?: string): SavedBattle =>
+  ({ battleId: id, producedAt, name, mode: 'both', nameA: 'A', nameB: 'B', imgs: {},
+     result: { mode: 'both', face: null, fit: null, copy: {} } } as unknown as SavedBattle);
 
 beforeEach(async () => {
   await resetDbForTests();
@@ -93,5 +97,39 @@ describe('generationDb (IndexedDB)', () => {
     expect(ids.has('r1')).toBe(false);
     // The newest result must still be present.
     expect(ids.has(`r${total - 1}`)).toBe(true);
+  });
+});
+
+describe('generationDb — Friend vs Friend battles', () => {
+  const NOW = Date.parse('2026-06-15T00:00:00.000Z');
+
+  it('isolates battles per account, newest first', async () => {
+    await putBattle('a', bat('b1', new Date(NOW - 2 * DAY).toISOString()));
+    await putBattle('a', bat('b2', new Date(NOW - 1 * DAY).toISOString()));
+    await putBattle('u1', bat('b3', '2026-06-14T00:00:00Z'));
+    expect((await loadBattles('a', NOW)).map((b) => b.battleId)).toEqual(['b2', 'b1']);
+    expect((await loadBattles('u1', NOW)).map((b) => b.battleId)).toEqual(['b3']);
+  });
+
+  it('prunes battles older than 14 days', async () => {
+    await putBattle('a', bat('fresh', new Date(NOW - 2 * DAY).toISOString()));
+    await putBattle('a', bat('stale', new Date(NOW - 20 * DAY).toISOString()));
+    expect((await loadBattles('a', NOW)).map((b) => b.battleId)).toEqual(['fresh']);
+  });
+
+  it('deleteBattle and renameBattleDb mutate a single battle', async () => {
+    await putBattle('a', bat('b1', '2026-06-14T00:00:00Z'));
+    await renameBattleDb('a', 'b1', 'Maya vs Theo');
+    expect((await loadBattles('a', NOW))[0].name).toBe('Maya vs Theo');
+    await deleteBattle('a', 'b1');
+    expect(await loadBattles('a', NOW)).toHaveLength(0);
+  });
+
+  it('clearAccount wipes battles alongside results', async () => {
+    await putResult('u1', res('r1', '2026-06-14T00:00:00Z'));
+    await putBattle('u1', bat('b1', '2026-06-14T00:00:00Z'));
+    await clearAccount('u1');
+    expect((await loadAccount('u1', NOW)).results).toHaveLength(0);
+    expect(await loadBattles('u1', NOW)).toHaveLength(0);
   });
 });

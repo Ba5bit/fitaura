@@ -58,3 +58,49 @@ export interface BattleVerdict {
  * Scores are rounded integers, so a band of 1 means "0 or 1 apart = tie".
  */
 export const TIE_BAND = 1;
+
+/* ─── Real AI verdict (replaces the seeded placeholder) ─────────────────────
+ * The model returns scores PLUS comparative copy in one call. `computeBattle`
+ * over the scored `Metric[]` stays the single source of truth for who wins;
+ * the copy below only dresses the math (see `assemble.ts`).
+ */
+
+/** A side's two copy lines for one modality — the flex and the burn. */
+export interface SideCopy {
+  /** The flex — the thing this side wins on. */
+  superpower: string;
+  /** The burn — the savage one-liner about this side. */
+  roast: string;
+}
+
+/** One AI-invented "Who's more likely to ___" verdict crowned to a side. */
+export interface Superlative {
+  /** AI-invented, e.g. "Most likely to get a free drink". */
+  label: string;
+  /** Which side it crowns. */
+  winner: Side;
+  /** Exactly one true → the tap-to-reveal wildcard. */
+  locked: boolean;
+}
+
+/** The comparative roast payload the AI returns alongside the scores. */
+export interface VersusCopy {
+  /** Headline punchline — reconciled to the computed winner (see assemble §5.3). */
+  crown: { winner: BattleWinner; line: string };
+  /** One line about the biggest-gap metric. */
+  decisiveRead: string;
+  /** Per-side, per-modality copy; a category is null when inactive for the mode. */
+  sides: Record<Side, { face: SideCopy | null; fit: SideCopy | null }>;
+  /** ~3 comparative superlatives, exactly one locked. */
+  superlatives: Superlative[];
+}
+
+/** The stored verdict the result deck renders. */
+export interface VersusResult {
+  mode: VersusMode;
+  /** Present when the mode includes face. */
+  face: Metric[] | null;
+  /** Present when the mode includes fit. */
+  fit: Metric[] | null;
+  copy: VersusCopy;
+}

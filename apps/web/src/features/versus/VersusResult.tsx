@@ -10,13 +10,24 @@ import {
   type BattleVerdict,
   type BattleWinner,
   type CategoryRead,
+  type Metric,
   type MetricGroupResult,
   type Side,
+  type SideCopy,
+  type VersusCopy,
 } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
 import { renderCardBlob, downloadResult, shareResult } from '../../lib/exportCard';
 import { battleNames, useBattle, type Battle } from '../../state/battle';
-import { Crown, CrownAvatar, CrownGlyph, FlagChip, SplitBar, VersusMedallion } from './components/versusBits';
+import {
+  Crown,
+  CrownAvatar,
+  CrownGlyph,
+  FlagChip,
+  SplitBar,
+  SuperlativesRow,
+  VersusMedallion,
+} from './components/versusBits';
 import '../../design/result-shell.css';
 import '../../design/versus.css';
 
@@ -47,12 +58,15 @@ function Column({
   name,
   photo,
   group,
+  copy,
 }: {
   side: Side;
   category: 'face' | 'fit';
   name: string;
   photo?: string;
   group: MetricGroupResult;
+  /** AI flex + burn for this side/category, or null on the dev fallback. */
+  copy?: SideCopy | null;
 }) {
   const score = side === 'a' ? group.avgA : group.avgB;
   const crowned = group.winner === side;
@@ -86,6 +100,12 @@ function Column({
           <FlagChip key={m.key}>{m.label}</FlagChip>
         ))}
       </div>
+      {copy && (
+        <div className="vs-sidecopy">
+          <p className="super">{copy.superpower}</p>
+          <p className="roast">{copy.roast}</p>
+        </div>
+      )}
       <div className="vs-reads">
         <div className="h">Top reads</div>
         {top.map((m) => {
@@ -124,17 +144,22 @@ function ComparisonTab({
   group,
   names,
   battle,
+  copy,
 }: {
   category: 'face' | 'fit';
   group: MetricGroupResult;
   names: { a: string; b: string };
   battle: Battle;
+  /** AI copy, or null on the dev fallback (superpowers/roasts hidden then). */
+  copy?: VersusCopy | null;
 }) {
   const who = whoLabel(group.winner, names);
   const title = category === 'face' ? 'Face winner' : 'Drip winner';
   const photoA = category === 'face' ? battle.imgs.aFace : battle.imgs.aFit;
   const photoB = category === 'face' ? battle.imgs.bFace : battle.imgs.bFit;
   const bannerColor = group.winner === 'a' ? 'var(--icy)' : group.winner === 'b' ? 'var(--gold)' : undefined;
+  const copyA = copy ? copy.sides.a[category] : null;
+  const copyB = copy ? copy.sides.b[category] : null;
 
   return (
     <div className="vs-deckpanel">
@@ -148,7 +173,7 @@ function ComparisonTab({
       </div>
 
       <div className="vs-deck">
-        <Column side="a" category={category} name={names.a} photo={photoA} group={group} />
+        <Column side="a" category={category} name={names.a} photo={photoA} group={group} copy={copyA} />
         <div className="vs-center">
           <div className="vstitle">VS</div>
           <div className="h2h">Head-to-head</div>
@@ -158,7 +183,7 @@ function ComparisonTab({
             ))}
           </div>
         </div>
-        <Column side="b" category={category} name={names.b} photo={photoB} group={group} />
+        <Column side="b" category={category} name={names.b} photo={photoB} group={group} copy={copyB} />
       </div>
     </div>
   );
@@ -190,6 +215,7 @@ function BattleCard({
   names,
   verdict,
   summary,
+  copy,
   cardRef,
 }: {
   variant: CardVariant;
@@ -197,6 +223,8 @@ function BattleCard({
   names: { a: string; b: string };
   verdict: BattleVerdict;
   summary: BattleSummary;
+  /** AI copy, or null on the dev fallback. */
+  copy?: VersusCopy | null;
   cardRef?: Ref<HTMLDivElement>;
 }) {
   const split = variant === 'face' ? 'h' : 'v';
@@ -209,7 +237,11 @@ function BattleCard({
   const kind = variant === 'face' ? 'Face · VS · 01' : variant === 'fit' ? 'Fit · VS · 02' : 'Overall · VS · 03';
   const who = whoLabel(winner, names);
   const where = variant === 'overall' ? 'across the board' : variant === 'face' ? 'on the face-off' : 'on the fit';
-  const tagline = winner === 'tie' ? 'Too close to call — a dead heat.' : `${who} takes the crown ${where}.`;
+  const fallbackTag = winner === 'tie' ? 'Too close to call — a dead heat.' : `${who} takes the crown ${where}.`;
+  // The overall card carries the AI crown punchline; per-category cards keep the templated line.
+  const tagline = variant === 'overall' && copy?.crown.line ? copy.crown.line : fallbackTag;
+  // Surface the first non-locked superlative on the overall card (the lock is interactive, so it stays off the static card).
+  const topSuperlative = variant === 'overall' ? copy?.superlatives.find((s) => !s.locked) ?? null : null;
 
   return (
     <div className="vs-card" ref={cardRef}>
@@ -244,6 +276,13 @@ function BattleCard({
         <div className="wl">{winner === 'tie' ? 'Dead heat' : 'Overall winner'}</div>
         <div className="wn">{winner === 'tie' ? 'Dead heat' : who}</div>
         <div className="tag">{tagline}</div>
+        {topSuperlative && (
+          <div className="csuper" data-side={topSuperlative.winner}>
+            <CrownGlyph size={11} />
+            <span className="l">{topSuperlative.label}</span>
+            <b>{topSuperlative.winner === 'a' ? names.a : names.b}</b>
+          </div>
+        )}
         {variant === 'overall' && verdict.face && verdict.fit && (
           <div className="boxes">
             <div className="box">
@@ -330,11 +369,14 @@ function VerdictTab({
   battle,
   names,
   verdict,
+  copy,
   onRematch,
 }: {
   battle: Battle;
   names: { a: string; b: string };
   verdict: BattleVerdict;
+  /** AI copy, or null on the dev fallback (punchline/decisiveRead/superlatives hidden then). */
+  copy?: VersusCopy | null;
   onRematch: () => void;
 }) {
   const summary = useMemo(() => summarizeBattle(verdict), [verdict]);
@@ -351,7 +393,7 @@ function VerdictTab({
   const metricsWon = overall.winner === 'a' ? summary.metricsWonA : summary.metricsWonB;
   const catLabel = summary.categoryCount === 2 ? 'Face · Outfit' : battle.mode === 'face' ? 'Face' : 'Outfit';
 
-  const copy =
+  const breakdownCopy =
     overall.winner === 'tie'
       ? `${names.a} and ${names.b} are neck and neck — the scores land in a dead heat.`
       : `${who} edges ${otherName} by ${summary.marginPts} point${summary.marginPts === 1 ? '' : 's'}, taking ${catsWon} of ${summary.categoryCount} categor${summary.categoryCount === 1 ? 'y' : 'ies'} and ${metricsWon} of ${summary.metricsTotal} metrics.${summary.marginPts <= 4 ? ' Close enough that a restyle could flip it.' : ''}`;
@@ -396,7 +438,7 @@ function VerdictTab({
               <Icon.chevronLeft />
             </button>
           )}
-          <BattleCard variant={cards[idx]} battle={battle} names={names} verdict={verdict} summary={summary} cardRef={cardRef} />
+          <BattleCard variant={cards[idx]} battle={battle} names={names} verdict={verdict} summary={summary} copy={copy} cardRef={cardRef} />
           {cards.length > 1 && (
             <button className="vs-stack-nav" aria-label="Next card" onClick={() => setIdx((i) => (i + 1) % cards.length)}>
               <Icon.chevronRight />
@@ -422,6 +464,7 @@ function VerdictTab({
           <h2>{overall.winner === 'tie' ? 'Dead heat' : who}</h2>
           <span className="vs-margin-pill">{summary.marginLabel}</span>
         </div>
+        {copy?.crown.line && <p className="vs-punchline">{copy.crown.line}</p>}
         <div className="vs-scoreline">
           <div className="s a">
             <span className="nm">{names.a}</span>
@@ -458,12 +501,14 @@ function VerdictTab({
           </div>
         </div>
 
-        <p className="copy">{copy}</p>
+        <p className="copy">{copy?.decisiveRead || breakdownCopy}</p>
 
         <div className="vs-catchips">
           {verdict.face && <CatChip label="Face" group={verdict.face} overallWinner={overall.winner} names={names} />}
           {verdict.fit && <CatChip label="Outfit" group={verdict.fit} overallWinner={overall.winner} names={names} />}
         </div>
+
+        {copy && <SuperlativesRow items={copy.superlatives} names={names} />}
 
         {summary.topReads.length > 0 && (
           <>
@@ -492,15 +537,28 @@ function VerdictTab({
 /** Step 3 — the head-to-head result deck (v2). */
 export function VersusResult() {
   const navigate = useNavigate();
-  const { battle, hydrated, clear } = useBattle();
+  const { battle, result, hydrated, clear } = useBattle();
 
   const names = battleNames(battle);
+  // The AI copy when a stored verdict exists; null on the dev fallback (refresh
+  // straight onto /versus/result), which hides the AI-only bits rather than crash.
+  const copy = result?.copy ?? null;
   const verdict = useMemo<BattleVerdict | null>(() => {
     if (!battle) return null;
-    const seed = `${names.a}|${names.b}`;
-    const { face, fit } = generateMetrics(seed);
+    // Prefer the stored AI metrics; fall back to the deterministic seed in dev.
+    let face: Metric[] | undefined;
+    let fit: Metric[] | undefined;
+    if (result) {
+      face = result.face ?? undefined;
+      fit = result.fit ?? undefined;
+    } else {
+      const seed = `${names.a}|${names.b}`;
+      const seeded = generateMetrics(seed);
+      face = seeded.face;
+      fit = seeded.fit;
+    }
     return computeBattle({ mode: battle.mode, face, fit });
-  }, [battle, names.a, names.b]);
+  }, [battle, result, names.a, names.b]);
 
   const tabs: Tab[] = useMemo(() => {
     if (!battle) return [];
@@ -583,12 +641,14 @@ export function VersusResult() {
 
       <main className="vs-wrap" style={{ padding: '14px 24px 18px' }}>
         {activeTab === 'face' && verdict.face && (
-          <ComparisonTab category="face" group={verdict.face} names={names} battle={battle} />
+          <ComparisonTab category="face" group={verdict.face} names={names} battle={battle} copy={copy} />
         )}
         {activeTab === 'outfit' && verdict.fit && (
-          <ComparisonTab category="fit" group={verdict.fit} names={names} battle={battle} />
+          <ComparisonTab category="fit" group={verdict.fit} names={names} battle={battle} copy={copy} />
         )}
-        {activeTab === 'verdict' && <VerdictTab battle={battle} names={names} verdict={verdict} onRematch={rematch} />}
+        {activeTab === 'verdict' && (
+          <VerdictTab battle={battle} names={names} verdict={verdict} copy={copy} onRematch={rematch} />
+        )}
       </main>
     </div>
   );

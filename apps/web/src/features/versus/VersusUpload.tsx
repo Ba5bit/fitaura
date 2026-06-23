@@ -12,6 +12,11 @@ import '../../design/versus.css';
 
 const NAME_MAX = 14;
 
+// Face keeps Solo's default size (no override). Only the outfit is resized for the
+// wider Versus cards: wider than Solo, a touch shorter, then −10% overall. Aspect
+// change is safe — UploadZone re-derives the bake `out` to match.
+const VS_FIT_FRAME = { w: 280, h: 316 }; // 230 ×1.35 ×0.9 wide · 306 ×1.35 ×0.85 ×0.9 tall
+
 /** Which image slots a mode requires. */
 function requiredSlots(mode: VersusMode): (keyof BattleImages)[] {
   const needFace = mode === 'face' || mode === 'both';
@@ -73,6 +78,7 @@ function ContenderCard({
           <UploadZone
             kind="outfit"
             mobile={mobile}
+            frame={mobile ? undefined : VS_FIT_FRAME}
             missing={attempted && !imgs[fitSlot]}
             onConfirm={(url) => onImg(fitSlot, url)}
           />

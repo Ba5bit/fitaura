@@ -62,6 +62,10 @@ interface AccountContextValue {
   spendForScan: () => Promise<boolean>;
   /** Give back what spendForScan took, when a scan ultimately fails. */
   refundScan: () => Promise<void>;
+  /** Spend for one Friend-vs-Friend battle: signed-in only, costs 2 credits. Returns ok. */
+  spendForBattle: () => Promise<boolean>;
+  /** Give back what spendForBattle took (2), when a battle ultimately fails. */
+  refundBattle: () => Promise<void>;
 
   scene: Scene;
   authStatus: AuthStatus;
@@ -397,6 +401,19 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     setCredits(next);
   }, [signedIn, userId]);
 
+  const spendForBattle = useCallback<AccountContextValue['spendForBattle']>(async () => {
+    if (!signedIn || !userId) return false;
+    const res = await spendCredit(userId, 2);
+    setCredits(res.balance);
+    return res.ok;
+  }, [signedIn, userId]);
+
+  const refundBattle = useCallback<AccountContextValue['refundBattle']>(async () => {
+    if (!signedIn || !userId) return;
+    const next = await refundCredit(userId, 2);
+    setCredits(next);
+  }, [signedIn, userId]);
+
   const startCheckout = useCallback(
     (packId?: string) => {
       if (packId) setPack(packId);
@@ -453,6 +470,8 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       canScan,
       spendForScan,
       refundScan,
+      spendForBattle,
+      refundBattle,
       scene,
       authStatus,
       authError,
@@ -486,7 +505,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       openMissing,
     }),
     [
-      signedIn, userId, user, credits, canScan, spendForScan, refundScan, scene, authStatus, authError,
+      signedIn, userId, user, credits, canScan, spendForScan, refundScan, spendForBattle, refundBattle, scene, authStatus, authError,
       pack, lastPurchaseCredits, missingId, toast, pendingEmail, confirmKind, resendCooldown,
       resendConfirmation, requestPasswordReset, flash, closeScene, openAuth, authInitialMode, signUp, logIn,
       signInWithGoogle, requestLogout, confirmLogout, openChangePassword, requestDeleteAccount, confirmDeleteAccount,

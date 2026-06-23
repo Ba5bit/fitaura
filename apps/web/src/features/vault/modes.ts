@@ -32,8 +32,8 @@ export const SCAN_MODES: ScanMode[] = [
   {
     id: 'friend',
     name: 'Friend vs Friend',
-    tag: 'Coming soon',
-    status: 'locked',
+    tag: 'Available',
+    status: 'live',
     icon: 'users',
     blurb:
       "Put two people side by side. Who has more aura, the better fit, and who's more likely to ghost. A head-to-head verdict card.",

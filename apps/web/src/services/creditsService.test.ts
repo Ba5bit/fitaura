@@ -14,7 +14,7 @@ const { single, eqUpdate, update, from } = vi.hoisted(() => {
 
 vi.mock('../lib/supabase', () => ({ supabase: { from } }));
 
-import { getBalance, spendCredit, grantCredits, hasUsedFreeScan, markFreeScanUsed, FREE_SCAN_KEY } from './creditsService';
+import { getBalance, spendCredit, grantCredits, refundCredit, hasUsedFreeScan, markFreeScanUsed, FREE_SCAN_KEY } from './creditsService';
 
 beforeEach(() => {
   single.mockReset();
@@ -50,6 +50,21 @@ describe('spendCredit', () => {
     expect(res).toEqual({ ok: false, balance: 0 });
     expect(update).not.toHaveBeenCalled();
   });
+
+  it('spends the given amount when the balance covers it', async () => {
+    single.mockResolvedValue({ data: { credits: 3 }, error: null });
+    eqUpdate.mockResolvedValue({ error: null });
+    const res = await spendCredit('u1', 2);
+    expect(update).toHaveBeenCalledWith({ credits: 1 });
+    expect(res).toEqual({ ok: true, balance: 1 });
+  });
+
+  it('refuses when the balance is short of the amount', async () => {
+    single.mockResolvedValue({ data: { credits: 1 }, error: null });
+    const res = await spendCredit('u1', 2);
+    expect(res).toEqual({ ok: false, balance: 1 });
+    expect(update).not.toHaveBeenCalled();
+  });
 });
 
 describe('grantCredits', () => {
@@ -57,6 +72,16 @@ describe('grantCredits', () => {
     single.mockResolvedValue({ data: { credits: 1 }, error: null });
     eqUpdate.mockResolvedValue({ error: null });
     const res = await grantCredits('u1', 5);
+    expect(update).toHaveBeenCalledWith({ credits: 6 });
+    expect(res).toBe(6);
+  });
+});
+
+describe('refundCredit', () => {
+  it('grants the given amount back to the current balance', async () => {
+    single.mockResolvedValue({ data: { credits: 4 }, error: null });
+    eqUpdate.mockResolvedValue({ error: null });
+    const res = await refundCredit('u1', 2);
     expect(update).toHaveBeenCalledWith({ credits: 6 });
     expect(res).toBe(6);
   });
