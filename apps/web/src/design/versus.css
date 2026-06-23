@@ -79,7 +79,7 @@
   font-family: "Anton", sans-serif; font-size: 17px; color: var(--c);
   border: 1px solid color-mix(in oklab, var(--c) 45%, var(--hair)); background: color-mix(in oklab, var(--c) 12%, transparent); }
 .vs-name { flex: 1; min-width: 0; background: transparent; border: 0; border-bottom: 1.5px solid color-mix(in oklab, var(--c) 40%, var(--hair));
-  color: #fff; font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 16px; padding: 4px 2px; }
+  color: #fff; font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 16px; padding: 4px 2px; }
 .vs-name:focus { outline: none; border-bottom-color: var(--c); }
 .vs-name::placeholder { color: var(--ink-faint); }
 
@@ -111,16 +111,18 @@
   text-shadow: 0 0 20px rgba(255,255,255,0.45); }
 .vs-medal.sm .vs { font-size: 21px; }
 
-/* ============================ DUAL-GLOW CTA ============================ */
-.vs-cta { display: inline-flex; align-items: center; justify-content: center; gap: 11px; min-height: 52px;
-  width: 100%; padding: 0 26px; border-radius: 14px; cursor: pointer; color: #fff; font-weight: 800; font-size: 16px;
-  border: 1px solid rgba(255,255,255,0.3);
-  background: linear-gradient(92deg, color-mix(in oklab, var(--icy) 30%, transparent), color-mix(in oklab, var(--magenta) 30%, transparent));
-  box-shadow: -14px 0 40px -22px var(--icy), 14px 0 40px -22px var(--magenta), inset 0 1px 0 rgba(255,255,255,0.12);
-  transition: filter .2s ease, transform .1s ease; }
-.vs-cta:hover:not(:disabled) { filter: brightness(1.08); }
-.vs-cta:active:not(:disabled) { transform: translateY(1px); }
-.vs-cta:disabled { opacity: .45; cursor: not-allowed; }
+/* ============================ PRIMARY CTA ============================ */
+/* Mirrors Solo's .cta.go: accent text on a subtle fill (not white-on-gradient),
+   so it reads calm like the Solo Scan button rather than heavy/loud. --accent is
+   icy on page chrome; the dual-tone identity lives in the A/B content, not here. */
+.vs-cta { display: inline-flex; align-items: center; justify-content: center; gap: 11px; min-height: 54px;
+  width: 100%; padding: 0 24px; border-radius: 13px; cursor: pointer; transition: .2s;
+  font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 16px; letter-spacing: 0.01em;
+  color: var(--accent); border: 1px solid color-mix(in oklab, var(--accent) 65%, transparent);
+  background: color-mix(in oklab, var(--accent) 16%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 22%, transparent), 0 16px 40px -22px var(--accent); }
+.vs-cta:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 22%, transparent); transform: translateY(-1px); }
+.vs-cta:disabled { opacity: .5; cursor: not-allowed; }
 .vs-cta svg { width: 18px; height: 18px; }
 
 /* ============================ FOOTER ============================ */
@@ -201,9 +203,9 @@
 
 .vs-deck { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: clamp(14px, 3vw, 40px); align-items: start; margin-top: 24px; }
 .vs-col { text-align: center; }
-.vs-col .nm { font-weight: 800; font-size: 19px; color: #fff; margin-top: 16px; }
+.vs-col .nm { font-weight: 700; font-size: 19px; color: #fff; margin-top: 16px; }
 .vs-col .score { font-family: "Anton", sans-serif; font-size: 52px; line-height: .9; color: var(--c); margin-top: 2px; }
-.vs-col .score small { font-family: "Hanken Grotesk", sans-serif; font-size: 15px; color: var(--ink-faint); font-weight: 800; margin-left: 4px; }
+.vs-col .score small { font-family: "Hanken Grotesk", sans-serif; font-size: 15px; color: var(--ink-faint); font-weight: 700; margin-left: 4px; }
 .vs-col .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 14px; }
 
 /* top reads — left col normal, right col (data-side=b) renders mirrored in the markup */
@@ -351,7 +353,7 @@
 .vs-statcard { border: 1px solid var(--hair-soft); border-radius: 12px; background: var(--panel); padding: 12px 13px; }
 .vs-statcard .k { font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
 .vs-statcard .v { font-family: "Anton", sans-serif; font-size: 24px; color: #fff; margin-top: 6px; line-height: 1; }
-.vs-statcard .v small { font-family: "Hanken Grotesk", sans-serif; font-size: 12px; color: var(--ink-faint); font-weight: 800; }
+.vs-statcard .v small { font-family: "Hanken Grotesk", sans-serif; font-size: 12px; color: var(--ink-faint); font-weight: 700; }
 .vs-statcard .s { font-family: "Space Mono", monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin-top: 5px; }
 
 .vs-bd .copy { margin-top: 16px; color: var(--ink-dim); font-size: 13.5px; line-height: 1.55; }
@@ -401,7 +403,7 @@
 .vs-card .cbody .wl { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); text-align: center; }
 .vs-card .cbody .wn { font-family: "Anton", sans-serif; font-size: 32px; line-height: .92; text-transform: uppercase; color: #fff; text-align: center; margin-top: 6px; }
 .vs-card .cbody .wn.gold { color: var(--gold); }
-.vs-card .cbody .tag { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 12px; line-height: 1.3; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink); text-align: center; margin-top: 8px; }
+.vs-card .cbody .tag { font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 12px; line-height: 1.3; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink); text-align: center; margin-top: 8px; }
 .vs-card .cbody .boxes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
 .vs-card .cbody .box { border: 1px solid var(--hair-soft); border-radius: 9px; padding: 8px 4px; text-align: center; }
 .vs-card .cbody .box .bv { font-family: "Anton", sans-serif; font-size: 18px; color: #fff; line-height: 1; }
@@ -413,7 +415,7 @@
 .vs-card .cbody .cbar .l .x { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.14em; color: var(--ink-faint); }
 .vs-card .cbody .cbar .vs-track { margin-top: 5px; }
 .vs-card .cfoot { margin-top: auto; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; }
-.vs-card .cfoot .url { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); }
+.vs-card .cfoot .url { font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); }
 .vs-card .barcode { display: flex; gap: 2px; height: 22px; align-items: stretch; opacity: .8; }
 .vs-card .barcode i { width: 2px; background: var(--ink-dim); display: block; }
 /* Square the card + its pseudo for full-bleed export. */
