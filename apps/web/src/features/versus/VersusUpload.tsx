@@ -6,7 +6,7 @@ import { UploadZone } from '../upload/UploadZone';
 import { useMediaQuery } from '../../lib/useMediaQuery';
 import { useAccount } from '../account/AccountContext';
 import { useBattle, type BattleImages } from '../../state/battle';
-import { DualGlowButton, ModeSelector, VersusMedallion } from './components/versusBits';
+import { DualGlowButton, ModeSelector } from './components/versusBits';
 import '../../design/upload.css';
 import '../../design/versus.css';
 
@@ -183,7 +183,6 @@ export function VersusUpload() {
 
         <div className="vs-arena">
           <ContenderCard side="a" mode={mode} name={nameA} onName={setNameA} imgs={imgs} attempted={attempted} onImg={setImg} mobile={mobile} />
-          <VersusMedallion />
           <ContenderCard side="b" mode={mode} name={nameB} onName={setNameB} imgs={imgs} attempted={attempted} onImg={setImg} mobile={mobile} />
         </div>
       </div>

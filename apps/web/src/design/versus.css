@@ -65,7 +65,8 @@
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--icy) 30%, transparent); }
 
 /* ============================ ARENA ============================ */
-.vs-arena { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: clamp(12px, 3vw, 32px); }
+/* Two-up upload (no centre VS medallion) — compact, like Solo's two zones. */
+.vs-arena { display: grid; grid-template-columns: 1fr 1fr; align-items: start; gap: clamp(12px, 3vw, 28px); }
 
 .vs-contender { position: relative; border-radius: 16px; padding: 14px; overflow: hidden;
   border: 1px solid color-mix(in oklab, var(--c) 26%, var(--hair));
@@ -440,7 +441,6 @@
 /* ============================ RESPONSIVE ============================ */
 @media (max-width: 860px) {
   .vs-arena { grid-template-columns: 1fr; }
-  .vs-arena .vs-medal { margin: 0 auto; transform: rotate(90deg); }
   /* Stack the head-to-head: A column, center bars, B column — center reads naturally between. */
   .vs-deck { grid-template-columns: 1fr; gap: 28px; }
   .vs-verdict { grid-template-columns: 1fr; }
