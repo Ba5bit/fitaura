@@ -1,16 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Side, VersusMode } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
 import { UploadZone } from '../upload/UploadZone';
 import { useMediaQuery } from '../../lib/useMediaQuery';
+import { useAccount } from '../account/AccountContext';
 import { useBattle, type BattleImages } from '../../state/battle';
 import { DualGlowButton, ModeSelector, VersusMedallion } from './components/versusBits';
 import '../../design/upload.css';
 import '../../design/versus.css';
 
 const NAME_MAX = 14;
-const FORMATS = ['JPG', 'PNG', 'WEBP', 'HEIC'];
 
 /** Which image slots a mode requires. */
 function requiredSlots(mode: VersusMode): (keyof BattleImages)[] {
@@ -27,6 +27,8 @@ function ContenderCard({
   mode,
   name,
   onName,
+  imgs,
+  attempted,
   onImg,
   mobile,
 }: {
@@ -34,6 +36,8 @@ function ContenderCard({
   mode: VersusMode;
   name: string;
   onName: (v: string) => void;
+  imgs: BattleImages;
+  attempted: boolean;
   onImg: (slot: keyof BattleImages, url: string | null) => void;
   mobile: boolean;
 }) {
@@ -61,6 +65,7 @@ function ContenderCard({
           <UploadZone
             kind="face"
             mobile={mobile}
+            missing={attempted && !imgs[faceSlot]}
             onConfirm={(url) => onImg(faceSlot, url)}
           />
         )}
@@ -68,6 +73,7 @@ function ContenderCard({
           <UploadZone
             kind="outfit"
             mobile={mobile}
+            missing={attempted && !imgs[fitSlot]}
             onConfirm={(url) => onImg(fitSlot, url)}
           />
         )}
@@ -80,12 +86,27 @@ function ContenderCard({
 export function VersusUpload() {
   const navigate = useNavigate();
   const { commit } = useBattle();
+  const { signedIn, credits } = useAccount();
   const mobile = useMediaQuery('(max-width: 760px)');
 
   const [mode, setMode] = useState<VersusMode>('both');
   const [nameA, setNameA] = useState('');
   const [nameB, setNameB] = useState('');
   const [imgs, setImgs] = useState<BattleImages>({});
+  const [attempted, setAttempted] = useState(false);
+
+  // Fixed action bar (mirrors Solo Upload): measure its height so the scroll
+  // content reserves exactly that much room and the CTA is always reachable.
+  const footRef = useRef<HTMLDivElement>(null);
+  const [footH, setFootH] = useState(0);
+  useEffect(() => {
+    const el = footRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setFootH(el.offsetHeight));
+    ro.observe(el);
+    setFootH(el.offsetHeight);
+    return () => ro.disconnect();
+  }, []);
 
   const setImg = (slot: keyof BattleImages, url: string | null) =>
     setImgs((prev) => {
@@ -99,22 +120,31 @@ export function VersusUpload() {
   const filled = required.filter((k) => imgs[k]);
   const allReady = required.length > 0 && filled.length === required.length;
 
+  const sideReady = (side: Side) => required.filter((s) => s.startsWith(side)).every((s) => imgs[s]);
+  const aReady = sideReady('a');
+  const bReady = sideReady('b');
+
   const ctaLabel = allReady
     ? 'Compare & crown a winner'
     : `Add photos — ${filled.length}/${required.length} in`;
 
   function launch() {
-    if (!allReady) return;
-    // Only keep the images relevant to the chosen mode.
+    if (!allReady) {
+      setAttempted(true);
+      return;
+    }
     const kept: BattleImages = {};
     for (const k of required) kept[k] = imgs[k];
     commit({ mode, nameA: nameA.trim(), nameB: nameB.trim(), imgs: kept });
     navigate('/versus/run');
   }
 
+  const labelA = nameA.trim() || 'Player A';
+  const labelB = nameB.trim() || 'Player B';
+
   return (
     <div className="vs-page">
-      <div className="vs-wrap">
+      <div className="vs-wrap" style={{ paddingBottom: footH ? footH + 16 : undefined }}>
         <div className="vs-top">
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <Link className="vs-brand" to="/" aria-label="Fitaura home">
@@ -125,13 +155,21 @@ export function VersusUpload() {
               <Icon.back /> Vault
             </Link>
           </div>
-          <span className="vs-pill">
-            <Icon.users /> Friend vs Friend
-          </span>
+          {signedIn ? (
+            <span className="status-chip credits">
+              <Icon.credit />
+              <b>{credits}</b>&nbsp;credits
+            </span>
+          ) : (
+            <span className="status-chip free">
+              <span className="d" />
+              First battle free
+            </span>
+          )}
         </div>
 
         <div className="vs-title">
-          <div className="step">Step 01 / 03 — Upload</div>
+          <div className="step">Friend vs Friend · Step 01 / 03</div>
           <h1>
             Two friends, <span className="vs-grad">head to head</span>
           </h1>
@@ -144,26 +182,50 @@ export function VersusUpload() {
         <ModeSelector mode={mode} onChange={setMode} />
 
         <div className="vs-arena">
-          <ContenderCard side="a" mode={mode} name={nameA} onName={setNameA} onImg={setImg} mobile={mobile} />
+          <ContenderCard side="a" mode={mode} name={nameA} onName={setNameA} imgs={imgs} attempted={attempted} onImg={setImg} mobile={mobile} />
           <VersusMedallion />
-          <ContenderCard side="b" mode={mode} name={nameB} onName={setNameB} onImg={setImg} mobile={mobile} />
+          <ContenderCard side="b" mode={mode} name={nameB} onName={setNameB} imgs={imgs} attempted={attempted} onImg={setImg} mobile={mobile} />
         </div>
+      </div>
 
-        <div className="vs-foot">
-          <div className="cta-wrap">
-            <DualGlowButton onClick={launch} disabled={!allReady}>
+      {/* Fixed action bar — same structure/classes as Solo Upload. */}
+      <div className="ua-foot" ref={footRef}>
+        <div className="ua-foot-inner">
+          <div className="review-row">
+            <span className={'rchip ' + (aReady ? 'done' : attempted ? 'miss' : '')}>
+              {aReady ? <Icon.check /> : <Icon.user />} {labelA} {aReady ? 'ready' : 'needed'}
+            </span>
+            <span className={'rchip ' + (bReady ? 'done' : attempted ? 'miss' : '')}>
+              {bReady ? <Icon.check /> : <Icon.user />} {labelB} {bReady ? 'ready' : 'needed'}
+            </span>
+          </div>
+
+          {attempted && !allReady && (
+            <div className="val-banner">
+              <Icon.alert />
+              <span className="vt">
+                <b>Add the missing photos</b> for both contenders to start the battle.
+              </span>
+            </div>
+          )}
+
+          <div className="cta-block">
+            <DualGlowButton onClick={launch}>
               <Icon.bolt /> {ctaLabel}
             </DualGlowButton>
-          </div>
-          <div className="vs-chips">
-            {FORMATS.map((f) => (
-              <span key={f} className="vs-fmt">
-                {f}
+            <div className="cta-meta">
+              <span className="free">
+                <Icon.spark /> Dev preview · free, placeholder verdict
               </span>
-            ))}
+              <span>~8 sec</span>
+            </div>
+            {!allReady && !attempted && (
+              <div className="cta-hint">Drop a face and/or fit for both A and B to crown a winner.</div>
+            )}
           </div>
-          <div className="vs-trust">
-            <Icon.shield /> Analyzed in-session · nothing stored
+
+          <div className="ua-trust">
+            <Icon.shield /> Photos are analyzed in-session only · never permanently stored on our servers
           </div>
         </div>
       </div>

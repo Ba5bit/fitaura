@@ -279,12 +279,7 @@
 .vs-panel .scores .vs-x { color: var(--ink-faint); font-family: "Space Mono", monospace; }
 .vs-panel .copy { margin-top: 16px; color: var(--ink-dim); font-size: 14px; line-height: 1.55; }
 .vs-panel .reads { margin-top: 18px; display: flex; flex-direction: column; gap: 14px; }
-.vs-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
-.vs-btn { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 46px; padding: 0 18px;
-  border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 14px; border: 1px solid var(--hair);
-  background: var(--panel); color: var(--ink); transition: .2s; }
-.vs-btn:hover { border-color: color-mix(in oklab, var(--icy) 55%, var(--hair)); }
-.vs-btn svg { width: 16px; height: 16px; }
+/* Result actions reuse Solo's .toolbar + .ctrl (fitaura.css) for consistency. */
 
 /* ============================ SHARE / EXPORT CARD ============================ */
 .vs-card { position: relative; width: 360px; height: 640px; border-radius: 26px; overflow: hidden;

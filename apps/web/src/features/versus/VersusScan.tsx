@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Side } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
 import { battleNames, useBattle } from '../../state/battle';
@@ -75,8 +75,12 @@ export function VersusScan() {
   return (
     <div className="vs-page">
       <div className="vs-wrap">
-        <div className="vs-title" style={{ marginBottom: 8 }}>
-          <div className="step">Step 02 / 03 — Versus scan</div>
+        <div className="vs-top">
+          <Link className="vs-brand" to="/" aria-label="Fitaura home">
+            <span className="dot" />
+            <span className="wm">Fitaura</span>
+          </Link>
+          <span className="vs-eyebrow">Friend vs Friend · Step 02 / 03</span>
         </div>
 
         <div className="vs-scan vs-c" data-side={side}>

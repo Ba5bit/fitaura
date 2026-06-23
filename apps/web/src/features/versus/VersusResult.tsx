@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState, type Ref } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type Ref } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   computeBattle,
   generateMetrics,
@@ -11,7 +11,7 @@ import {
   type Side,
 } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
-import { renderCardBlob, downloadResult } from '../../lib/exportCard';
+import { renderCardBlob, downloadResult, shareResult } from '../../lib/exportCard';
 import { battleNames, useBattle, type Battle } from '../../state/battle';
 import { CrownAvatar, FlagChip, SplitBar, VersusMedallion } from './components/versusBits';
 import '../../design/versus.css';
@@ -224,20 +224,37 @@ function VerdictTab({
     return [...all].sort((m1, m2) => Math.abs(m2.a - m2.b) - Math.abs(m1.a - m1.b)).slice(0, 4);
   }, [verdict]);
 
+  async function buildCard() {
+    if (!cardRef.current) return null;
+    const out = await renderCardBlob({
+      el: cardRef.current,
+      kind: 'face',
+      verdict: 'green_flag',
+      accentHex: ACCENT_HEX[overall.winner],
+    });
+    out.filename = `fitaura-versus-${cards[idx]}.png`;
+    return out;
+  }
   async function download() {
-    if (!cardRef.current || busy) return;
+    if (busy) return;
     setBusy(true);
     try {
-      const out = await renderCardBlob({
-        el: cardRef.current,
-        kind: 'face',
-        verdict: 'green_flag',
-        accentHex: ACCENT_HEX[overall.winner],
-      });
-      out.filename = `fitaura-versus-${cards[idx]}.png`;
-      downloadResult(out);
+      const out = await buildCard();
+      if (out) downloadResult(out);
     } catch {
       /* export failed — leave the card on screen */
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function share() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const out = await buildCard();
+      if (out) await shareResult(out);
+    } catch {
+      /* share/export failed — leave the card on screen */
     } finally {
       setBusy(false);
     }
@@ -259,9 +276,12 @@ function VerdictTab({
             ))}
           </div>
         )}
-        <div className="vs-actions" style={{ justifyContent: 'center' }}>
-          <button className="vs-btn" onClick={download} disabled={busy}>
-            <Icon.download /> {busy ? 'Rendering…' : 'Download card'}
+        <div className="toolbar" style={{ paddingBottom: 0 }}>
+          <button className="ctrl primary" onClick={download} disabled={busy}>
+            <Icon.download /> {busy ? 'Rendering…' : 'Download'}
+          </button>
+          <button className="ctrl" onClick={share} disabled={busy}>
+            <Icon.share /> Share
           </button>
         </div>
       </div>
@@ -311,16 +331,21 @@ export function VersusResult() {
   const [tab, setTab] = useState<Tab>('face');
   const activeTab = tabs.includes(tab) ? tab : tabs[0];
 
-  if (hydrated && !battle) {
-    navigate('/versus', { replace: true });
-    return <div className="vs-page" />;
-  }
+  // Redirect in an effect (never during render) when there's no battle to show.
+  useEffect(() => {
+    if (hydrated && !battle) navigate('/versus', { replace: true });
+  }, [hydrated, battle, navigate]);
+
   if (!battle || !verdict) return <div className="vs-page" />;
 
   function rematch() {
     clear();
     navigate('/versus');
   }
+
+  const oWho = whoLabel(verdict.winner, names);
+  const verdictColor =
+    verdict.winner === 'a' ? 'var(--icy)' : verdict.winner === 'b' ? 'var(--magenta)' : 'var(--gold)';
 
   const TAB_LABEL: Record<Tab, { n: string; t: string }> = {
     face: { n: '01', t: 'Face' },
@@ -332,10 +357,22 @@ export function VersusResult() {
     <div className="vs-page">
       <div className="vs-wrap">
         <div className="vs-top">
-          <span className="vs-eyebrow">Step 03 / 03 — Verdict</span>
-          <button className="vs-btn" onClick={rematch}>
-            <Icon.refresh /> New battle
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <Link className="vs-brand" to="/" aria-label="Fitaura home">
+              <span className="dot" />
+              <span className="wm">Fitaura</span>
+            </Link>
+            <span className="vs-eyebrow">Friend vs Friend · Step 03 / 03</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span className="verdict-chip" style={{ ['--verdict']: verdictColor } as CSSProperties}>
+              <span className="pulse" />
+              {verdict.winner === 'tie' ? 'Dead heat' : `${oWho} wins`}
+            </span>
+            <button className="ctrl" onClick={rematch}>
+              <Icon.refresh /> New battle
+            </button>
+          </div>
         </div>
 
         <div className="vs-tabs" role="tablist" aria-label="Result sections">
@@ -373,8 +410,8 @@ export function VersusResult() {
         )}
         {activeTab === 'verdict' && <VerdictTab battle={battle} names={names} verdict={verdict} />}
 
-        <div className="vs-actions" style={{ justifyContent: 'center', marginTop: 30 }}>
-          <button className="vs-btn" onClick={rematch}>
+        <div className="toolbar">
+          <button className="ctrl" onClick={rematch}>
             <Icon.refresh /> Rematch
           </button>
         </div>
