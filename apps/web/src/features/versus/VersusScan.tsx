@@ -12,7 +12,7 @@ import '../../design/scanner.css';
  * .scan-page wrapper) so it looks/behaves like Solo's scanner: 2-up specimen +
  * face medallion, readout with a rail checklist, header with a live chip, and a
  * full-bleed mobile layout. Themed per contender: the accent alternates icy (A)
- * ↔ magenta (B) every ~1s to keep the head-to-head identity.
+ * ↔ gold (B) every ~1s to keep the head-to-head identity.
  */
 
 interface Stage {
@@ -94,8 +94,8 @@ export function VersusScan() {
   const rm = prefersReducedMotion();
   const stageIndex = done ? STAGES.length - 1 : Math.min(STAGES.length - 1, Math.floor(progress / 20));
   const stage = STAGES[stageIndex];
-  const accent = side === 'a' ? 'var(--icy)' : 'var(--magenta)';
-  const accentInk = side === 'a' ? '#06070a' : '#fff';
+  const accent = side === 'a' ? 'var(--icy)' : 'var(--gold)';
+  const accentInk = '#06070a'; // both icy and gold are light → dark ink on accent fills
   const curName = side === 'a' ? names.a : names.b;
   const outfitSrc = side === 'a' ? battle.imgs.aFit ?? null : battle.imgs.bFit ?? null;
   const faceSrc = side === 'a' ? battle.imgs.aFace ?? null : battle.imgs.bFace ?? null;

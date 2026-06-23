@@ -4,7 +4,7 @@ import { splitPercent, type BattleWinner, type Side, type VersusMode } from '@fi
 /**
  * Small, stateless view primitives for Friend vs Friend. All contender coloring
  * flows from the `.vs-c[data-side]` wrapper (which sets `--c` and remaps
- * `--accent`), so these read `--c` rather than hardcoding icy/magenta.
+ * `--accent`), so these read `--c` rather than hardcoding the contender colours.
  */
 
 /** The bare Fitaura mountain glyph (no positioning) — for inline use in banners. */
@@ -25,7 +25,7 @@ export function Crown({ size = 34 }: { size?: number }) {
   );
 }
 
-/** Icy→magenta conic medallion that anchors the arena, scan and share cards. */
+/** VS medallion (icy | gold hard-split ring) that anchors the arena + share cards. */
 export function VersusMedallion({ small = false }: { small?: boolean }) {
   return (
     <div className={'vs-medal' + (small ? ' sm' : '')} aria-hidden="true">
@@ -36,7 +36,7 @@ export function VersusMedallion({ small = false }: { small?: boolean }) {
   );
 }
 
-/** Primary CTA — gradient split + dual (icy/magenta) shadow. */
+/** Primary CTA — Solo's calm accent-on-subtle-fill button (.vs-cta). */
 export function DualGlowButton({
   children,
   ...rest

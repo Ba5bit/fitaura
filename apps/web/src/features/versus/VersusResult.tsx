@@ -23,8 +23,9 @@ import '../../design/versus.css';
 type Tab = 'face' | 'outfit' | 'verdict';
 type CardVariant = 'face' | 'fit' | 'overall';
 
-const ACCENT_HEX: Record<BattleWinner, string> = { a: '#83b4ff', b: '#ff52a6', tie: '#ffcf66' };
-const SIDE_VAR: Record<BattleWinner, string> = { a: 'var(--icy)', b: 'var(--magenta)', tie: 'var(--gold)' };
+// A = icy blue, B = gold (Solo tokens, no pink/cyan). Tie reads neutral.
+const ACCENT_HEX: Record<BattleWinner, string> = { a: '#83b4ff', b: '#ffcf66', tie: '#83b4ff' };
+const SIDE_VAR: Record<BattleWinner, string> = { a: 'var(--icy)', b: 'var(--gold)', tie: 'var(--ink)' };
 
 const TAB_LABEL: Record<Tab, { n: string; t: string }> = {
   face: { n: '01', t: 'Face' },
@@ -133,7 +134,7 @@ function ComparisonTab({
   const title = category === 'face' ? 'Face winner' : 'Drip winner';
   const photoA = category === 'face' ? battle.imgs.aFace : battle.imgs.aFit;
   const photoB = category === 'face' ? battle.imgs.bFace : battle.imgs.bFit;
-  const bannerColor = group.winner === 'a' ? 'var(--icy)' : group.winner === 'b' ? 'var(--magenta)' : undefined;
+  const bannerColor = group.winner === 'a' ? 'var(--icy)' : group.winner === 'b' ? 'var(--gold)' : undefined;
 
   return (
     <div className="vs-deckpanel">
@@ -241,7 +242,7 @@ function BattleCard({
 
       <div className="cbody">
         <div className="wl">{winner === 'tie' ? 'Dead heat' : 'Overall winner'}</div>
-        <div className={'wn' + (winner === 'tie' ? ' gold' : '')}>{winner === 'tie' ? 'Dead heat' : who}</div>
+        <div className="wn">{winner === 'tie' ? 'Dead heat' : who}</div>
         <div className="tag">{tagline}</div>
         {variant === 'overall' && verdict.face && verdict.fit && (
           <div className="boxes">
@@ -303,7 +304,7 @@ function CatChip({
 function WonCard({ read, names }: { read: CategoryRead; names: { a: string; b: string } }) {
   const m = read.metric;
   const p = splitPercent(m.a, m.b);
-  const lc = read.leader === 'a' ? 'var(--icy)' : 'var(--magenta)';
+  const lc = read.leader === 'a' ? 'var(--icy)' : 'var(--gold)';
   const leadName = read.leader === 'a' ? names.a : names.b;
   return (
     <div className="vs-woncard" style={{ ['--lc']: lc } as CSSProperties}>
