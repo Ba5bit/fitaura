@@ -1,6 +1,7 @@
 import { lazy, Suspense, useLayoutEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GenerationProvider } from './state/generation';
+import { BattleProvider } from './state/battle';
 import { AccountProvider } from './features/account/AccountContext';
 import { AccountOverlays } from './features/account/AccountOverlays';
 import './design/account-web.css';
@@ -27,6 +28,12 @@ const UpdatePassword = lazy(() => import('./features/auth/UpdatePassword').then(
 // DEV-only: a local preview of the card skins (the AI-driven Nameplate content
 // can't be seen in dev until the edge function is deployed). Never routed in prod.
 const CardPreview = lazy(() => import('./features/dev/CardPreview').then((m) => ({ default: m.CardPreview })));
+// DEV-only: Friend vs Friend. UI-first with a deterministic placeholder verdict;
+// gated out of production until the real head-to-head analysis is wired (mirrors
+// the hidden Google sign-in + /dev/cards pattern).
+const VersusUpload = lazy(() => import('./features/versus/VersusUpload').then((m) => ({ default: m.VersusUpload })));
+const VersusScan = lazy(() => import('./features/versus/VersusScan').then((m) => ({ default: m.VersusScan })));
+const VersusResult = lazy(() => import('./features/versus/VersusResult').then((m) => ({ default: m.VersusResult })));
 
 /**
  * Reset the window scroll to the top on every route (pathname) change. React
@@ -49,6 +56,7 @@ export function App() {
   return (
     <AccountProvider>
       <GenerationProvider>
+        <BattleProvider>
         <ScrollToTop />
         <Suspense fallback={<div style={{ minHeight: '100dvh' }} aria-hidden="true" />}>
           <Routes>
@@ -67,10 +75,14 @@ export function App() {
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/auth/update-password" element={<UpdatePassword />} />
             {import.meta.env.DEV && <Route path="/dev/cards" element={<CardPreview />} />}
+            {import.meta.env.DEV && <Route path="/versus" element={<VersusUpload />} />}
+            {import.meta.env.DEV && <Route path="/versus/run" element={<VersusScan />} />}
+            {import.meta.env.DEV && <Route path="/versus/result" element={<VersusResult />} />}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
         <AccountOverlays />
+        </BattleProvider>
       </GenerationProvider>
     </AccountProvider>
   );

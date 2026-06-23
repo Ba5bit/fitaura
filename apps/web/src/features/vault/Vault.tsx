@@ -3,6 +3,7 @@ import { Icon } from '../../lib/icons';
 import { VaultNav } from './VaultNav';
 import { SoloMode } from './SoloMode';
 import { LockedMode } from './LockedMode';
+import { FriendMode } from './FriendMode';
 import { SCAN_MODES, type ScanModeId } from './modes';
 
 /** Left scan-mode selector — Solo live, the rest intentionally locked. */
@@ -62,7 +63,14 @@ export function Vault() {
         <div className="vlt-cols">
           <ModeRail mode={mode} onSelect={setMode} />
           <main>
-            {active.status === 'live' ? <SoloMode mode={active} /> : <LockedMode mode={active} />}
+            {active.id === 'friend' ? (
+              // Friend vs Friend decides dev-launcher vs locked internally.
+              <FriendMode mode={active} />
+            ) : active.status === 'live' ? (
+              <SoloMode mode={active} />
+            ) : (
+              <LockedMode mode={active} />
+            )}
           </main>
         </div>
       </div>
