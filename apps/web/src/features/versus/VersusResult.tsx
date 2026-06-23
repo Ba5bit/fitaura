@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type Ref } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   computeBattle,
   generateMetrics,
@@ -17,6 +17,7 @@ import { Icon } from '../../lib/icons';
 import { renderCardBlob, downloadResult, shareResult } from '../../lib/exportCard';
 import { battleNames, useBattle, type Battle } from '../../state/battle';
 import { Crown, CrownAvatar, CrownGlyph, FlagChip, SplitBar, VersusMedallion } from './components/versusBits';
+import '../../design/result-shell.css';
 import '../../design/versus.css';
 
 type Tab = 'face' | 'outfit' | 'verdict';
@@ -522,47 +523,64 @@ export function VersusResult() {
 
   const idx = tabs.indexOf(activeTab);
   const go = (d: number) => setTab(tabs[(idx + d + tabs.length) % tabs.length]);
+  const oWho = whoLabel(verdict.winner, names);
 
   return (
-    <div className="vs-page">
-      <div className="vs-wrap">
-        <div className="vs-top">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <Link className="vs-brand" to="/" aria-label="Fitaura home">
-              <span className="dot" />
-              <span className="wm">Fitaura</span>
-            </Link>
-            <Link to="/vault" className="vs-back">
-              <Icon.back /> Vault
-            </Link>
+    <div className="rs-app">
+      {/* Header — mirrors the Solo Scan result header (rs-* classes). */}
+      <header className="rs-header">
+        <div className="rs-h-left">
+          <button className="rs-brand" onClick={() => navigate('/')} aria-label="FITAURA, back to home" title="Back to home">
+            <span className="dot" />
+            <span className="rs-wm">FITAURA</span>
+          </button>
+          <div className="rs-divider" />
+          <div className="rs-resultlabel">
+            FRIEND VS FRIEND
+            <br />
+            VERDICT · {battle.mode.toUpperCase()}
           </div>
-          <button className="ctrl" onClick={rematch}>
-            <Icon.refresh /> New battle
+          <div className="verdict-chip" style={{ ['--verdict']: SIDE_VAR[verdict.winner], marginLeft: 6 } as CSSProperties}>
+            <span className="pulse" />
+            {verdict.winner === 'tie' ? 'Dead heat' : `${oWho} wins`}
+          </div>
+        </div>
+        <div className="rs-h-right">
+          <button className="rs-newscan" onClick={() => navigate('/vault')}>
+            <Icon.grid />
+            <span>Vault</span>
+          </button>
+          <button className="rs-newscan" onClick={rematch}>
+            <Icon.plus />
+            <span>New battle</span>
           </button>
         </div>
+      </header>
 
-        <div className="vs-tabsbar">
-          <div className="vs-tabs" role="tablist" aria-label="Result sections">
-            {tabs.map((t) => (
-              <button key={t} role="tab" aria-selected={activeTab === t} className="vs-tab" onClick={() => setTab(t)}>
-                <span className="n">{TAB_LABEL[t].n}</span>
-                {TAB_LABEL[t].t}
-              </button>
-            ))}
-          </div>
-          <div className="vs-pager">
-            <span className="ix">
-              <b>{idx + 1}</b> / {tabs.length}
-            </span>
-            <button aria-label="Previous section" onClick={() => go(-1)}>
-              <Icon.chevronLeft />
+      {/* Nav — tabs + stepper, same as Solo. */}
+      <nav className="rs-nav">
+        <div className="rs-tabs" role="tablist" aria-label="Result sections">
+          {tabs.map((t) => (
+            <button key={t} className="tab" role="tab" aria-selected={activeTab === t} onClick={() => setTab(t)}>
+              <span className="n">{TAB_LABEL[t].n}</span>
+              {TAB_LABEL[t].t.toUpperCase()}
             </button>
-            <button aria-label="Next section" onClick={() => go(1)}>
-              <Icon.chevronRight />
-            </button>
-          </div>
+          ))}
         </div>
+        <div className="rs-stepper">
+          <span className="rs-count">
+            <b>{String(idx + 1).padStart(2, '0')}</b> / {String(tabs.length).padStart(2, '0')}
+          </span>
+          <button className="rs-arrow" onClick={() => go(-1)} aria-label="Previous section">
+            <Icon.chevronLeft />
+          </button>
+          <button className="rs-arrow" onClick={() => go(1)} aria-label="Next section">
+            <Icon.chevronRight />
+          </button>
+        </div>
+      </nav>
 
+      <main className="vs-wrap" style={{ paddingTop: 22 }}>
         {activeTab === 'face' && verdict.face && (
           <ComparisonTab category="face" group={verdict.face} names={names} battle={battle} />
         )}
@@ -570,7 +588,7 @@ export function VersusResult() {
           <ComparisonTab category="fit" group={verdict.fit} names={names} battle={battle} />
         )}
         {activeTab === 'verdict' && <VerdictTab battle={battle} names={names} verdict={verdict} onRematch={rematch} />}
-      </div>
+      </main>
     </div>
   );
 }
