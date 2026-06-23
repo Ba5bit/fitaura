@@ -231,7 +231,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
       <span className="gem">
         <Icon.bolt />
       </span>
-      <b>1</b> free verdict
+      <b>3</b> free credits
     </span>
   );
 
@@ -319,7 +319,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
           </span>
           <div className="et">No verdicts yet</div>
           <div className="es">
-            Drop a photo and get your verdict. First scan's free.
+            Drop a photo and get your verdict. Start with 3 free credits.
           </div>
           <div className="outs">
             {mode.outputs.map((o) => (

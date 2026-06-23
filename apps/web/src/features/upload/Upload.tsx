@@ -82,7 +82,7 @@ export function Upload() {
             {guest ? (
               <span className="status-chip free">
                 <span className="d" />
-                First verdict free
+                3 free credits
               </span>
             ) : (
               <span className="status-chip credits">
@@ -147,7 +147,7 @@ export function Upload() {
               <div className="cta-meta">
                 {guest ? (
                   <span className="free">
-                    <Icon.spark /> First verdict's free when you sign up
+                    <Icon.spark /> 3 free credits when you sign up
                   </span>
                 ) : canScan ? (
                   <span className="cost">

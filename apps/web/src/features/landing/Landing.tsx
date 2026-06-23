@@ -109,7 +109,7 @@ function Hero() {
           <div className="ln-hero-trust">
             <span className="free-pill">
               <span className="pdot" />
-              First verdict free
+              3 free credits
             </span>
             <span className="t">
               <Icon.lock /> Photos never stored on our servers
@@ -269,15 +269,15 @@ function Credits() {
           <div>
             <span className="ln-eyebrow">CREDITS, NOT SUBSCRIPTIONS</span>
             <h2 className="ln-h2">
-              First scan's <span className="hl">on us</span>
+              3 credits <span className="hl">on us</span>
             </h2>
             <p className="ln-lead">
-              Your first verdict is free. After that, top up whenever. Friends, exes, celebrities — all fair game.
+              You start with 3 free credits — three full verdicts. After that, top up whenever. Friends, exes, celebrities — all fair game.
             </p>
           </div>
           <span className="free-pill" style={{ alignSelf: 'center' }}>
             <span className="pdot" />
-            {credits > 0 ? `${credits} credit${credits === 1 ? '' : 's'} ready` : '1 credit = 1 full verdict'}
+            {credits > 0 ? `${credits} credit${credits === 1 ? '' : 's'} ready` : '3 free credits to start'}
           </span>
         </div>
         <div className="ln-packs">
@@ -502,7 +502,7 @@ function FinalCTA() {
           UPLOAD SCAN <span className="hl">GET POSTED</span>
         </h2>
         <p>
-          One scan, one credit, cards your group chat won't let go of. First one's free.
+          One scan, one credit, cards your group chat won't let go of. Start with 3 free credits.
         </p>
         <div className="ln-hero-actions">
           <Link className="ln-btn primary lg" to="/vault">
@@ -561,7 +561,7 @@ function MobileBar() {
     <div className="ln-mobilebar">
       <div className="mb-meta">
         <div className="l1">Get your full verdict</div>
-        <div className="l2">First scan free · 1 credit = 3 cards</div>
+        <div className="l2">3 free credits to start</div>
       </div>
       <Link className="ln-btn primary" to="/vault">
         Scan me
