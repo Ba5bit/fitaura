@@ -231,7 +231,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
       <span className="gem">
         <Icon.bolt />
       </span>
-      <b>3</b> free credits <span className="x">· 1 / scan</span>
+      Solo scan · 1 credit
     </span>
   );
 
