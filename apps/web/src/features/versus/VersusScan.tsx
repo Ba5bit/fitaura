@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Side } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
+import { CardImage } from '../../components/cards';
 import { useMediaQuery } from '../../lib/useMediaQuery';
 import { battleNames, useBattle } from '../../state/battle';
 import '../../design/scanner.css';
@@ -148,7 +149,7 @@ export function VersusScan() {
               <div className="specimen ignite">
                 <div className="spec-aura" />
                 <div className="spec-frame">
-                  {frameSrc ? <img className="card-image" src={frameSrc} alt="" /> : null}
+                  <CardImage src={frameSrc} shape="rect" placeholder={outfitSrc ? 'outfit' : 'face'} />
                   <div className="scrim" />
                   <div className="spec-ov">
                     <div className="spec-grid-ov" />
@@ -169,7 +170,7 @@ export function VersusScan() {
                 {showCircle && (
                   <div className="spec-face">
                     <div className="ring" />
-                    {faceSrc ? <img className="card-image" src={faceSrc} alt="" /> : null}
+                    <CardImage src={faceSrc} shape="circle" placeholder="face" />
                     <span className="tick t1" />
                     <span className="tick t2" />
                   </div>
