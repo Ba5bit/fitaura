@@ -41,7 +41,12 @@ body { overflow-y: auto; }
    max-width:1320px), each rail-target section fills the viewport so jumping to one
    never reveals the next section's headline beneath it. */
 @media (min-width: 1321px) {
-  #how, #outputs, #modes, #credits { min-height: 100vh; }
+  #how, #outputs, #modes, #credits {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 }
 .ln-hr { border: 0; border-top: 1px solid var(--hair-soft); margin: 0; }
 
@@ -412,7 +417,7 @@ body { overflow-y: auto; }
   .ln-privacy-card .ic { width: 54px; height: 54px; }
   .ln-mobilebar { display: flex; }
   .ln-footer-bottom .disc { text-align: left; }
-  .ln-section { padding-bottom: clamp(60px, 10vw, 110px); }
+  .ln-section { padding: clamp(52px, 9vw, 72px) 0; }
   /* keep room above the sticky bar */
   .ln-footer { padding-bottom: 110px; }
   /* Cards are 360x640 and centered in .ln-fan; the container must be tall enough
