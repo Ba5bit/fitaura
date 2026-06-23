@@ -7,13 +7,20 @@ import { splitPercent, type BattleWinner, type Side, type VersusMode } from '@fi
  * `--accent`), so these read `--c` rather than hardcoding icy/magenta.
  */
 
-/** The Fitaura mountain mark, used as the winner's gold crown. */
-export function Crown({ size = 28 }: { size?: number }) {
+/** The bare Fitaura mountain glyph (no positioning) — for inline use in banners. */
+export function CrownGlyph({ size = 16 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor" aria-hidden="true">
+      <path d="M3 7l4 4 5-7 5 7 4-4v11H3z" />
+    </svg>
+  );
+}
+
+/** The winner's gold crown, absolutely positioned above an avatar/frame. */
+export function Crown({ size = 34 }: { size?: number }) {
   return (
     <span className="vs-crown" aria-hidden="true">
-      <svg viewBox="0 0 24 24" width={size} height={size} fill="currentColor">
-        <path d="M3 7l4 4 5-7 5 7 4-4v11H3z" />
-      </svg>
+      <CrownGlyph size={size} />
     </span>
   );
 }

@@ -102,7 +102,7 @@ export function VersusScan() {
 
           <div className="vs-readout">
             <div className="stage-meta">
-              Stage {String(stageIndex + 1).padStart(2, '0')} / 05 · {STAGES.join(' · ')}
+              Stage {String(stageIndex + 1).padStart(2, '0')} / 05 · {stage}
             </div>
             <h2>{done ? 'Verdict ready' : `Reading the ${stage}`}</h2>
             <div className="ticker">{done ? 'Both contenders scored.' : TICKERS[stageIndex]}</div>

@@ -147,7 +147,7 @@
 /* ============================ SPLIT BAR ============================ */
 .vs-splits { display: flex; flex-direction: column; gap: 16px; }
 .vs-split .top { display: flex; align-items: baseline; gap: 12px; }
-.vs-split .na, .vs-split .nb { font-family: "Anton", sans-serif; font-size: 22px; width: 40px; flex: none; }
+.vs-split .na, .vs-split .nb { font-family: "Anton", sans-serif; font-size: 28px; line-height: 1; width: 48px; flex: none; }
 .vs-split .na { color: var(--icy); }
 .vs-split .nb { color: var(--magenta); text-align: right; }
 .vs-split .lab { flex: 1; text-align: center; font-family: "Space Mono", monospace; font-size: 11px;
@@ -167,7 +167,8 @@
   background: #fff; box-shadow: 0 0 8px 1px rgba(255,255,255,.7); transition: left 1s cubic-bezier(.2,.8,.2,1); }
 
 /* ============================ CROWN AVATAR ============================ */
-.vs-avatar { position: relative; width: 128px; height: 128px; display: grid; place-items: center; margin: 0 auto; }
+.vs-avatar { position: relative; width: clamp(150px, 15vw, 200px); height: clamp(150px, 15vw, 200px);
+  display: grid; place-items: center; margin: 0 auto; }
 .vs-avatar .halo { position: absolute; inset: -20px; border-radius: 50%;
   background: radial-gradient(circle, color-mix(in oklab, var(--c) 42%, transparent), transparent 68%); opacity: 0; transition: opacity .4s; }
 .vs-c[data-state="win"] .vs-avatar .halo { opacity: .95; }
@@ -183,27 +184,63 @@
 .vs-crown { position: absolute; top: -24px; left: 50%; transform: translateX(-50%); color: var(--gold);
   filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); z-index: 4; }
 
-/* ============================ COLUMN (face/outfit tab) ============================ */
-.vs-deck { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: clamp(14px, 3vw, 36px); align-items: start; margin-top: 24px; }
+/* ============================ DECK (v2 face/outfit tab) ============================ */
+.vs-deckpanel { border: 1px solid var(--hair); border-radius: 22px; padding: clamp(16px, 3vw, 30px);
+  background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.008)); }
+
+/* winner banner — tints to the winning side via --bc */
+.vs-banner { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px;
+  border-radius: 14px; border: 1px solid color-mix(in oklab, var(--bc, var(--hair)) 40%, var(--hair));
+  background: color-mix(in oklab, var(--bc, transparent) 9%, transparent);
+  font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); }
+.vs-banner svg { width: 18px; height: 18px; color: var(--bc, var(--gold)); }
+.vs-banner b { color: #fff; font-family: "Anton", sans-serif; font-weight: 400; font-size: 22px; letter-spacing: 0.02em; margin-left: 4px; }
+.vs-banner.tie { --bc: var(--gold); }
+.vs-banner.tie b { color: var(--gold); }
+
+.vs-deck { display: grid; grid-template-columns: 1fr 1.3fr 1fr; gap: clamp(14px, 3vw, 40px); align-items: start; margin-top: 24px; }
 .vs-col { text-align: center; }
-.vs-col .nm { font-weight: 800; font-size: 18px; color: #fff; margin-top: 16px; }
-.vs-col .score { font-family: "Anton", sans-serif; font-size: 56px; line-height: .9; color: var(--c); margin-top: 4px; }
-.vs-col .score small { font-family: "Hanken Grotesk", sans-serif; font-size: 16px; color: var(--ink-faint); font-weight: 800; }
-.vs-col .state { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
-  margin-top: 8px; color: var(--ink-faint); }
-.vs-c[data-state="win"] .vs-col .state { color: var(--gold); }
+.vs-col .nm { font-weight: 800; font-size: 19px; color: #fff; margin-top: 16px; }
+.vs-col .score { font-family: "Anton", sans-serif; font-size: 52px; line-height: .9; color: var(--c); margin-top: 2px; }
+.vs-col .score small { font-family: "Hanken Grotesk", sans-serif; font-size: 15px; color: var(--ink-faint); font-weight: 800; margin-left: 4px; }
 .vs-col .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 14px; }
-.vs-traits { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; text-align: left; }
-.vs-center { padding-top: 8px; }
 
-.vs-banner { text-align: center; margin: 8px 0 4px; }
-.vs-banner .who { font-family: "Anton", sans-serif; font-size: 30px; text-transform: uppercase; color: #fff; }
-.vs-banner .who.tie { color: var(--gold); }
-.vs-banner .sub { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--ink-faint); margin-top: 6px; }
+/* top reads — left col normal, right col (data-side=b) renders mirrored in the markup */
+.vs-reads { margin-top: 22px; }
+.vs-reads .h { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-faint); margin-bottom: 12px; }
+.vs-col[data-side="b"] .vs-reads .h { text-align: right; }
+.vs-read { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; margin-bottom: 10px; }
+.vs-read .lbl { font-family: "Space Mono", monospace; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-dim); }
+.vs-read .val { font-family: "Anton", sans-serif; font-size: 18px; color: var(--c); }
+.vs-read .bar { display: flex; height: 6px; border-radius: 99px; background: rgba(255,255,255,0.07); overflow: hidden; }
+.vs-col[data-side="b"] .vs-read .bar { justify-content: flex-end; }
+.vs-read .bar i { display: block; height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--c) 55%, #fff), var(--c)); }
 
-/* ============================ TABS ============================ */
-.vs-tabs { display: flex; justify-content: center; gap: 10px; margin: 6px 0 4px; flex-wrap: wrap; }
+.vs-center { padding-top: 4px; }
+.vs-center .vstitle { font-family: "Anton", sans-serif; font-size: 30px; color: #fff; text-align: center; line-height: 1; }
+.vs-center .h2h { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--ink-faint); text-align: center; margin: 5px 0 18px; }
+
+/* outfit-card avatar (fit tab) — bracketed portrait frame */
+.vs-fitframe { position: relative; width: clamp(140px, 14vw, 200px); aspect-ratio: 3 / 4; margin: 0 auto; border-radius: 16px;
+  overflow: hidden; background: linear-gradient(170deg, var(--bg-2), #0a0c11); box-shadow: 0 0 50px -30px var(--c); }
+.vs-c[data-state="win"] .vs-fitframe { box-shadow: 0 0 60px -22px var(--c); }
+.vs-fitframe .photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.vs-fitframe .ph { position: absolute; inset: 0;
+  background: radial-gradient(60% 45% at 50% 26%, color-mix(in oklab, var(--c) 22%, #2a2330), #1b1822 60%); }
+.vs-fitframe .bk { position: absolute; width: 22px; height: 22px; border: 2px solid var(--c); opacity: .85; }
+.vs-fitframe .bk.tl { top: 10px; left: 10px; border-right: 0; border-bottom: 0; }
+.vs-fitframe .bk.tr { top: 10px; right: 10px; border-left: 0; border-bottom: 0; }
+.vs-fitframe .bk.bl { bottom: 10px; left: 10px; border-right: 0; border-top: 0; }
+.vs-fitframe .bk.br { bottom: 10px; right: 10px; border-left: 0; border-top: 0; }
+.vs-fitwrap { position: relative; }
+.vs-fitwrap .vs-crown { top: -20px; }
+
+/* ============================ TABS + PAGER ============================ */
+.vs-tabsbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 0 6px; flex-wrap: wrap; }
+.vs-tabs { display: flex; gap: 10px; flex-wrap: wrap; }
 .vs-tab { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
   min-height: 44px; padding: 0 20px; border-radius: 999px; cursor: pointer; border: 1px solid var(--hair-soft);
   background: transparent; color: var(--ink-dim); transition: .22s; display: inline-flex; align-items: center; gap: 8px; }
@@ -212,12 +249,22 @@
 .vs-tab[aria-selected="true"] { color: #fff;
   border-color: color-mix(in oklab, var(--icy) 45%, transparent);
   background: linear-gradient(92deg, color-mix(in oklab, var(--icy) 12%, transparent), color-mix(in oklab, var(--magenta) 12%, transparent)); }
+.vs-tab[aria-selected="true"] .n { color: var(--icy); }
 
-/* ============================ SCAN ============================ */
-.vs-scan { display: grid; grid-template-columns: 360px 1fr; gap: 36px; align-items: center; margin-top: 30px; }
-.vs-specimen { position: relative; aspect-ratio: 3 / 4; border-radius: 20px; overflow: hidden;
+.vs-pager { display: inline-flex; align-items: center; gap: 12px; }
+.vs-pager .ix { font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: 0.14em; color: var(--ink-dim); }
+.vs-pager .ix b { color: #fff; }
+.vs-pager button { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--hair); background: var(--panel); color: var(--ink); transition: .2s; }
+.vs-pager button:hover { border-color: color-mix(in oklab, var(--icy) 55%, var(--hair)); color: var(--icy); }
+.vs-pager button svg { width: 18px; height: 18px; }
+
+/* ============================ SCAN (compact, Solo-like) ============================ */
+.vs-scan { max-width: 380px; margin: clamp(16px, 4vh, 40px) auto 0; display: flex; flex-direction: column;
+  align-items: center; text-align: center; }
+.vs-specimen { position: relative; width: min(260px, 74vw); aspect-ratio: 3 / 4; border-radius: 18px; overflow: hidden;
   border: 1px solid color-mix(in oklab, var(--c) 40%, var(--hair)); background: linear-gradient(170deg, var(--bg-2), #0a0c11);
-  box-shadow: 0 0 60px -20px var(--c); }
+  box-shadow: 0 0 60px -22px var(--c); }
 .vs-specimen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .vs-specimen .grid { position: absolute; inset: 0; pointer-events: none; opacity: .5;
   background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
@@ -240,79 +287,135 @@
 .vs-inset img { position: absolute; top: 5px; left: 5px; width: calc(100% - 10px); height: calc(100% - 10px);
   border-radius: 50%; object-fit: cover; }
 
-.vs-readout .stage-meta { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.22em;
+.vs-readout { margin-top: 22px; width: 100%; }
+.vs-readout .stage-meta { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.2em;
   text-transform: uppercase; color: var(--c); }
-.vs-readout h2 { font-family: "Anton", sans-serif; font-weight: 400; font-size: clamp(30px, 5vw, 46px); line-height: 0.98;
-  text-transform: uppercase; color: #fff; margin: 10px 0 0; }
-.vs-readout .ticker { font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: 0.06em; color: var(--ink-faint);
-  margin-top: 12px; min-height: 16px; }
-.vs-versus-pill { display: inline-flex; align-items: center; gap: 10px; margin-top: 16px; padding: 7px 14px; border-radius: 999px;
-  border: 1px solid var(--hair); background: var(--panel); font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.1em; }
+.vs-readout h2 { font-family: "Anton", sans-serif; font-weight: 400; font-size: clamp(26px, 7vw, 36px); line-height: 1;
+  text-transform: uppercase; color: #fff; margin: 8px 0 0; }
+.vs-readout .ticker { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.05em; color: var(--ink-faint);
+  margin-top: 8px; min-height: 15px; }
+.vs-versus-pill { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 6px 13px; border-radius: 999px;
+  border: 1px solid var(--hair); background: var(--panel); font-family: "Space Mono", monospace; font-size: 10.5px; letter-spacing: 0.08em; }
 .vs-versus-pill b { color: var(--c); }
-.vs-pct { font-family: "Anton", sans-serif; font-size: 40px; color: #fff; margin-top: 18px; }
+.vs-pct { font-family: "Anton", sans-serif; font-size: 34px; color: #fff; margin-top: 14px; }
 .vs-pct .u { color: var(--c); }
-.vs-pbar { height: 8px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,0.08); margin-top: 10px; }
+.vs-pbar { height: 7px; border-radius: 99px; overflow: hidden; background: rgba(255,255,255,0.08); margin-top: 9px; }
 .vs-pbar .fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--icy), var(--magenta));
   transition: width .3s ease; }
-.vs-steps { list-style: none; margin: 22px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.vs-steps li { display: flex; align-items: center; gap: 12px; font-size: 13px; color: var(--ink-faint); }
-.vs-steps li .dot { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--hair); flex: none; }
+/* compact horizontal step row (Solo keeps it tight) */
+.vs-steps { list-style: none; margin: 18px 0 0; padding: 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 7px 14px; }
+.vs-steps li { display: inline-flex; align-items: center; gap: 7px; font-family: "Space Mono", monospace; font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+.vs-steps li .dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--hair); flex: none; }
 .vs-steps li[data-st="active"] { color: #fff; }
 .vs-steps li[data-st="active"] .dot { border-color: var(--c); box-shadow: 0 0 10px var(--c); background: var(--c); }
 .vs-steps li[data-st="done"] { color: var(--ink-dim); }
 .vs-steps li[data-st="done"] .dot { background: var(--lime); border-color: var(--lime); }
 
-/* ============================ BREAKDOWN PANEL (verdict tab) ============================ */
-.vs-verdict { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; margin-top: 22px; }
-.vs-stack { position: relative; }
-.vs-stack-dots { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
-.vs-stack-dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
-  background: var(--hair); }
-.vs-stack-dots button[aria-current="true"] { background: #fff; width: 22px; border-radius: 99px; }
-.vs-panel { border: 1px solid var(--hair); border-radius: 18px; background: var(--bg-2); padding: 24px; }
-.vs-panel .winner { font-family: "Anton", sans-serif; font-size: 34px; text-transform: uppercase; color: #fff; line-height: 1; }
-.vs-panel .word { font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
-  color: var(--gold); margin-top: 8px; }
-.vs-panel .scores { display: flex; align-items: baseline; gap: 14px; margin-top: 16px; }
-.vs-panel .scores .sa { color: var(--icy); font-family: "Anton", sans-serif; font-size: 40px; }
-.vs-panel .scores .sb { color: var(--magenta); font-family: "Anton", sans-serif; font-size: 40px; }
-.vs-panel .scores .vs-x { color: var(--ink-faint); font-family: "Space Mono", monospace; }
-.vs-panel .copy { margin-top: 16px; color: var(--ink-dim); font-size: 14px; line-height: 1.55; }
-.vs-panel .reads { margin-top: 18px; display: flex; flex-direction: column; gap: 14px; }
-/* Result actions reuse Solo's .toolbar + .ctrl (fitaura.css) for consistency. */
+/* ============================ VERDICT (v2: card stack + breakdown) ============================ */
+.vs-verdict { display: grid; grid-template-columns: 0.82fr 1.18fr; gap: clamp(18px, 3vw, 34px); align-items: start; margin-top: 18px; }
 
-/* ============================ SHARE / EXPORT CARD ============================ */
-.vs-card { position: relative; width: 360px; height: 640px; border-radius: 26px; overflow: hidden;
+/* card stack (left) */
+.vs-stack { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.vs-stack-row { display: flex; align-items: center; gap: 10px; }
+.vs-stack-nav { width: 40px; height: 40px; flex: none; border-radius: 11px; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--hair); background: var(--panel); color: var(--ink); transition: .2s; }
+.vs-stack-nav:hover { border-color: color-mix(in oklab, var(--icy) 55%, var(--hair)); color: var(--icy); }
+.vs-stack-nav svg { width: 18px; height: 18px; }
+.vs-stack-dots { display: flex; justify-content: center; gap: 8px; }
+.vs-stack-dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--hair); transition: .2s; }
+.vs-stack-dots button[aria-current="true"] { background: #fff; width: 22px; border-radius: 99px; }
+
+/* breakdown panel (right) — --c2 is set inline to the overall winner's color */
+.vs-bd { border: 1px solid var(--hair); border-radius: 20px; padding: clamp(18px, 2.4vw, 28px);
+  background: linear-gradient(180deg, var(--bg-2), #0b0d12); }
+.vs-bd .eyebrow { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); }
+.vs-bd .wlabel { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--c2, var(--gold)); margin-top: 16px; }
+.vs-bd .whead { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+.vs-bd .whead h2 { font-family: "Anton", sans-serif; font-weight: 400; font-size: clamp(38px, 6vw, 62px); line-height: 0.88;
+  text-transform: uppercase; color: #fff; margin: 4px 0 0; }
+.vs-margin-pill { flex: none; font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 7px 12px; border-radius: 999px; color: var(--c2, var(--gold));
+  border: 1px solid color-mix(in oklab, var(--c2, var(--gold)) 45%, transparent); background: color-mix(in oklab, var(--c2, var(--gold)) 10%, transparent); }
+.vs-scoreline { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-top: 16px; }
+.vs-scoreline .s { display: flex; flex-direction: column; }
+.vs-scoreline .s.b { align-items: flex-end; }
+.vs-scoreline .s .nm { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-faint); }
+.vs-scoreline .s .v { font-family: "Anton", sans-serif; font-size: 34px; line-height: 1; }
+.vs-scoreline .s.a .v { color: var(--icy); }
+.vs-scoreline .s.b .v { color: var(--magenta); }
+.vs-scoreline .slash { font-family: "Anton", sans-serif; font-size: 30px; color: var(--ink-ghost); }
+
+.vs-statcards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+.vs-statcard { border: 1px solid var(--hair-soft); border-radius: 12px; background: var(--panel); padding: 12px 13px; }
+.vs-statcard .k { font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+.vs-statcard .v { font-family: "Anton", sans-serif; font-size: 24px; color: #fff; margin-top: 6px; line-height: 1; }
+.vs-statcard .v small { font-family: "Hanken Grotesk", sans-serif; font-size: 12px; color: var(--ink-faint); font-weight: 800; }
+.vs-statcard .s { font-family: "Space Mono", monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin-top: 5px; }
+
+.vs-bd .copy { margin-top: 16px; color: var(--ink-dim); font-size: 13.5px; line-height: 1.55; }
+.vs-catchips { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+
+.vs-wonhead { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); margin: 20px 0 10px; }
+.vs-wongrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vs-woncard { border: 1px solid var(--hair-soft); border-radius: 12px; background: var(--panel); padding: 12px 13px; }
+.vs-woncard .top { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+.vs-woncard .top .lead { color: var(--lc); }
+.vs-woncard .row { display: flex; align-items: center; gap: 9px; margin-top: 8px; }
+.vs-woncard .na { font-family: "Anton", sans-serif; font-size: 19px; color: var(--icy); flex: none; }
+.vs-woncard .nb { font-family: "Anton", sans-serif; font-size: 19px; color: var(--magenta); flex: none; }
+.vs-bd .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
+.vs-bd .actions .vs-cta { min-height: 48px; font-size: 14px; }
+
+/* ============================ SHARE / EXPORT CARD (v2: photo band + info body) ============================ */
+.vs-card { position: relative; width: 340px; height: 600px; border-radius: 22px; overflow: hidden;
   box-shadow: var(--shadow-card); border: 1px solid var(--hair); isolation: isolate; flex: none;
-  background: linear-gradient(170deg, var(--bg-2), #0a0c11 70%); }
-/* Normal-flow relative duel block with absolute halves — mirrors the proven
-   .outfit-photo pattern so snapdom captures it faithfully (CSS grid inside an
-   absolutely-positioned full-card layer did not rasterize). */
-.vs-card .duo { position: relative; width: 100%; height: 100%; }
+  display: flex; flex-direction: column; background: linear-gradient(180deg, #0e1016, #08090d); }
+
+/* top photo band — absolute bg-image halves so snapdom rasterizes them faithfully */
+.vs-card .cphoto { position: relative; height: 44%; overflow: hidden; }
+.vs-card .duo { position: absolute; inset: 0; }
 .vs-card .half { position: absolute; overflow: hidden; background-size: cover; background-position: center; background-repeat: no-repeat; }
 .vs-card .duo[data-split="h"] .half[data-side="a"] { top: 0; left: 0; right: 0; height: 50%; }
 .vs-card .duo[data-split="h"] .half[data-side="b"] { bottom: 0; left: 0; right: 0; height: 50%; }
 .vs-card .duo[data-split="v"] .half[data-side="a"] { top: 0; bottom: 0; left: 0; width: 50%; }
 .vs-card .duo[data-split="v"] .half[data-side="b"] { top: 0; bottom: 0; right: 0; width: 50%; }
-.vs-card .half .ph { position: absolute; inset: 0;
-  background: radial-gradient(60% 50% at 50% 32%, #d7c2b0, #b89683 45%, transparent 70%), linear-gradient(160deg, #3a3340, #1b1822); }
-.vs-card .half[data-side="a"] { box-shadow: inset 0 0 60px -10px color-mix(in oklab, var(--icy) 55%, transparent); }
-.vs-card .half[data-side="b"] { box-shadow: inset 0 0 60px -10px color-mix(in oklab, var(--magenta) 55%, transparent); }
+.vs-card .half[data-side="a"] { box-shadow: inset 0 0 60px -12px color-mix(in oklab, var(--icy) 55%, transparent); }
+.vs-card .half[data-side="b"] { box-shadow: inset 0 0 60px -12px color-mix(in oklab, var(--magenta) 55%, transparent); }
+.vs-card .half .ph { position: absolute; inset: 0; background: radial-gradient(60% 50% at 50% 30%, #3a3340, #14121a 60%); }
 .vs-card .scrim { position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(6,7,10,.5) 0%, transparent 30%, transparent 55%, rgba(6,7,10,.92) 100%); }
+  background: linear-gradient(180deg, rgba(6,7,10,.45) 0%, transparent 35%, rgba(6,7,10,.85) 100%); }
 .vs-card .medal-anchor { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; }
-.vs-card .cardtop { position: absolute; top: 18px; left: 20px; right: 20px; z-index: 6; display: flex; justify-content: space-between; align-items: center; }
-.vs-card .cardtop .wm { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; letter-spacing: 0.34em; font-size: 11px; text-transform: uppercase; color: #fff; }
-.vs-card .cardtop .kind { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); }
-.vs-card .cardfoot { position: absolute; left: 20px; right: 20px; bottom: 20px; z-index: 6; }
-.vs-card .cardfoot .who { font-family: "Anton", sans-serif; font-size: 30px; text-transform: uppercase; color: #fff; text-shadow: 0 2px 18px #000; }
-.vs-card .cardfoot .who .gold { color: var(--gold); }
-.vs-card .cardfoot .duoscore { display: flex; gap: 12px; align-items: baseline; margin-top: 4px; }
-.vs-card .cardfoot .duoscore .sa { color: var(--icy); font-family: "Anton", sans-serif; font-size: 26px; }
-.vs-card .cardfoot .duoscore .sb { color: var(--magenta); font-family: "Anton", sans-serif; font-size: 26px; }
-.vs-card .barcode { display: flex; gap: 2px; height: 20px; align-items: stretch; opacity: .8; margin-top: 12px; }
+.vs-card .cardtop { position: absolute; top: 14px; left: 16px; right: 16px; z-index: 6; display: flex; justify-content: space-between; align-items: center; }
+.vs-card .cardtop .wm { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; letter-spacing: 0.32em; font-size: 10px; text-transform: uppercase; color: #fff; }
+.vs-card .cardtop .kind { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); }
+.vs-card .pscore { position: absolute; bottom: 12px; z-index: 6; font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; }
+.vs-card .pscore.a { left: 14px; color: var(--icy); }
+.vs-card .pscore.b { right: 14px; text-align: right; color: var(--magenta); }
+.vs-card .pscore .v { display: block; font-family: "Anton", sans-serif; font-size: 30px; line-height: .9; color: #fff; }
+
+/* bottom info body */
+.vs-card .cbody { flex: 1; padding: 16px 18px 0; display: flex; flex-direction: column; }
+.vs-card .cbody .wl { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); text-align: center; }
+.vs-card .cbody .wn { font-family: "Anton", sans-serif; font-size: 32px; line-height: .92; text-transform: uppercase; color: #fff; text-align: center; margin-top: 6px; }
+.vs-card .cbody .wn.gold { color: var(--gold); }
+.vs-card .cbody .tag { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 12px; line-height: 1.3; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink); text-align: center; margin-top: 8px; }
+.vs-card .cbody .boxes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.vs-card .cbody .box { border: 1px solid var(--hair-soft); border-radius: 9px; padding: 8px 4px; text-align: center; }
+.vs-card .cbody .box .bv { font-family: "Anton", sans-serif; font-size: 18px; color: #fff; line-height: 1; }
+.vs-card .cbody .box .bk { font-family: "Space Mono", monospace; font-size: 7.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin-top: 4px; }
+.vs-card .cbody .cbars { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.vs-card .cbody .cbar .l { display: flex; justify-content: space-between; align-items: center; }
+.vs-card .cbody .cbar .l .a { font-family: "Anton", sans-serif; font-size: 15px; color: var(--icy); }
+.vs-card .cbody .cbar .l .b { font-family: "Anton", sans-serif; font-size: 15px; color: var(--magenta); }
+.vs-card .cbody .cbar .l .x { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.14em; color: var(--ink-faint); }
+.vs-card .cbody .cbar .vs-track { margin-top: 5px; }
+.vs-card .cfoot { margin-top: auto; padding: 12px 18px; display: flex; align-items: center; justify-content: space-between; }
+.vs-card .cfoot .url { font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-dim); }
+.vs-card .barcode { display: flex; gap: 2px; height: 22px; align-items: stretch; opacity: .8; }
 .vs-card .barcode i { width: 2px; background: var(--ink-dim); display: block; }
-/* Square the card + its pseudo for full-bleed export (mirrors .asset.is-squared-export). */
+/* Square the card + its pseudo for full-bleed export. */
 .vs-card.is-squared-export, .vs-card.is-squared-export::before, .vs-card.is-squared-export::after { border-radius: 0 !important; }
 
 /* Offscreen export host — kept out of layout/visible flow during rasterization. */
@@ -334,9 +437,18 @@
 /* ============================ RESPONSIVE ============================ */
 @media (max-width: 860px) {
   .vs-arena { grid-template-columns: 1fr; }
-  .vs-medal { margin: 0 auto; transform: rotate(90deg); }
-  .vs-deck { grid-template-columns: 1fr; }
-  .vs-scan { grid-template-columns: 1fr; }
-  .vs-specimen { max-width: 320px; margin: 0 auto; }
+  .vs-arena .vs-medal { margin: 0 auto; transform: rotate(90deg); }
+  /* Stack the head-to-head: A column, center bars, B column — center reads naturally between. */
+  .vs-deck { grid-template-columns: 1fr; gap: 28px; }
   .vs-verdict { grid-template-columns: 1fr; }
+  .vs-statcards { grid-template-columns: 1fr; }
+  .vs-wongrid { grid-template-columns: 1fr; }
+  .vs-bd .actions { grid-template-columns: 1fr; }
+  /* Mirror the right column back to normal when stacked (no longer visually on the right). */
+  .vs-col[data-side="b"] .vs-reads .h { text-align: left; }
+  .vs-col[data-side="b"] .vs-read .bar { justify-content: flex-start; }
+}
+@media (max-width: 560px) {
+  .vs-tabsbar { justify-content: center; }
+  .vs-deckpanel { padding: 14px; }
 }
