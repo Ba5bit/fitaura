@@ -319,12 +319,12 @@ body { overflow-y: auto; }
   box-shadow: 0 0 0 4px color-mix(in oklab, var(--accent) 22%, transparent), 0 0 18px -2px var(--accent); }
 
 /* ============================ SCAN MODES (v2) ============================ */
-.ln-modes-head { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 30px; align-items: end; margin-bottom: 44px; }
+.ln-modes-head { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 30px; align-items: end; margin-bottom: 28px; }
 .ln-modes-head .ln-lead { margin: 0; }
 .ln-modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .ln-mode { position: relative; display: flex; flex-direction: column; border-radius: 18px; overflow: hidden;
   border: 1px solid var(--hair); background: var(--panel); }
-.lm-preview { position: relative; height: 184px; display: grid; place-items: center; padding: 22px;
+.lm-preview { position: relative; height: 150px; display: grid; place-items: center; padding: 22px;
   border-bottom: 1px solid var(--hair-soft);
   background: radial-gradient(420px 220px at 50% 0%, color-mix(in oklab, var(--accent) 10%, transparent), transparent 70%); }
 .ln-mode.locked .lm-preview { background:
