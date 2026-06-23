@@ -277,7 +277,7 @@ function Credits() {
           </div>
           <span className="free-pill" style={{ alignSelf: 'center' }}>
             <span className="pdot" />
-            {credits > 0 ? `${credits} credit${credits === 1 ? '' : 's'} ready` : '3 free credits to start'}
+            {credits > 0 ? `${credits} credit${credits === 1 ? '' : 's'} ready` : 'Pay as you go'}
           </span>
         </div>
         <div className="ln-packs">
