@@ -83,8 +83,23 @@
 .vs-name:focus { outline: none; border-bottom-color: var(--c); }
 .vs-name::placeholder { color: var(--ink-faint); }
 
-.vs-zones { display: flex; flex-direction: column; gap: 14px; }
+/* Zones sit side-by-side within a contender (so "Both" mode is one row of
+   zone-pairs, not a tall stack). Stacks on mobile (see responsive block). */
+.vs-zones { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
 /* The reused UploadZone paints off --accent, which the contender remaps to --c. */
+
+/* Compact the reused UploadZone for the arena (up to 4 zones here vs Solo's 2):
+   drop the tall per-zone tip bullets and tighten the drop area + header. */
+.vs-contender .zone { border-radius: 14px; padding: 12px; min-height: 0; }
+.vs-contender .zone-head { margin-bottom: 9px; }
+.vs-contender .zone-guide { display: none; } /* formats/tips dropped — too much × up to 4 zones */
+.vs-contender .zone-drop { padding: 12px 10px; }
+.vs-contender .zone-drop .ic { width: 36px; height: 36px; border-radius: 10px; margin-bottom: 7px; }
+.vs-contender .zone-drop .ic svg { width: 18px; height: 18px; }
+.vs-contender .zone-drop .big { font-size: 14px; }
+.vs-contender .zone-drop .or { font-size: 12px; }
+.vs-contender .zone-drop .sample { margin-top: 8px; }
+.vs-contender .zone-drop .sample ~ .sample { display: none; } /* hide per-contender "Take photo" */
 
 .vs-ready { display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px; border-radius: 999px;
   font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
@@ -132,6 +147,13 @@
   color: var(--ink-faint); padding: 5px 10px; border-radius: 999px; border: 1px solid var(--hair-soft); }
 .vs-trust { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-faint); font-size: 12px; }
 .vs-trust svg { width: 15px; height: 15px; }
+
+/* Tighter fixed action bar for the arena (scoped so Solo's upload is untouched). */
+.vs-page .ua-foot-inner { padding-top: 11px; padding-bottom: calc(11px + env(safe-area-inset-bottom, 0px)); }
+.vs-page .review-row { margin-bottom: 10px; }
+.vs-page .cta-block { gap: 7px; }
+.vs-page .cta-hint { display: none; }
+.vs-page .ua-trust { margin-top: 7px; }
 
 /* ============================ FLAG CHIPS ============================ */
 .vs-flag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px;
@@ -441,6 +463,7 @@
 /* ============================ RESPONSIVE ============================ */
 @media (max-width: 860px) {
   .vs-arena { grid-template-columns: 1fr; }
+  .vs-zones { grid-auto-flow: row; } /* stack the two zones in a full-width card on mobile */
   /* Stack the head-to-head: A column, center bars, B column — center reads naturally between. */
   .vs-deck { grid-template-columns: 1fr; gap: 28px; }
   .vs-verdict { grid-template-columns: 1fr; }
