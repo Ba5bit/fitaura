@@ -42,7 +42,7 @@ body { overflow-y: auto; }
    never reveals the next section's headline beneath it. */
 @media (min-width: 1321px) {
   #how, #outputs, #modes, #credits {
-    min-height: 100vh;
+    min-height: 90vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -192,7 +192,7 @@ body { overflow-y: auto; }
 /* ============================ HOW IT WORKS ============================ */
 .ln-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 56px; }
 .ln-step {
-  position: relative; padding: 30px 26px 28px; border-radius: 18px;
+  position: relative; padding: 40px 28px 36px; border-radius: 18px;
   border: 1px solid var(--hair); background: var(--panel); backdrop-filter: blur(6px);
 }
 .ln-step .sn { font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: 0.2em; color: var(--accent); }
