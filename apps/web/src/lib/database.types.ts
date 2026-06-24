@@ -19,16 +19,22 @@ export type Database = {
           created_at: string
           credits: number
           id: string
+          receipt_paper: string
+          reduce_motion: boolean
         }
         Insert: {
           created_at?: string
           credits?: number
           id: string
+          receipt_paper?: string
+          reduce_motion?: boolean
         }
         Update: {
           created_at?: string
           credits?: number
           id?: string
+          receipt_paper?: string
+          reduce_motion?: boolean
         }
         Relationships: []
       }

@@ -2,6 +2,7 @@ import { lazy, Suspense, useLayoutEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { GenerationProvider } from './state/generation';
 import { BattleProvider } from './state/battle';
+import { PreferencesProvider } from './state/preferences';
 import { AccountProvider } from './features/account/AccountContext';
 import { AccountOverlays } from './features/account/AccountOverlays';
 import './design/account-web.css';
@@ -54,6 +55,7 @@ function ScrollToTop() {
 export function App() {
   return (
     <AccountProvider>
+      <PreferencesProvider>
       <GenerationProvider>
         <BattleProvider>
         <ScrollToTop />
@@ -83,6 +85,7 @@ export function App() {
         <AccountOverlays />
         </BattleProvider>
       </GenerationProvider>
+      </PreferencesProvider>
     </AccountProvider>
   );
 }

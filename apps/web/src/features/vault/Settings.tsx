@@ -1,9 +1,7 @@
-import { useEffect } from 'react';
-import type { ReceiptPaper } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
 import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
-import { useLocalStorage } from '../../state/useLocalStorage';
+import { usePreferences } from '../../state/preferences';
 import { VaultNav } from './VaultNav';
 import { SubHead } from './SubHead';
 
@@ -11,15 +9,8 @@ import { SubHead } from './SubHead';
 export function Settings() {
   const { history, removeResult } = useGeneration();
   const { flash } = useAccount();
-  const [reduceMotion, setReduceMotion] = useLocalStorage<boolean>('fitaura.reduceMotion', false);
-  const [paper, setPaper] = useLocalStorage<ReceiptPaper>('fitaura.paper', 'neon');
-
-  // Persisted preference; reflected on <html> so future CSS / motion code can key off it.
-  useEffect(() => {
-    const el = document.documentElement;
-    if (reduceMotion) el.setAttribute('data-reduce-motion', 'true');
-    else el.removeAttribute('data-reduce-motion');
-  }, [reduceMotion]);
+  // Account-synced (cross-device when signed in); device-local for guests.
+  const { receiptPaper, reduceMotion, setReceiptPaper, setReduceMotion } = usePreferences();
 
   const present = history.length;
   const fill = Math.min(present * 25, 100);
@@ -146,7 +137,7 @@ export function Settings() {
                 className="vlt-toggle"
                 role="switch"
                 aria-checked={reduceMotion}
-                onClick={() => setReduceMotion((x) => !x)}
+                onClick={() => setReduceMotion(!reduceMotion)}
               >
                 <span className="k" />
               </button>
@@ -157,14 +148,17 @@ export function Settings() {
                 <div className="s">Which Dating Score Receipt style new scans use.</div>
               </div>
               <div className="vlt-seg" role="tablist">
-                <button role="tab" aria-selected={paper === 'neon'} onClick={() => setPaper('neon')}>
-                  Dark
+                <button role="tab" aria-selected={receiptPaper === 'neon'} onClick={() => setReceiptPaper('neon')}>
+                  Dark neon
                 </button>
-                <button role="tab" aria-selected={paper === 'thermal'} onClick={() => setPaper('thermal')}>
+                <button role="tab" aria-selected={receiptPaper === 'thermal'} onClick={() => setReceiptPaper('thermal')}>
                   Thermal
                 </button>
-                <button role="tab" aria-selected={paper === 'premium'} onClick={() => setPaper('premium')}>
-                  Premium
+                <button role="tab" aria-selected={receiptPaper === 'premium'} onClick={() => setReceiptPaper('premium')}>
+                  Onyx
+                </button>
+                <button role="tab" aria-selected={receiptPaper === 'white'} onClick={() => setReceiptPaper('white')}>
+                  Ivory
                 </button>
               </div>
             </div>
