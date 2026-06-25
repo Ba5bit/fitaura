@@ -455,6 +455,10 @@ function WonCard({ read, names }: { read: CategoryRead; names: { a: string; b: s
   );
 }
 
+/** Temporarily hidden while the verdict breakdown is redesigned (2026-06-25).
+ * Flip to `true` — or revert the commit that introduced this — to restore it. */
+const SHOW_BREAKDOWN = false;
+
 /** The verdict tab: swipeable card stack + rich breakdown panel. */
 function VerdictTab({
   battle,
@@ -523,7 +527,10 @@ function VerdictTab({
   }
 
   return (
-    <div className="vs-verdict">
+    <div
+      className="vs-verdict"
+      style={SHOW_BREAKDOWN ? undefined : ({ gridTemplateColumns: '1fr', justifyItems: 'center' } as CSSProperties)}
+    >
       <div className="vs-stack">
         <div className="vs-stack-row">
           {cards.length > 1 && (
@@ -550,6 +557,7 @@ function VerdictTab({
         </button>
       </div>
 
+      {SHOW_BREAKDOWN && (
       <div className="vs-bd" style={{ ['--c2']: SIDE_VAR[overall.winner] } as CSSProperties}>
         <div className="eyebrow">Verdict breakdown · Overall</div>
         <div className="wlabel">{overall.winner === 'tie' ? 'Dead heat' : 'Overall winner'}</div>
@@ -623,6 +631,7 @@ function VerdictTab({
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }
