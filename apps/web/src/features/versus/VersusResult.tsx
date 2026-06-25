@@ -17,7 +17,7 @@ import {
 } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
 import { useCountUp } from '../../lib/useCountUp';
-import { renderCardBlob, downloadResult, shareResult } from '../../lib/exportCard';
+import { renderCardBlob, renderPanelShot, downloadResult, shareResult } from '../../lib/exportCard';
 import { battleNames, useBattle, type Battle } from '../../state/battle';
 import { useAccount } from '../account/AccountContext';
 import { ProfileMenu } from '../account/ProfileMenu';
@@ -168,6 +168,7 @@ function ComparisonTab({
   names,
   battle,
   copy,
+  palette,
   reveal = false,
   onRevealed,
 }: {
@@ -177,6 +178,8 @@ function ComparisonTab({
   battle: Battle;
   /** AI copy, or null on the dev fallback (superpowers/roasts hidden then). */
   copy?: VersusCopy | null;
+  /** This battle's contender colours — drives the exported shot's backdrop glow. */
+  palette: { a: string; b: string };
   /** Play the first-view stats reveal (count-ups + staggered bar fills). */
   reveal?: boolean;
   /** Called on mount when this section reveals — so it doesn't replay on re-entry. */
@@ -201,8 +204,32 @@ function ComparisonTab({
   const copyA = copy ? copy.sides.a[category] : null;
   const copyB = copy ? copy.sides.b[category] : null;
 
+  // Desktop-only "download this block" — the same head-to-head card people were
+  // screenshotting, rasterized via snapdom on a dark backdrop. Mobile is left out
+  // (the share card on the Verdict tab already carries these stats there).
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [busy, setBusy] = useState(false);
+  const accentHex = group.winner === 'b' ? palette.b : palette.a;
+  async function downloadShot() {
+    if (busy || !panelRef.current) return;
+    setBusy(true);
+    try {
+      const out = await renderPanelShot({
+        el: panelRef.current,
+        accentHex,
+        filename: `fitaura-versus-${category === 'face' ? 'face' : 'outfit'}.png`,
+        exclude: ['.vs-shot-btn'], // the in-panel button must not appear in the shot
+      });
+      downloadResult(out);
+    } catch {
+      /* export failed — leave the panel on screen */
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
-    <div className="vs-deckpanel">
+    <div className="vs-deckpanel" ref={panelRef}>
       <div
         className={'vs-banner' + (group.winner === 'tie' ? ' tie' : '')}
         style={bannerColor ? ({ ['--bc']: bannerColor } as CSSProperties) : undefined}
@@ -222,6 +249,9 @@ function ComparisonTab({
               <SplitBar key={m.key} label={m.label} a={m.a} b={m.b} win={winnerOf(m.a, m.b)} reveal={doReveal} index={i} />
             ))}
           </div>
+          <button className="vs-shot-btn ctrl primary" onClick={downloadShot} disabled={busy}>
+            <Icon.download /> {busy ? 'Rendering…' : 'Download card'}
+          </button>
         </div>
         <Column side="b" category={category} name={names.b} photo={photoB} group={group} copy={copyB} reveal={doReveal} />
       </div>
@@ -753,6 +783,7 @@ export function VersusResult() {
             names={names}
             battle={battle}
             copy={copy}
+            palette={palette}
             reveal={firstView && !playedRef.current.has('face')}
             onRevealed={() => playedRef.current.add('face')}
           />
@@ -764,6 +795,7 @@ export function VersusResult() {
             names={names}
             battle={battle}
             copy={copy}
+            palette={palette}
             reveal={firstView && !playedRef.current.has('fit')}
             onRevealed={() => playedRef.current.add('fit')}
           />

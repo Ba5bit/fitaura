@@ -243,6 +243,12 @@
 .vs-deckpanel { border: 1px solid var(--hair); border-radius: 22px; padding: clamp(12px, 2vw, 18px);
   background: linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0.008)); }
 
+/* In-panel "Download card" — centered in the middle column, just below the stat bars.
+   Sized like Solo Scan's "Download" button (base .ctrl). Desktop only (mobile users
+   export the share card on the Verdict tab, which carries the same stats); excluded
+   from the rendered shot and hidden at the mobile breakpoint. */
+.vs-shot-btn { display: flex; width: fit-content; margin: 18px auto 2px; justify-content: center; }
+
 /* winner banner — tints to the winning side via --bc */
 .vs-banner { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px;
   border-radius: 14px; border: 1px solid color-mix(in oklab, var(--bc, var(--hair)) 40%, var(--hair));
@@ -642,6 +648,7 @@ button.vs-superlative.locked .reveal svg { width: 12px; height: 12px; }
    16px sides) instead of the desktop 52px/24px. */
 @media (max-width: 760px) {
   .vs-wrap { padding-top: 26px; padding-left: 16px; padding-right: 16px; }
+  .vs-shot-btn { display: none; } /* head-to-head download is desktop-only */
 }
 @media (max-width: 560px) {
   .vs-tabsbar { justify-content: center; }

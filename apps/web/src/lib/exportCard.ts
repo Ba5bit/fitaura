@@ -197,6 +197,61 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
   };
 }
 
+export interface PanelShotArgs {
+  /** The full-scale panel element to capture (no CSS scale transform on it). */
+  el: HTMLElement;
+  /** Accent hex driving the soft top glow (defaults to the brand accent, icy blue). */
+  accentHex?: string;
+  filename?: string;
+  /** Selectors to drop from the capture (e.g. an in-panel download button). */
+  exclude?: string[];
+}
+
+/**
+ * Rasterize a wide on-screen panel (e.g. the FvF head-to-head deck) to a PNG on a
+ * dark, lightly-glowing backdrop sized to the panel itself. Unlike `renderCardBlob`
+ * (which composites onto a fixed 9:16 story poster), this keeps the panel's own
+ * landscape aspect ratio — a clean screenshot of exactly that block.
+ */
+export async function renderPanelShot(args: PanelShotArgs): Promise<ExportResult> {
+  const { el, accentHex = '#83b4ff', filename = 'fitaura-versus.png', exclude } = args;
+  await ensureFonts();
+  await decodeAllImages(el);
+
+  const { snapdom } = await import('@zumer/snapdom');
+  const card = await snapdom.toCanvas(el, {
+    scale: 2,
+    embedFonts: true,
+    backgroundColor: 'transparent',
+    ...(exclude?.length ? { exclude, excludeMode: 'remove' as const } : {}),
+  });
+
+  const pad = Math.round(card.width * 0.045);
+  const cv = document.createElement('canvas');
+  cv.width = card.width + pad * 2;
+  cv.height = card.height + pad * 2;
+  const ctx = cv.getContext('2d')!;
+
+  // Dark backdrop + a soft accent glow up top — mirrors the app shell so the
+  // exported block doesn't sit on bare transparency.
+  const bg = ctx.createLinearGradient(0, 0, 0, cv.height);
+  bg.addColorStop(0, '#0c0e13');
+  bg.addColorStop(1, '#06070a');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, cv.width, cv.height);
+  const glow = ctx.createRadialGradient(cv.width / 2, pad, 0, cv.width / 2, pad, cv.width * 0.6);
+  glow.addColorStop(0, accentHex + '22');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, cv.width, cv.height);
+
+  ctx.drawImage(card, pad, pad, card.width, card.height);
+
+  const blob = await new Promise<Blob | null>((res) => cv.toBlob(res, 'image/png'));
+  if (!blob) throw new Error('Failed to encode PNG');
+  return { blob, url: URL.createObjectURL(blob), filename, bytes: blob.size };
+}
+
 /** Trigger a browser download for an export result. */
 export function downloadResult(out: ExportResult) {
   const a = document.createElement('a');
