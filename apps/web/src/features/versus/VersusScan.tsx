@@ -64,6 +64,10 @@ export function VersusScan() {
   // from `versus-scan`; the reveal gates on BOTH this settling AND the timeline.
   const [aiState, setAiState] = useState<'pending' | 'done' | 'error'>('pending');
   const [aiError, setAiError] = useState<string | null>(null);
+  // The real failure reason from the service (e.g. "The AI service is busy right
+  // now.") shown under the generic line so a failed battle says *why* — parity
+  // with Solo's scan-reason line.
+  const [aiReason, setAiReason] = useState<string | null>(null);
   // Tracks real mount across StrictMode's double-invoke so a settled call never
   // writes state onto an unmounted tree. The in-flight request is NOT aborted on
   // cleanup — StrictMode's transient unmount must not cancel the live scan.
@@ -100,6 +104,7 @@ export function VersusScan() {
     await refundBattle();
     if (!mountedRef.current) return;
     setAiError('That battle did not go through. Your 2 credits were refunded, give it another go.');
+    setAiReason(outcome.message);
     setAiState('error');
   }, [battle, spendForBattle, refundBattle, commitResult, saveBattle, navigate]);
 
@@ -129,6 +134,7 @@ export function VersusScan() {
   // Retry re-arms the kickoff (a fresh spend + call) after an inline error.
   const retry = useCallback(() => {
     setAiError(null);
+    setAiReason(null);
     setAiState('pending');
     void startScan();
   }, [startScan]);
@@ -219,6 +225,7 @@ export function VersusScan() {
                   Let's try <span className="hl">again</span>
                 </h2>
                 <p className="sub">{aiError}</p>
+                {aiReason && <p className="scan-reason">Reason: {aiReason}</p>}
                 <button className="go retry" onClick={retry}>
                   <Icon.refresh /> Try again
                 </button>

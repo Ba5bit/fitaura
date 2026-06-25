@@ -13,6 +13,13 @@ import { FACE_METRICS, FIT_METRICS } from './metrics.ts';
 
 export const VERSUS_SCHEMA_VERSION = 'versus_v1' as const;
 
+/** Clamp an over-long string to fit instead of rejecting the whole payload.
+ * The Gemini responseSchema carries no maxLength, so on real photos the model
+ * occasionally writes copy past these caps; trimming to fit keeps the verdict
+ * rather than failing the battle with schema_invalid (the "battle hiccup"). */
+const clamped = (max: number) =>
+  z.string().transform((s) => (s.length > max ? s.slice(0, max - 1).trimEnd() + '…' : s));
+
 /** One metric's head-to-head pair: integer 0-100 for each side. */
 const sideScoreSchema = z.object({
   a: z.number().int().min(0).max(100),
@@ -26,8 +33,8 @@ const scoresOf = (defs: ReadonlyArray<{ key: string }>) =>
 /** A side's copy for one modality, or null when the modality is inactive. */
 const sideCopySchema = z
   .object({
-    superpower: z.string().max(200),
-    roast: z.string().max(200),
+    superpower: clamped(200),
+    roast: clamped(200),
   })
   .nullable();
 
@@ -38,9 +45,9 @@ export const versusAiResultSchema = z.object({
   }),
   crown: z.object({
     winner: z.enum(['a', 'b', 'tie']),
-    line: z.string().max(160),
+    line: clamped(160),
   }),
-  decisiveRead: z.string().max(200),
+  decisiveRead: clamped(200),
   sides: z.object({
     a: z.object({ face: sideCopySchema, fit: sideCopySchema }),
     b: z.object({ face: sideCopySchema, fit: sideCopySchema }),
@@ -48,7 +55,7 @@ export const versusAiResultSchema = z.object({
   superlatives: z
     .array(
       z.object({
-        label: z.string().max(80),
+        label: clamped(80),
         winner: z.enum(['a', 'b']),
         locked: z.boolean(),
       }),
