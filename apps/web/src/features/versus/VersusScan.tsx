@@ -51,7 +51,7 @@ function prefersReducedMotion() {
 
 export function VersusScan() {
   const navigate = useNavigate();
-  const { battle, hydrated, commitResult, saveBattle } = useBattle();
+  const { battle, result, hydrated, commitResult, saveBattle } = useBattle();
   const { spendForBattle, refundBattle } = useAccount();
   const mobile = useMediaQuery('(max-width: 760px)');
 
@@ -112,9 +112,19 @@ export function VersusScan() {
 
   useEffect(() => {
     if (!hydrated || !battle || startedRef.current) return;
+    // Already scored (e.g. came back to the scan route) — never re-run or re-spend;
+    // send the user to the verdict they already have. Mirrors Solo's alreadyScanned
+    // guard. `replace` keeps the unreachable scan out of the back stack. This only
+    // fires on a fresh mount: during a live scan the result commits AFTER startedRef
+    // is set, so the re-run of this effect bails on the startedRef check above.
+    if (result) {
+      startedRef.current = true;
+      navigate('/versus/result', { replace: true });
+      return;
+    }
     startedRef.current = true;
     void startScan();
-  }, [hydrated, battle, startScan]);
+  }, [hydrated, battle, result, startScan, navigate]);
 
   // Retry re-arms the kickoff (a fresh spend + call) after an inline error.
   const retry = useCallback(() => {
@@ -254,7 +264,9 @@ export function VersusScan() {
                     } catch {
                       /* sessionStorage unavailable — result just renders static */
                     }
-                    navigate('/versus/result');
+                    // replace: once revealed, the scan route is a dead end — keep it
+                    // out of the back stack so Chrome back goes to upload, not the scan.
+                    navigate('/versus/result', { replace: true });
                   }}
                 >
                   <Icon.bolt /> Reveal the verdict

@@ -317,8 +317,8 @@
    (Solo card style) so the column stays compact and the page fits without scrolling. */
 .vs-fitframe .fit-scrim { position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(180deg, rgba(6,7,10,.5) 0%, transparent 24%, transparent 48%, rgba(6,7,10,.92) 100%); }
-.vs-fitframe .fit-tr { position: absolute; top: 12px; right: 12px; }
-.vs-fitframe .fit-bl { position: absolute; left: 14px; right: 14px; bottom: 12px; text-align: left; }
+.vs-fitframe .fit-tr { position: absolute; top: 18px; right: 18px; }
+.vs-fitframe .fit-bl { position: absolute; left: 22px; right: 22px; bottom: 20px; text-align: left; }
 .vs-fitframe .fit-bl .plabel { margin: 0; text-shadow: 0 1px 6px rgba(0,0,0,.8); }
 .vs-fitframe .fit-bl .nm { margin: 2px 0 0; text-align: left; font-size: 25px; text-shadow: 0 2px 10px rgba(0,0,0,.85); }
 /* compact glassy score badge in the corner */

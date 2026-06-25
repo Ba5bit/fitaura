@@ -64,6 +64,16 @@ export function Result() {
     if (hydrated && !result) navigate('/', { replace: true });
   }, [hydrated, result, navigate]);
 
+  // Remember the mode so a browser back/forward to the Vault reopens the Solo tab
+  // (router state isn't replayed by history navigation).
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('vault:mode', 'solo');
+    } catch {
+      /* sessionStorage unavailable — Vault just falls back to its default */
+    }
+  }, []);
+
   const initialTab = (() => {
     const fromHash = tabIdxForSlug((location.hash || '').replace('#', ''));
     if (fromHash >= 0) return fromHash;

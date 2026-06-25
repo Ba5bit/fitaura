@@ -689,6 +689,9 @@ export function VersusResult() {
   useEffect(() => {
     try {
       sessionStorage.removeItem('fvf:reveal');
+      // Remember the mode so a browser back/forward to the Vault reopens the FvF tab
+      // (router state isn't replayed by history navigation).
+      sessionStorage.setItem('vault:mode', 'friend');
     } catch {
       /* sessionStorage unavailable — nothing to clear */
     }

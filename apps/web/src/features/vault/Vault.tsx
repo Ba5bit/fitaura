@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { VaultNav } from './VaultNav';
@@ -53,14 +53,34 @@ function ModeRail({ mode, onSelect }: { mode: ScanModeId; onSelect: (id: ScanMod
  * guests so the free first scan needs no account; sign-in is offered, never
  * forced. Ported from the design's `vault-app` shell.
  */
+const VAULT_MODE_KEY = 'vault:mode';
+const isMode = (m: unknown): m is ScanModeId => SCAN_MODES.some((x) => x.id === m);
+function storedMode(): ScanModeId | null {
+  try {
+    const m = sessionStorage.getItem(VAULT_MODE_KEY);
+    return isMode(m) ? m : null;
+  } catch {
+    return null;
+  }
+}
+
 export function Vault() {
-  // A result page can hand back the mode to open (e.g. returning from a Friend vs
-  // Friend verdict reopens the Friend tab, a Solo verdict reopens Solo). Validated
-  // against the known modes; anything else (or a direct visit) falls back to Solo.
+  // Which mode to open. In-app navigation hands it back via router state (e.g. a
+  // Friend vs Friend verdict reopens the Friend tab). Browser back/forward does NOT
+  // replay that state, so we fall back to the last mode persisted in sessionStorage
+  // (set below + by the result pages); a direct visit defaults to Solo.
   const { state } = useLocation();
   const requested = (state as { vaultMode?: ScanModeId } | null)?.vaultMode;
-  const initialMode: ScanModeId = requested && SCAN_MODES.some((m) => m.id === requested) ? requested : 'solo';
+  const initialMode: ScanModeId = (isMode(requested) ? requested : null) ?? storedMode() ?? 'solo';
   const [mode, setMode] = useState<ScanModeId>(initialMode);
+  // Persist the active tab so a later browser back/forward reopens the same mode.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(VAULT_MODE_KEY, mode);
+    } catch {
+      /* sessionStorage unavailable — mode just won't persist across history nav */
+    }
+  }, [mode]);
   const active = SCAN_MODES.find((m) => m.id === mode)!;
 
   return (
