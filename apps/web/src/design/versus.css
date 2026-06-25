@@ -322,8 +322,12 @@
 .vs-fitframe .fit-bl .plabel { margin: 0; text-shadow: 0 1px 6px rgba(0,0,0,.8); }
 .vs-fitframe .fit-bl .nm { margin: 2px 0 0; text-align: left; font-size: 25px; text-shadow: 0 2px 10px rgba(0,0,0,.85); }
 /* compact glassy score badge in the corner */
+/* Opaque (no backdrop-filter): the frosted-glass blur rasterized as an ugly glow halo
+   around the badge in the downloaded card. A solid tinted chip + thin border reads
+   the same on-screen and captures cleanly. */
 .vs-fitframe .fit-tr .score { margin: 0; padding: 5px 12px 6px; border-radius: 11px;
-  background: color-mix(in oklab, var(--c) 16%, rgba(6,7,10,.55)); backdrop-filter: blur(5px); }
+  background: color-mix(in oklab, var(--c) 20%, #0b0d12);
+  border: 1px solid color-mix(in oklab, var(--c) 38%, transparent); }
 .vs-fitframe .fit-tr .score .lbl { font-size: 8px; letter-spacing: 0.2em; }
 .vs-fitframe .fit-tr .score .v { font-size: 34px; }
 .vs-fitframe .fit-tr .score small { font-size: 10px; }
