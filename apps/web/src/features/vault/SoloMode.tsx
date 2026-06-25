@@ -319,7 +319,7 @@ export function SoloMode({ mode }: { mode: ScanMode }) {
           </span>
           <div className="et">No verdicts yet</div>
           <div className="es">
-            Drop a photo and get your verdict. Start with 3 free credits.
+            Drop a photo and get your verdict. Start with 10 free credits.
           </div>
           <div className="outs">
             {mode.outputs.map((o) => (

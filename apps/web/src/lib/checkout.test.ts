@@ -19,9 +19,9 @@ describe('isAllowedOrigin', () => {
 
 describe('creditsForPack', () => {
   it('returns the credit count for a known pack', () => {
-    expect(creditsForPack('starter')).toBe(10);
-    expect(creditsForPack('regular')).toBe(30);
-    expect(creditsForPack('group')).toBe(80);
+    expect(creditsForPack('starter')).toBe(20);
+    expect(creditsForPack('regular')).toBe(80);
+    expect(creditsForPack('group')).toBe(150);
   });
   it('returns undefined for an unknown pack', () => {
     expect(creditsForPack('nope')).toBeUndefined();

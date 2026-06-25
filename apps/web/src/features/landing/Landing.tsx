@@ -109,7 +109,7 @@ function Hero() {
           <div className="ln-hero-trust">
             <span className="free-pill">
               <span className="pdot" />
-              3 free credits
+              10 free credits
             </span>
             <span className="t">
               <Icon.lock /> Photos never stored on our servers
@@ -269,10 +269,10 @@ function Credits() {
           <div>
             <span className="ln-eyebrow">CREDITS, NOT SUBSCRIPTIONS</span>
             <h2 className="ln-h2">
-              3 credits <span className="hl">on us</span>
+              10 credits <span className="hl">on us</span>
             </h2>
             <p className="ln-lead">
-              You start with 3 free credits — three full verdicts. After that, top up whenever. Friends, exes, celebrities — all fair game.
+              You start with 10 free credits — ten full verdicts. After that, top up whenever. Friends, exes, celebrities — all fair game.
             </p>
           </div>
           <span className="free-pill" style={{ alignSelf: 'center' }}>
@@ -502,7 +502,7 @@ function FinalCTA() {
           UPLOAD SCAN <span className="hl">GET POSTED</span>
         </h2>
         <p>
-          One scan, one credit, cards your group chat won't let go of. Start with 3 free credits.
+          One scan, one credit, cards your group chat won't let go of. Start with 10 free credits.
         </p>
         <div className="ln-hero-actions">
           <Link className="ln-btn primary lg" to="/vault">
@@ -561,7 +561,7 @@ function MobileBar() {
     <div className="ln-mobilebar">
       <div className="mb-meta">
         <div className="l1">Get your full verdict</div>
-        <div className="l2">3 free credits to start</div>
+        <div className="l2">10 free credits to start</div>
       </div>
       <Link className="ln-btn primary" to="/vault">
         Scan me

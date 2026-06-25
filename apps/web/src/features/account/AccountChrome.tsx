@@ -32,7 +32,7 @@ export function CreditChip() {
       <span className="gem">
         <Icon.bolt />
       </span>
-      3 FREE CREDITS
+      10 FREE CREDITS
     </button>
   );
 }

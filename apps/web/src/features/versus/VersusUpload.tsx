@@ -169,7 +169,7 @@ export function VersusUpload() {
           ) : (
             <span className="status-chip free">
               <span className="d" />
-              3 free credits
+              10 free credits
             </span>
           )}
         </div>
@@ -220,7 +220,7 @@ export function VersusUpload() {
             </DualGlowButton>
             <div className="cta-meta">
               <span className="free">
-                <Icon.spark /> 3 free credits to start
+                <Icon.spark /> 10 free credits to start
               </span>
               <span>~8 sec</span>
             </div>
