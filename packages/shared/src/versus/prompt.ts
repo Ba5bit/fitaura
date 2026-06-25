@@ -47,8 +47,8 @@ const sidePerModality = () => ({
  * model leaves inactive modalities null in a single-mode scan.
  */
 export function buildVersusResponseSchema(mode: VersusMode) {
-  const includeFace = mode === 'face' || mode === 'both';
-  const includeFit = mode === 'fit' || mode === 'both';
+  const includeFace = mode === 'face';
+  const includeFit = mode === 'fit';
 
   const scoreProps: Partial<Record<'face' | 'fit', ReturnType<typeof scoresObjectFor>>> = {};
   const scoreRequired: string[] = [];
@@ -103,8 +103,8 @@ export const VERSUS_SYSTEM_INSTRUCTION = `You are FitAura's Friend vs Friend jud
 Return only JSON matching the provided schema. This is entertainment, "for the bit, not science". Do not present any judgment as scientific, biometric, medical, or psychological fact.
 
 SCORING: For each ACTIVE category, score BOTH contenders 0-100 (integer) per metric.
-- FACE metrics: ${FACE_LIST}.
-- FIT metrics: ${FIT_LIST}.
+- FACE metrics: ${FACE_LIST}. (Rizz = magnetic charisma / pull off the photo; Aura = overall presence and vibe.)
+- FIT metrics: ${FIT_LIST}. (Physique Match = how well the fit flatters their actual build; Pose = the stance and body language; Confidence = how much they own the look vs hide in it.)
 Only the active categories appear in the schema — score exactly those. Anchor: 0-20 weak, 21-40 below average, 41-60 mixed, 61-80 strong, 81-100 elite. Use the full range, differentiate the two contenders, and avoid clustering on round multiples of 10. The numbers decide the winner, so make them honest to what you see.
 
 CROWN: Set crown.winner to your read of who wins overall ("a", "b", or "tie") and write crown.line as a savage one-line punchline crowning that result. (The backend recomputes the winner from your scores and may swap the line if your call disagrees with the math — so keep the scores and the crown consistent.)

@@ -65,8 +65,8 @@ function coerceOneLocked(superlatives: Superlative[]): Superlative[] {
  * hard failure and refunds the battle.
  */
 export function shapeVersusResult(ai: VersusAIResult, meta: ShapeMeta): VersusResult {
-  const includeFace = meta.mode === 'face' || meta.mode === 'both';
-  const includeFit = meta.mode === 'fit' || meta.mode === 'both';
+  const includeFace = meta.mode === 'face';
+  const includeFit = meta.mode === 'fit';
 
   const face = includeFace ? toMetrics(FACE_METRICS, ai.scores.face) : null;
   const fit = includeFit ? toMetrics(FIT_METRICS, ai.scores.fit) : null;

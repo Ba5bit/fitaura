@@ -1,6 +1,10 @@
-import { useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react';
 import { splitPercent, type BattleWinner, type Superlative, type VersusMode } from '@fitaura/shared';
 import { Icon } from '../../../lib/icons';
+import { useCountUp } from '../../../lib/useCountUp';
+
+/** Per-row delay for the first-view stats reveal (top-to-bottom stagger). */
+export const SPLIT_STAGGER_MS = 110;
 
 /**
  * Small, stateless view primitives for Friend vs Friend. All contender coloring
@@ -59,20 +63,63 @@ export function FlagChip({ children, tone = 'green' }: { children: ReactNode; to
   );
 }
 
-/** One head-to-head metric: A fills from the left, B from the right. */
-export function SplitBar({ label, a, b, win }: { label: string; a: number; b: number; win: BattleWinner }) {
+/**
+ * One head-to-head metric: A fills from the left, B from the right. On the
+ * first-view reveal the row fades in, the numbers count up and the bars grow
+ * from empty — staggered top-to-bottom by `index`. `reveal=false` (revisits,
+ * reduced-motion) renders the final state immediately.
+ */
+export function SplitBar({
+  label,
+  a,
+  b,
+  win,
+  reveal = false,
+  index = 0,
+}: {
+  label: string;
+  a: number;
+  b: number;
+  win: BattleWinner;
+  reveal?: boolean;
+  index?: number;
+}) {
   const pct = splitPercent(a, b);
+  const delay = reveal ? index * SPLIT_STAGGER_MS : 0;
+  const na = useCountUp(a, reveal, 820, delay);
+  const nb = useCountUp(b, reveal, 820, delay);
+
+  // Bars grow once the row's stagger delay elapses (the CSS width transition
+  // does the easing). Stay collapsed during the delay so the fill animates in.
+  const [grown, setGrown] = useState(!reveal);
+  useEffect(() => {
+    if (!reveal) {
+      setGrown(true);
+      return;
+    }
+    setGrown(false);
+    const t = setTimeout(() => setGrown(true), delay);
+    return () => clearTimeout(t);
+  }, [reveal, delay]);
+  const wa = grown ? pct.a : 0;
+  const wb = grown ? pct.b : 0;
+
   return (
-    <div className="vs-split" data-win={win}>
+    <div
+      className="vs-split"
+      data-win={win}
+      data-reveal={reveal ? '1' : undefined}
+      style={{ ['--i']: index } as CSSProperties}
+    >
       <div className="top">
-        <span className="na">{a}</span>
+        <span className="na">{na}</span>
         <span className="lab">{label}</span>
-        <span className="nb">{b}</span>
+        <span className="nb">{nb}</span>
       </div>
       <div className="vs-track">
-        <span className="fa" style={{ width: `${pct.a}%` }} />
-        <span className="fb" style={{ width: `${pct.b}%` }} />
-        <span className="divline" style={{ left: `${pct.a}%` }} />
+        <span className="fa" style={{ width: `${wa}%` }} />
+        <span className="fb" style={{ width: `${wb}%` }} />
+        <span className="divline" style={{ left: `${wa}%` }} />
       </div>
     </div>
   );
@@ -90,14 +137,14 @@ export function CrownAvatar({ photo, crowned, name }: { photo?: string; crowned:
   );
 }
 
-const MODE_LABELS: Record<VersusMode, string> = { face: 'Face', fit: 'Fit', both: 'Both' };
+const MODE_LABELS: Record<VersusMode, string> = { face: 'Face', fit: 'Fit' };
 
-/** Face / Fit / Both segmented control (≥44px targets). */
+/** Face / Fit segmented control (≥44px targets). */
 export function ModeSelector({ mode, onChange }: { mode: VersusMode; onChange: (m: VersusMode) => void }) {
   return (
     <div className="vs-modes-row">
       <div className="vs-modes" role="group" aria-label="What to compare">
-        {(['face', 'fit', 'both'] as VersusMode[]).map((m) => (
+        {(['face', 'fit'] as VersusMode[]).map((m) => (
           <button
             key={m}
             type="button"

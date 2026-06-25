@@ -5,21 +5,19 @@ const side = () => ({ a: 80, b: 70 });
 
 function faceScores() {
   return {
-    skin: side(),
-    symmetry: side(),
     jawline: side(),
-    eyes: side(),
+    hairline: side(),
+    rizz: side(),
     aura: side(),
   };
 }
 
 function fitScores() {
   return {
-    fit: side(),
-    color: side(),
     drip: side(),
-    silhouette: side(),
-    freshness: side(),
+    physique: side(),
+    pose: side(),
+    confidence: side(),
   };
 }
 
@@ -49,7 +47,7 @@ describe('versusAiResultSchema', () => {
     expect(VERSUS_SCHEMA_VERSION.length).toBeGreaterThan(0);
   });
 
-  it('accepts a complete both-mode payload', () => {
+  it('accepts a payload carrying both score blocks (schema stays permissive)', () => {
     expect(versusAiResultSchema.safeParse(sample()).success).toBe(true);
   });
 
@@ -76,12 +74,12 @@ describe('versusAiResultSchema', () => {
   });
 
   it('rejects a score outside 0-100', () => {
-    const bad = sample({ scores: { face: { ...faceScores(), skin: { a: 120, b: 70 } }, fit: fitScores() } });
+    const bad = sample({ scores: { face: { ...faceScores(), jawline: { a: 120, b: 70 } }, fit: fitScores() } });
     expect(versusAiResultSchema.safeParse(bad).success).toBe(false);
   });
 
   it('rejects a non-integer score', () => {
-    const bad = sample({ scores: { face: { ...faceScores(), skin: { a: 80.5, b: 70 } }, fit: fitScores() } });
+    const bad = sample({ scores: { face: { ...faceScores(), jawline: { a: 80.5, b: 70 } }, fit: fitScores() } });
     expect(versusAiResultSchema.safeParse(bad).success).toBe(false);
   });
 
@@ -105,7 +103,7 @@ describe('versusAiResultSchema', () => {
   });
 
   it('rejects an incomplete face score block (missing a metric key)', () => {
-    const bad = sample({ scores: { face: { skin: side() }, fit: fitScores() } });
+    const bad = sample({ scores: { face: { jawline: side() }, fit: fitScores() } });
     expect(versusAiResultSchema.safeParse(bad).success).toBe(false);
   });
 });

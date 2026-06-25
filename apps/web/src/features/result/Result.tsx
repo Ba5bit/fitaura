@@ -5,7 +5,6 @@ import {
   stickerFromPreset,
   genderOf,
   VERDICT_COLOR_VAR,
-  type ReceiptPaper,
   type StickerData,
 } from '@fitaura/shared';
 import { FaceCard, OutfitCard, Receipt, ReceiptPremium } from '../../components/cards';
@@ -28,6 +27,7 @@ import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
 import { ProfileMenu } from '../account/ProfileMenu';
 import { useLocalStorage } from '../../state/useLocalStorage';
+import { usePreferences } from '../../state/preferences';
 import { usePerCardState } from '../../state/usePerCardState';
 import '../../design/result-shell.css';
 import '../../design/sticker-studio.css';
@@ -73,7 +73,9 @@ export function Result() {
 
   const [tab, setTabRaw] = useState(initialTab);
   const [editing, setEditing] = useState(false);
-  const [paper, setPaper] = useLocalStorage<ReceiptPaper>('fitaura.paper', 'neon');
+  // Default paper comes from the account-synced preference; the on-card switcher
+  // (below) updates the same preference, so a change here follows the account too.
+  const { receiptPaper: paper, setReceiptPaper: setPaper } = usePreferences();
   // Premium + white share the "verified pass" (ReceiptPremium) layout and have no
   // editable seal slots — white is just its ivory/cream skin.
   const premiumLike = paper === 'premium' || paper === 'white';
@@ -433,7 +435,7 @@ export function Result() {
             <b>{credits}</b> left
           </button>
           <div className="rs-h-actions" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <button className="rs-newscan" onClick={() => navigate('/vault')}>
+            <button className="rs-newscan" onClick={() => navigate('/vault', { state: { vaultMode: 'solo' } })}>
               <Icon.grid />
               <span>Vault</span>
             </button>

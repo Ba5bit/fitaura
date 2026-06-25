@@ -23,7 +23,7 @@ function reasonFor(code: string): string {
   return 'Something went wrong on our end.';
 }
 
-type VersusMode = 'face' | 'fit' | 'both';
+type VersusMode = 'face' | 'fit';
 
 interface ReqImages {
   aFace?: InlineImage;
@@ -71,10 +71,10 @@ Deno.serve(async (req) => {
     bFace: okImg(imgs.bFace),
     bFit: okImg(imgs.bFit),
   };
-  // Required images per mode: face → A+B face; fit → A+B fit; both → all four.
-  const validMode = mode === 'face' || mode === 'fit' || mode === 'both';
-  const includeFace = mode === 'face' || mode === 'both';
-  const includeFit = mode === 'fit' || mode === 'both';
+  // Required images per mode: face → A+B face; fit → A+B fit.
+  const validMode = mode === 'face' || mode === 'fit';
+  const includeFace = mode === 'face';
+  const includeFit = mode === 'fit';
   const imagesOk =
     validMode &&
     (!includeFace || (has.aFace && has.bFace)) &&

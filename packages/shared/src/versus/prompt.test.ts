@@ -38,14 +38,6 @@ describe('buildVersusResponseSchema', () => {
     expect(schema.properties.scores.required).toEqual(['fit']);
   });
 
-  it('includes both score blocks for both mode', () => {
-    const schema = buildVersusResponseSchema('both');
-    const scoreProps = schema.properties.scores.properties;
-    expect(scoreProps.face).toBeDefined();
-    expect(scoreProps.fit).toBeDefined();
-    expect(schema.properties.scores.required).toEqual(expect.arrayContaining(['face', 'fit']));
-  });
-
   it('keys face scores by the canonical face metric keys', () => {
     const schema = buildVersusResponseSchema('face');
     const faceKeys = Object.keys(schema.properties.scores.properties.face!.properties);
@@ -59,7 +51,7 @@ describe('buildVersusResponseSchema', () => {
   });
 
   it('always requires crown, decisiveRead, sides, superlatives', () => {
-    const schema = buildVersusResponseSchema('both');
+    const schema = buildVersusResponseSchema('face');
     expect(schema.required).toEqual(
       expect.arrayContaining(['scores', 'crown', 'decisiveRead', 'sides', 'superlatives']),
     );

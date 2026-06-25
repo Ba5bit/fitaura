@@ -41,12 +41,12 @@ export interface ComputeBattleInput {
  * Compare two contenders into a full verdict. Pure: same input → same output.
  *
  * - Per-modality winner = higher rounded average (within `TIE_BAND` = tie).
- * - `overall` averages the active modalities equally (face + fit for `both`).
+ * - `overall` is the active modality's rounded average (face or fit).
  * - The headline `winner` is the overall winner.
  */
 export function computeBattle(input: ComputeBattleInput): BattleVerdict {
-  const includeFace = input.mode === 'face' || input.mode === 'both';
-  const includeFit = input.mode === 'fit' || input.mode === 'both';
+  const includeFace = input.mode === 'face';
+  const includeFit = input.mode === 'fit';
 
   const face = includeFace ? groupResult(input.face ?? []) : null;
   const fit = includeFit ? groupResult(input.fit ?? []) : null;
@@ -90,7 +90,7 @@ export interface BattleSummary {
   /** Categories (face/fit) each side won. */
   categoriesA: number;
   categoriesB: number;
-  /** Number of active categories (1 for face/fit, 2 for both). */
+  /** Number of active categories (always 1 — face or fit). */
   categoryCount: number;
   /** Metrics each side led, and the total compared. */
   metricsWonA: number;

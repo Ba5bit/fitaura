@@ -8,7 +8,7 @@ const sideCopy = () => ({ superpower: 'jaw loaded', roast: 'eyes asleep' });
 /** Build a face score block from explicit a/b pairs keyed by metric. */
 function faceScores(pairs: Record<string, [number, number]> = {}) {
   const base: Record<string, [number, number]> = {
-    skin: [80, 70], symmetry: [80, 70], jawline: [80, 70], eyes: [80, 70], aura: [80, 70],
+    jawline: [80, 70], hairline: [80, 70], rizz: [80, 70], aura: [80, 70],
   };
   const merged = { ...base, ...pairs };
   return Object.fromEntries(Object.entries(merged).map(([k, [a, b]]) => [k, { a, b }]));
@@ -16,7 +16,7 @@ function faceScores(pairs: Record<string, [number, number]> = {}) {
 
 function fitScores(pairs: Record<string, [number, number]> = {}) {
   const base: Record<string, [number, number]> = {
-    fit: [60, 90], color: [60, 90], drip: [60, 90], silhouette: [60, 90], freshness: [60, 90],
+    drip: [60, 90], physique: [60, 90], pose: [60, 90], confidence: [60, 90],
   };
   const merged = { ...base, ...pairs };
   return Object.fromEntries(Object.entries(merged).map(([k, [a, b]]) => [k, { a, b }]));
@@ -40,15 +40,14 @@ function sample(over: Partial<VersusAIResult> = {}): VersusAIResult {
   } as VersusAIResult;
 }
 
-const META = { mode: 'both' as const, battleId: 'battle-1' };
+const META = { mode: 'face' as const, battleId: 'battle-1' };
 
 describe('shapeVersusResult', () => {
   it('maps AI scores to Metric[] with labels from the metric defs', () => {
     const out = shapeVersusResult(sample(), META);
     expect(out.face).not.toBeNull();
-    expect(out.face!.map((m) => m.key)).toEqual(['skin', 'symmetry', 'jawline', 'eyes', 'aura']);
-    expect(out.face!.find((m) => m.key === 'skin')).toMatchObject({ label: 'Skin', a: 80, b: 70 });
-    expect(out.fit!.find((m) => m.key === 'drip')).toMatchObject({ label: 'Drip', a: 60, b: 90 });
+    expect(out.face!.map((m) => m.key)).toEqual(['jawline', 'hairline', 'rizz', 'aura']);
+    expect(out.face!.find((m) => m.key === 'jawline')).toMatchObject({ label: 'Jawline', a: 80, b: 70 });
   });
 
   it('carries the copy payload through (sides, decisiveRead)', () => {
@@ -59,15 +58,12 @@ describe('shapeVersusResult', () => {
   });
 
   it('keeps the AI crown line when the AI winner matches the computed winner', () => {
-    // A dominates face, B dominates fit but face margin is larger → A wins overall.
+    // A dominates face → A wins; the AI's crown agrees, so the line is kept.
     const ai = sample({
-      scores: {
-        face: faceScores({ skin: [95, 60], symmetry: [95, 60], jawline: [95, 60], eyes: [95, 60], aura: [95, 60] }),
-        fit: fitScores({ fit: [70, 78], color: [70, 78], drip: [70, 78], silhouette: [70, 78], freshness: [70, 78] }),
-      },
+      scores: { face: faceScores({ jawline: [95, 60], hairline: [95, 60], rizz: [95, 60], aura: [95, 60] }) },
       crown: { winner: 'a', line: 'A bodied this matchup.' },
     });
-    const computed = computeBattle({ mode: 'both', face: ai.scores.face && asMetrics(ai.scores.face), fit: ai.scores.fit && asMetrics(ai.scores.fit) });
+    const computed = computeBattle({ mode: 'face', face: ai.scores.face && asMetrics(ai.scores.face) });
     expect(computed.winner).toBe('a');
     const out = shapeVersusResult(ai, META);
     expect(out.copy.crown.winner).toBe('a');
@@ -77,8 +73,7 @@ describe('shapeVersusResult', () => {
   it('replaces the crown line with a fallback when the AI winner disagrees with the computed winner', () => {
     // Dead-heat scores → computed winner is "tie", but the AI insists "a".
     const tieScores = {
-      face: faceScores({ skin: [80, 80], symmetry: [80, 80], jawline: [80, 80], eyes: [80, 80], aura: [80, 80] }),
-      fit: fitScores({ fit: [80, 80], color: [80, 80], drip: [80, 80], silhouette: [80, 80], freshness: [80, 80] }),
+      face: faceScores({ jawline: [80, 80], hairline: [80, 80], rizz: [80, 80], aura: [80, 80] }),
     };
     const ai = sample({ scores: tieScores, crown: { winner: 'a', line: 'A obliterated B.' } });
     const out = shapeVersusResult(ai, META);
@@ -129,7 +124,7 @@ describe('shapeVersusResult', () => {
     expect(out.mode).toBe('face');
     expect(out.fit).toBeNull();
     expect(out.face).not.toBeNull();
-    expect(out.face!).toHaveLength(5);
+    expect(out.face!).toHaveLength(4);
   });
 
   it('handles fit-only mode (face null)', () => {
@@ -141,17 +136,18 @@ describe('shapeVersusResult', () => {
     expect(out.mode).toBe('fit');
     expect(out.face).toBeNull();
     expect(out.fit).not.toBeNull();
-    expect(out.fit!).toHaveLength(5);
+    expect(out.fit!).toHaveLength(4);
+    expect(out.fit!.find((m) => m.key === 'drip')).toMatchObject({ label: 'Drip', a: 60, b: 90 });
   });
 
   it('throws when an active category has no scores', () => {
-    const ai = sample({ scores: { fit: fitScores() } }); // both mode but face missing
+    const ai = sample({ scores: { fit: fitScores() } }); // face mode but face scores missing
     expect(() => shapeVersusResult(ai, META)).toThrow();
   });
 
   it('throws when an active score is out of range', () => {
     const ai = sample({
-      scores: { face: faceScores({ skin: [150, 70] }), fit: fitScores() },
+      scores: { face: faceScores({ jawline: [150, 70] }), fit: fitScores() },
     });
     expect(() => shapeVersusResult(ai, META)).toThrow();
   });

@@ -19,8 +19,8 @@ const VS_FIT_FRAME = { w: 280, h: 316 }; // 230 ×1.35 ×0.9 wide · 306 ×1.35 
 
 /** Which image slots a mode requires. */
 function requiredSlots(mode: VersusMode): (keyof BattleImages)[] {
-  const needFace = mode === 'face' || mode === 'both';
-  const needFit = mode === 'fit' || mode === 'both';
+  const needFace = mode === 'face';
+  const needFit = mode === 'fit';
   const out: (keyof BattleImages)[] = [];
   if (needFace) out.push('aFace', 'bFace');
   if (needFit) out.push('aFit', 'bFit');
@@ -46,8 +46,8 @@ function ContenderCard({
   onImg: (slot: keyof BattleImages, url: string | null) => void;
   mobile: boolean;
 }) {
-  const needFace = mode === 'face' || mode === 'both';
-  const needFit = mode === 'fit' || mode === 'both';
+  const needFace = mode === 'face';
+  const needFit = mode === 'fit';
   const faceSlot: keyof BattleImages = side === 'a' ? 'aFace' : 'bFace';
   const fitSlot: keyof BattleImages = side === 'a' ? 'aFit' : 'bFit';
 
@@ -95,7 +95,7 @@ export function VersusUpload() {
   const { signedIn, credits } = useAccount();
   const mobile = useMediaQuery('(max-width: 760px)');
 
-  const [mode, setMode] = useState<VersusMode>('both');
+  const [mode, setMode] = useState<VersusMode>('face');
   const [nameA, setNameA] = useState('');
   const [nameB, setNameB] = useState('');
   const [imgs, setImgs] = useState<BattleImages>({});
@@ -225,7 +225,7 @@ export function VersusUpload() {
               <span>~8 sec</span>
             </div>
             {!allReady && !attempted && (
-              <div className="cta-hint">Drop a face and/or fit for both A and B to crown a winner.</div>
+              <div className="cta-hint">Drop a {mode === 'face' ? 'face' : 'fit'} for both A and B to crown a winner.</div>
             )}
           </div>
 

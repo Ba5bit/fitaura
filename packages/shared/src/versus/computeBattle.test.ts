@@ -37,20 +37,6 @@ describe('computeBattle', () => {
     expect(v.winner).toBe('b');
   });
 
-  it('weighs face and fit equally for mode=both', () => {
-    // A dominates face, B dominates fit by the same margin → dead heat overall.
-    const v = computeBattle({
-      mode: 'both',
-      face: [m('skin', 90, 70)],
-      fit: [m('drip', 70, 90)],
-    });
-    expect(v.face!.winner).toBe('a');
-    expect(v.fit!.winner).toBe('b');
-    expect(v.overall.avgA).toBe(80);
-    expect(v.overall.avgB).toBe(80);
-    expect(v.winner).toBe('tie');
-  });
-
   it('handles an empty group without crashing', () => {
     const v = computeBattle({ mode: 'face', face: [] });
     expect(v.face!.avgA).toBe(0);
@@ -59,28 +45,27 @@ describe('computeBattle', () => {
 });
 
 describe('summarizeBattle', () => {
-  // A wins face (clearly), B wins fit (clearly) → 1-1 categories, equal-ish overall.
+  // A single-modality battle (face): five metrics, A leads the category 4-1.
   const v = computeBattle({
-    mode: 'both',
+    mode: 'face',
     face: [m('skin', 92, 86), m('symmetry', 88, 83), m('jawline', 84, 89), m('gaze', 86, 84), m('aura', 90, 85)],
-    fit: [m('silhouette', 81, 89), m('color', 78, 91), m('statement', 85, 82), m('texture', 80, 87), m('coordination', 83, 86)],
   });
 
-  it('splits categories per modality winner', () => {
+  it('reports exactly one active category', () => {
     const s = summarizeBattle(v);
-    expect(s.categoryCount).toBe(2);
-    expect(s.categoriesA).toBe(1); // face
-    expect(s.categoriesB).toBe(1); // fit
+    expect(s.categoryCount).toBe(1);
+    expect(s.categoriesA + s.categoriesB).toBe(1);
+    expect(s.categoriesA).toBe(1); // A leads face
   });
 
-  it('counts metrics won across all modalities', () => {
+  it('counts metrics won across the active modality', () => {
     const s = summarizeBattle(v);
-    expect(s.metricsTotal).toBe(10);
-    expect(s.metricsWonA + s.metricsWonB).toBe(10);
+    expect(s.metricsTotal).toBe(5);
+    expect(s.metricsWonA + s.metricsWonB).toBe(5);
   });
 
-  it('labels a 1-point margin "By a hair" and a tie "Dead heat"', () => {
-    expect(summarizeBattle(v).marginLabel).toMatch(/hair|Dead heat|Close/);
+  it('labels a clear margin and a tie "Dead heat"', () => {
+    expect(summarizeBattle(v).marginLabel).toMatch(/hair|Dead heat|Close|Clear|Blowout/);
     const tie = computeBattle({ mode: 'face', face: [m('skin', 80, 80)] });
     expect(summarizeBattle(tie).marginLabel).toBe('Dead heat');
   });
@@ -90,7 +75,7 @@ describe('summarizeBattle', () => {
     expect(s.topReads).toHaveLength(4);
     const gaps = s.topReads.map((r) => Math.abs(r.metric.a - r.metric.b));
     expect(gaps).toEqual([...gaps].sort((x, y) => y - x));
-    expect(s.topReads[0].category === 'face' || s.topReads[0].category === 'fit').toBe(true);
+    expect(s.topReads[0].category).toBe('face');
   });
 });
 
@@ -116,10 +101,10 @@ describe('generateMetrics', () => {
     const z = generateMetrics('Cat|Dee');
     expect(x).not.toEqual(z);
   });
-  it('produces in-band scores for all five metrics per modality', () => {
+  it('produces in-band scores for all four metrics per modality', () => {
     const { face, fit } = generateMetrics('seed');
-    expect(face).toHaveLength(5);
-    expect(fit).toHaveLength(5);
+    expect(face).toHaveLength(4);
+    expect(fit).toHaveLength(4);
     for (const grp of [face, fit]) {
       for (const metric of grp) {
         for (const side of [metric.a, metric.b]) {

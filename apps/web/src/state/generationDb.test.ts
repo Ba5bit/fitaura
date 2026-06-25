@@ -13,8 +13,8 @@ const DAY = 86_400_000;
 const res = (id: string, producedAt: string, name?: string): GenerationResult =>
   ({ receipt: { generationId: id }, verdict: 'normie', producedAt, name } as unknown as GenerationResult);
 const bat = (id: string, producedAt: string, name?: string): SavedBattle =>
-  ({ battleId: id, producedAt, name, mode: 'both', nameA: 'A', nameB: 'B', imgs: {},
-     result: { mode: 'both', face: null, fit: null, copy: {} } } as unknown as SavedBattle);
+  ({ battleId: id, producedAt, name, mode: 'face', nameA: 'A', nameB: 'B', imgs: {},
+     result: { mode: 'face', face: null, fit: null, copy: {} } } as unknown as SavedBattle);
 
 beforeEach(async () => {
   await resetDbForTests();
@@ -123,6 +123,17 @@ describe('generationDb — Friend vs Friend battles', () => {
     expect((await loadBattles('a', NOW))[0].name).toBe('Maya vs Theo');
     await deleteBattle('a', 'b1');
     expect(await loadBattles('a', NOW)).toHaveLength(0);
+  });
+
+  it('drops legacy both-mode battles on load (unsupported after the Both removal)', async () => {
+    const legacy = { battleId: 'old', producedAt: new Date(NOW - 1 * DAY).toISOString(),
+      mode: 'both', nameA: 'A', nameB: 'B', imgs: {},
+      result: { mode: 'both', face: null, fit: null, copy: {} } } as unknown as SavedBattle;
+    await putBattle('a', legacy);
+    await putBattle('a', bat('keep', new Date(NOW - 2 * DAY).toISOString()));
+    expect((await loadBattles('a', NOW)).map((b) => b.battleId)).toEqual(['keep']);
+    // dropped permanently — it's deleted from the store, so a second load still excludes it
+    expect((await loadBattles('a', NOW)).map((b) => b.battleId)).toEqual(['keep']);
   });
 
   it('clearAccount wipes battles alongside results', async () => {

@@ -6,7 +6,6 @@ import {
   splitPercent,
   summarizeBattle,
   winnerOf,
-  type BattleSummary,
   type BattleVerdict,
   type BattleWinner,
   type CategoryRead,
@@ -17,8 +16,11 @@ import {
   type VersusCopy,
 } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
+import { useCountUp } from '../../lib/useCountUp';
 import { renderCardBlob, downloadResult, shareResult } from '../../lib/exportCard';
 import { battleNames, useBattle, type Battle } from '../../state/battle';
+import { useAccount } from '../account/AccountContext';
+import { ProfileMenu } from '../account/ProfileMenu';
 import {
   Crown,
   CrownAvatar,
@@ -26,7 +28,6 @@ import {
   FlagChip,
   SplitBar,
   SuperlativesRow,
-  VersusMedallion,
 } from './components/versusBits';
 import '../../design/result-shell.css';
 import '../../design/versus.css';
@@ -34,14 +35,33 @@ import '../../design/versus.css';
 type Tab = 'face' | 'outfit' | 'verdict';
 type CardVariant = 'face' | 'fit' | 'overall';
 
-// A = icy blue, B = gold (Solo tokens, no pink/cyan). Tie reads neutral.
-const ACCENT_HEX: Record<BattleWinner, string> = { a: '#83b4ff', b: '#ffcf66', tie: '#83b4ff' };
+// FvF contender palettes — drawn from Solo Scan's own semantic tokens for consistency.
+// A is always Solo's brand accent (icy blue); B varies per matchup among Solo's other
+// distinct accents (lime / gold / red) so each matchup looks a bit different while both
+// sides keep a clear, on-brand identity. (cyan clashes with the icy A; magenta is the
+// blue+pink combo the user disliked — both left out.) Applied by overriding --icy/--gold
+// on the result root (see versus.css `.vs-result-app`).
+const PALETTES: { a: string; b: string }[] = [
+  { a: '#83b4ff', b: '#b6ff3c' }, // icy / lime
+  { a: '#83b4ff', b: '#ffcf66' }, // icy / gold
+  { a: '#83b4ff', b: '#ff3b49' }, // icy / red
+];
+
+/** Deterministic palette pick from the matchup, so a given battle keeps its colours
+ * across refreshes (and as a saved battle) instead of flickering a new pair each view. */
+function pickPalette(seed: string): { a: string; b: string } {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  return PALETTES[h % PALETTES.length];
+}
 const SIDE_VAR: Record<BattleWinner, string> = { a: 'var(--icy)', b: 'var(--gold)', tie: 'var(--ink)' };
 
-const TAB_LABEL: Record<Tab, { n: string; t: string }> = {
-  face: { n: '01', t: 'Face' },
-  outfit: { n: '02', t: 'Outfit' },
-  verdict: { n: '03', t: 'Verdict' },
+// Display label only; the tab number is the position in the active tab list (see
+// the nav), so face/outfit-only modes still read 01 → 02 with no gap.
+const TAB_LABEL: Record<Tab, string> = {
+  face: 'Face',
+  outfit: 'Outfit',
+  verdict: 'Verdict',
 };
 
 function whoLabel(winner: BattleWinner, names: { a: string; b: string }): string {
@@ -51,6 +71,14 @@ function whoLabel(winner: BattleWinner, names: { a: string; b: string }): string
 /** Deterministic barcode bar widths for a share-card footer. */
 const BARS = Array.from({ length: 28 }, (_, i) => 1 + ((i * 7) % 4));
 
+/** A side's two strongest metrics as `{label, value}` chips (own score, descending). */
+function topMetricChips(metrics: Metric[], side: Side): { key: string; label: string; value: number }[] {
+  return [...metrics]
+    .sort((m1, m2) => (side === 'a' ? m2.a - m1.a : m2.b - m1.b))
+    .slice(0, 2)
+    .map((m) => ({ key: m.key, label: m.label, value: side === 'a' ? m.a : m.b }));
+}
+
 /** One side's column of a face/outfit comparison. */
 function Column({
   side,
@@ -59,6 +87,7 @@ function Column({
   photo,
   group,
   copy,
+  reveal = false,
 }: {
   side: Side;
   category: 'face' | 'fit';
@@ -67,34 +96,57 @@ function Column({
   group: MetricGroupResult;
   /** AI flex + burn for this side/category, or null on the dev fallback. */
   copy?: SideCopy | null;
+  /** First-view reveal — count the big score up from 0. */
+  reveal?: boolean;
 }) {
   const score = side === 'a' ? group.avgA : group.avgB;
+  const shownScore = useCountUp(score, reveal, 960);
   const crowned = group.winner === side;
   const state = group.winner === side ? 'win' : group.winner === 'tie' ? 'tie' : 'lose';
   const leads = group.metrics.filter((m) => (side === 'a' ? m.a > m.b : m.b > m.a)).slice(0, 2);
-  const top = [...group.metrics].sort((a, b) => (side === 'a' ? b.a - a.a : b.b - a.b)).slice(0, 3);
+
+  // Player label + name, and the score badge — placed BELOW on the face tab (under the
+  // round avatar) but OVERLAID on the photo on the outfit tab (so the column stays
+  // compact and the page doesn't scroll).
+  const nameBlock = (
+    <>
+      <div className="plabel">Player {side === 'a' ? 'A' : 'B'}</div>
+      <div className="nm">{name}</div>
+    </>
+  );
+  const scoreBadge = (
+    <div className="score">
+      <span className="lbl">Score</span>
+      <span className="v">
+        {shownScore}
+        <small>/100</small>
+      </span>
+    </div>
+  );
 
   return (
-    <div className="vs-col vs-c" data-side={side} data-state={state}>
+    <div className="vs-col vs-c" data-side={side} data-state={state} data-cat={category}>
       {category === 'face' ? (
-        <CrownAvatar photo={photo} crowned={crowned} name={name} />
+        <>
+          <CrownAvatar photo={photo} crowned={crowned} name={name} />
+          {nameBlock}
+          {scoreBadge}
+        </>
       ) : (
         <div className="vs-fitwrap">
           {crowned && <Crown />}
           <div className="vs-fitframe">
             {photo ? <img className="photo" src={photo} alt={name} /> : <span className="ph" />}
+            <span className="fit-scrim" />
             <span className="bk tl" />
             <span className="bk tr" />
             <span className="bk bl" />
             <span className="bk br" />
+            <div className="fit-tr">{scoreBadge}</div>
+            <div className="fit-bl">{nameBlock}</div>
           </div>
         </div>
       )}
-      <div className="nm">{name}</div>
-      <div className="score">
-        {score}
-        <small>/100</small>
-      </div>
       <div className="chips">
         {leads.map((m) => (
           <FlagChip key={m.key}>{m.label}</FlagChip>
@@ -103,37 +155,8 @@ function Column({
       {copy && (
         <div className="vs-sidecopy">
           <p className="super">{copy.superpower}</p>
-          <p className="roast">{copy.roast}</p>
         </div>
       )}
-      <div className="vs-reads">
-        <div className="h">Top reads</div>
-        {top.map((m) => {
-          const val = side === 'a' ? m.a : m.b;
-          const bar = (
-            <span className="bar">
-              <i style={{ width: `${val}%` }} />
-            </span>
-          );
-          return (
-            <div className="vs-read" key={m.key}>
-              {side === 'a' ? (
-                <>
-                  <span className="lbl">{m.label}</span>
-                  {bar}
-                  <span className="val">{val}</span>
-                </>
-              ) : (
-                <>
-                  <span className="val">{val}</span>
-                  {bar}
-                  <span className="lbl">{m.label}</span>
-                </>
-              )}
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -145,6 +168,8 @@ function ComparisonTab({
   names,
   battle,
   copy,
+  reveal = false,
+  onRevealed,
 }: {
   category: 'face' | 'fit';
   group: MetricGroupResult;
@@ -152,7 +177,22 @@ function ComparisonTab({
   battle: Battle;
   /** AI copy, or null on the dev fallback (superpowers/roasts hidden then). */
   copy?: VersusCopy | null;
+  /** Play the first-view stats reveal (count-ups + staggered bar fills). */
+  reveal?: boolean;
+  /** Called on mount when this section reveals — so it doesn't replay on re-entry. */
+  onRevealed?: () => void;
 }) {
+  // Freeze the reveal decision at mount: a spurious parent re-render must not flip
+  // `reveal` to false mid-animation (which would snap the count-ups to final). The
+  // parent's played-guard is what prevents a replay when this section is re-entered.
+  const [doReveal] = useState(reveal);
+  // Mark this section as played the moment it mounts revealing, so flipping tabs
+  // back to it (still the just-scanned session) shows the final state, not a replay.
+  useEffect(() => {
+    if (doReveal) onRevealed?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const who = whoLabel(group.winner, names);
   const title = category === 'face' ? 'Face winner' : 'Drip winner';
   const photoA = category === 'face' ? battle.imgs.aFace : battle.imgs.aFit;
@@ -173,17 +213,17 @@ function ComparisonTab({
       </div>
 
       <div className="vs-deck">
-        <Column side="a" category={category} name={names.a} photo={photoA} group={group} copy={copyA} />
+        <Column side="a" category={category} name={names.a} photo={photoA} group={group} copy={copyA} reveal={doReveal} />
         <div className="vs-center">
           <div className="vstitle">VS</div>
           <div className="h2h">Head-to-head</div>
           <div className="vs-splits">
-            {group.metrics.map((m) => (
-              <SplitBar key={m.key} label={m.label} a={m.a} b={m.b} win={winnerOf(m.a, m.b)} />
+            {group.metrics.map((m, i) => (
+              <SplitBar key={m.key} label={m.label} a={m.a} b={m.b} win={winnerOf(m.a, m.b)} reveal={doReveal} index={i} />
             ))}
           </div>
         </div>
-        <Column side="b" category={category} name={names.b} photo={photoB} group={group} copy={copyB} />
+        <Column side="b" category={category} name={names.b} photo={photoB} group={group} copy={copyB} reveal={doReveal} />
       </div>
     </div>
   );
@@ -208,23 +248,18 @@ function CardBar({ label, a, b }: { label: string; a: number; b: number }) {
   );
 }
 
-/** A single share/export card (photo band + verdict body). */
+/** A single share/export card (photo band + name + stats). */
 function BattleCard({
   variant,
   battle,
   names,
   verdict,
-  summary,
-  copy,
   cardRef,
 }: {
   variant: CardVariant;
   battle: Battle;
   names: { a: string; b: string };
   verdict: BattleVerdict;
-  summary: BattleSummary;
-  /** AI copy, or null on the dev fallback. */
-  copy?: VersusCopy | null;
   cardRef?: Ref<HTMLDivElement>;
 }) {
   const split = variant === 'face' ? 'h' : 'v';
@@ -236,12 +271,65 @@ function BattleCard({
   const photoB = variant === 'face' ? battle.imgs.bFace : variant === 'fit' ? battle.imgs.bFit : battle.imgs.bFit ?? battle.imgs.bFace;
   const kind = variant === 'face' ? 'Face · VS · 01' : variant === 'fit' ? 'Fit · VS · 02' : 'Overall · VS · 03';
   const who = whoLabel(winner, names);
-  const where = variant === 'overall' ? 'across the board' : variant === 'face' ? 'on the face-off' : 'on the fit';
-  const fallbackTag = winner === 'tie' ? 'Too close to call — a dead heat.' : `${who} takes the crown ${where}.`;
-  // The overall card carries the AI crown punchline; per-category cards keep the templated line.
-  const tagline = variant === 'overall' && copy?.crown.line ? copy.crown.line : fallbackTag;
-  // Surface the first non-locked superlative on the overall card (the lock is interactive, so it stays off the static card).
-  const topSuperlative = variant === 'overall' ? copy?.superlatives.find((s) => !s.locked) ?? null : null;
+  const wlText =
+    winner === 'tie'
+      ? 'Dead heat'
+      : variant === 'face'
+        ? 'Face winner'
+        : variant === 'fit'
+          ? 'Outfit winner'
+          : 'Overall winner';
+
+  // FACE card — "duel" layout: two stacked photo halves, each carrying its own
+  // score, name and top-2 metric chips. The winning half reads in its contender
+  // colour (icy A / gold B) while the loser greys out. No VS medallion.
+  if (variant === 'face' && verdict.face) {
+    const g = verdict.face;
+    const halves = [
+      { side: 'a' as Side, name: names.a, photo: photoA, score: g.avgA },
+      { side: 'b' as Side, name: names.b, photo: photoB, score: g.avgB },
+    ];
+    return (
+      <div className="vs-card is-duel" ref={cardRef}>
+        <div className="cardtop">
+          <span className="wm">Fitaura</span>
+          <span className="kindwrap">
+            <span className="kind">Face · VS</span>
+            <CrownGlyph size={13} />
+          </span>
+        </div>
+        {halves.map((h) => {
+          const state = g.winner === h.side ? 'win' : g.winner === 'tie' ? 'tie' : 'lose';
+          return (
+            <div key={h.side} className={'dhalf ' + h.side} data-state={state}>
+              <div
+                className="photo"
+                role="img"
+                aria-label={h.name}
+                style={h.photo ? { backgroundImage: `url("${h.photo}")` } : undefined}
+              >
+                {!h.photo && <span className="ph" />}
+              </div>
+              <span className="dscrim" />
+              <div className="dside">
+                <div className="sc">{h.score}</div>
+                <div className="lab">{h.side === 'a' ? 'Player A' : 'Player B'}</div>
+                <div className="nm">{h.name}</div>
+                <div className="chips">
+                  {topMetricChips(g.metrics, h.side).map((c) => (
+                    <span key={c.key} className="dchip">
+                      {c.label} <b>{c.value}</b>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <span className="corner" />
+      </div>
+    );
+  }
 
   return (
     <div className="vs-card" ref={cardRef}>
@@ -255,9 +343,6 @@ function BattleCard({
           </div>
         </div>
         <span className="scrim" />
-        <div className="medal-anchor">
-          <VersusMedallion small />
-        </div>
         <div className="cardtop">
           <span className="wm">Fitaura</span>
           <span className="kind">{kind}</span>
@@ -273,32 +358,8 @@ function BattleCard({
       </div>
 
       <div className="cbody">
-        <div className="wl">{winner === 'tie' ? 'Dead heat' : 'Overall winner'}</div>
+        <div className="wl">{wlText}</div>
         <div className="wn">{winner === 'tie' ? 'Dead heat' : who}</div>
-        <div className="tag">{tagline}</div>
-        {topSuperlative && (
-          <div className="csuper" data-side={topSuperlative.winner}>
-            <CrownGlyph size={11} />
-            <span className="l">{topSuperlative.label}</span>
-            <b>{topSuperlative.winner === 'a' ? names.a : names.b}</b>
-          </div>
-        )}
-        {variant === 'overall' && verdict.face && verdict.fit && (
-          <div className="boxes">
-            <div className="box">
-              <div className="bv">{summary.marginPts}</div>
-              <div className="bk">Margin</div>
-            </div>
-            <div className="box">
-              <div className="bv">{verdict.face.avgA}-{verdict.face.avgB}</div>
-              <div className="bk">Face</div>
-            </div>
-            <div className="box">
-              <div className="bv">{verdict.fit.avgA}-{verdict.fit.avgB}</div>
-              <div className="bk">Outfit</div>
-            </div>
-          </div>
-        )}
         <div className="cbars">
           {variant !== 'fit' && verdict.face && <CardBar label="Face" a={verdict.face.avgA} b={verdict.face.avgB} />}
           {variant !== 'face' && verdict.fit && <CardBar label="Outfit" a={verdict.fit.avgA} b={verdict.fit.avgB} />}
@@ -370,6 +431,7 @@ function VerdictTab({
   names,
   verdict,
   copy,
+  palette,
   onRematch,
 }: {
   battle: Battle;
@@ -377,11 +439,12 @@ function VerdictTab({
   verdict: BattleVerdict;
   /** AI copy, or null on the dev fallback (punchline/decisiveRead/superlatives hidden then). */
   copy?: VersusCopy | null;
+  /** This battle's contender colours (for the exported card's accent). */
+  palette: { a: string; b: string };
   onRematch: () => void;
 }) {
   const summary = useMemo(() => summarizeBattle(verdict), [verdict]);
-  const cards: CardVariant[] =
-    battle.mode === 'both' ? ['face', 'fit', 'overall'] : battle.mode === 'face' ? ['face'] : ['fit'];
+  const cards: CardVariant[] = battle.mode === 'face' ? ['face'] : ['fit'];
   const [idx, setIdx] = useState(cards.length - 1);
   const [busy, setBusy] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -391,7 +454,7 @@ function VerdictTab({
   const otherName = overall.winner === 'a' ? names.b : names.a;
   const catsWon = overall.winner === 'a' ? summary.categoriesA : summary.categoriesB;
   const metricsWon = overall.winner === 'a' ? summary.metricsWonA : summary.metricsWonB;
-  const catLabel = summary.categoryCount === 2 ? 'Face · Outfit' : battle.mode === 'face' ? 'Face' : 'Outfit';
+  const catLabel = battle.mode === 'face' ? 'Face' : 'Outfit';
 
   const breakdownCopy =
     overall.winner === 'tie'
@@ -400,7 +463,7 @@ function VerdictTab({
 
   async function buildCard() {
     if (!cardRef.current) return null;
-    const out = await renderCardBlob({ el: cardRef.current, kind: 'face', verdict: 'green_flag', accentHex: ACCENT_HEX[overall.winner] });
+    const out = await renderCardBlob({ el: cardRef.current, kind: 'face', verdict: 'green_flag', accentHex: overall.winner === 'b' ? palette.b : palette.a });
     out.filename = `fitaura-versus-${cards[idx]}.png`;
     return out;
   }
@@ -438,7 +501,7 @@ function VerdictTab({
               <Icon.chevronLeft />
             </button>
           )}
-          <BattleCard variant={cards[idx]} battle={battle} names={names} verdict={verdict} summary={summary} copy={copy} cardRef={cardRef} />
+          <BattleCard variant={cards[idx]} battle={battle} names={names} verdict={verdict} cardRef={cardRef} />
           {cards.length > 1 && (
             <button className="vs-stack-nav" aria-label="Next card" onClick={() => setIdx((i) => (i + 1) % cards.length)}>
               <Icon.chevronRight />
@@ -538,11 +601,14 @@ function VerdictTab({
 export function VersusResult() {
   const navigate = useNavigate();
   const { battle, result, hydrated, clear } = useBattle();
+  const { credits } = useAccount();
 
   const names = battleNames(battle);
   // The AI copy when a stored verdict exists; null on the dev fallback (refresh
   // straight onto /versus/result), which hides the AI-only bits rather than crash.
   const copy = result?.copy ?? null;
+  // This battle's contender colours — varied per matchup, stable for a given one.
+  const palette = useMemo(() => pickPalette(`${names.a}|${names.b}`), [names.a, names.b]);
   const verdict = useMemo<BattleVerdict | null>(() => {
     if (!battle) return null;
     // Prefer the stored AI metrics; fall back to the deterministic seed in dev.
@@ -569,6 +635,35 @@ export function VersusResult() {
   const [tab, setTab] = useState<Tab>('face');
   const activeTab = tabs.includes(tab) ? tab : tabs[0];
 
+  // First-view reveal: the scan sets `fvf:reveal` right before navigating here, so
+  // the stats animate exactly once after a scan — never on refresh, tab-flip, or a
+  // vault reopen, and never under reduced-motion. The initializer is a PURE read
+  // (idempotent across StrictMode's double-invoke); the flag is cleared in an effect
+  // below so the value is captured before it's consumed.
+  const [firstView] = useState(() => {
+    try {
+      return (
+        sessionStorage.getItem('fvf:reveal') === '1' &&
+        !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+      );
+    } catch {
+      return false;
+    }
+  });
+  // Sections that already played their reveal this session (so a tab-flip back
+  // doesn't replay it).
+  const playedRef = useRef<Set<string>>(new Set());
+
+  // Clear the one-shot flag after `firstView` has captured it (effects run after the
+  // initializer), so a refresh or a later vault reopen renders the final state.
+  useEffect(() => {
+    try {
+      sessionStorage.removeItem('fvf:reveal');
+    } catch {
+      /* sessionStorage unavailable — nothing to clear */
+    }
+  }, []);
+
   useEffect(() => {
     if (hydrated && !battle) navigate('/versus', { replace: true });
   }, [hydrated, battle, navigate]);
@@ -585,7 +680,7 @@ export function VersusResult() {
   const oWho = whoLabel(verdict.winner, names);
 
   return (
-    <div className="rs-app vs-result-app">
+    <div className="rs-app vs-result-app" style={{ ['--icy']: palette.a, ['--gold']: palette.b } as CSSProperties}>
       {/* Header — mirrors the Solo Scan result header (rs-* classes). */}
       <header className="rs-header">
         <div className="rs-h-left">
@@ -605,24 +700,35 @@ export function VersusResult() {
           </div>
         </div>
         <div className="rs-h-right">
-          <button className="rs-newscan" onClick={() => navigate('/vault')}>
-            <Icon.grid />
-            <span>Vault</span>
+          <div className="rs-saved">
+            <span className="led" />
+            <span>SAVED TO DEVICE</span>
+          </div>
+          <button className="rs-credits" onClick={() => navigate('/credits')}>
+            <Icon.credit />
+            <b>{credits}</b> left
           </button>
-          <button className="rs-newscan" onClick={rematch}>
-            <Icon.plus />
-            <span>New battle</span>
-          </button>
+          <div className="rs-h-actions" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button className="rs-newscan" onClick={() => navigate('/vault', { state: { vaultMode: 'friend' } })}>
+              <Icon.grid />
+              <span>Vault</span>
+            </button>
+            <button className="rs-newscan" onClick={rematch}>
+              <Icon.plus />
+              <span>New battle</span>
+            </button>
+            <ProfileMenu avatarClassName="rs-avatar" />
+          </div>
         </div>
       </header>
 
       {/* Nav — tabs + stepper, same as Solo. */}
       <nav className="rs-nav">
         <div className="rs-tabs" role="tablist" aria-label="Result sections">
-          {tabs.map((t) => (
+          {tabs.map((t, i) => (
             <button key={t} className="tab" role="tab" aria-selected={activeTab === t} onClick={() => setTab(t)}>
-              <span className="n">{TAB_LABEL[t].n}</span>
-              {TAB_LABEL[t].t.toUpperCase()}
+              <span className="n">{String(i + 1).padStart(2, '0')}</span>
+              {TAB_LABEL[t].toUpperCase()}
             </button>
           ))}
         </div>
@@ -641,13 +747,29 @@ export function VersusResult() {
 
       <main className="vs-wrap" style={{ padding: '14px 24px 18px' }}>
         {activeTab === 'face' && verdict.face && (
-          <ComparisonTab category="face" group={verdict.face} names={names} battle={battle} copy={copy} />
+          <ComparisonTab
+            category="face"
+            group={verdict.face}
+            names={names}
+            battle={battle}
+            copy={copy}
+            reveal={firstView && !playedRef.current.has('face')}
+            onRevealed={() => playedRef.current.add('face')}
+          />
         )}
         {activeTab === 'outfit' && verdict.fit && (
-          <ComparisonTab category="fit" group={verdict.fit} names={names} battle={battle} copy={copy} />
+          <ComparisonTab
+            category="fit"
+            group={verdict.fit}
+            names={names}
+            battle={battle}
+            copy={copy}
+            reveal={firstView && !playedRef.current.has('fit')}
+            onRevealed={() => playedRef.current.add('fit')}
+          />
         )}
         {activeTab === 'verdict' && (
-          <VerdictTab battle={battle} names={names} verdict={verdict} copy={copy} onRematch={rematch} />
+          <VerdictTab battle={battle} names={names} verdict={verdict} copy={copy} palette={palette} onRematch={rematch} />
         )}
       </main>
     </div>

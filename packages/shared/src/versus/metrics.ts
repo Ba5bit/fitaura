@@ -11,19 +11,17 @@ import type { Metric } from './schema.ts';
  */
 
 export const FACE_METRICS: ReadonlyArray<{ key: string; label: string }> = [
-  { key: 'skin', label: 'Skin' },
-  { key: 'symmetry', label: 'Symmetry' },
   { key: 'jawline', label: 'Jawline' },
-  { key: 'eyes', label: 'Eyes' },
+  { key: 'hairline', label: 'Hairline' },
+  { key: 'rizz', label: 'Rizz' },
   { key: 'aura', label: 'Aura' },
 ];
 
 export const FIT_METRICS: ReadonlyArray<{ key: string; label: string }> = [
-  { key: 'fit', label: 'Fit' },
-  { key: 'color', label: 'Color' },
   { key: 'drip', label: 'Drip' },
-  { key: 'silhouette', label: 'Silhouette' },
-  { key: 'freshness', label: 'Freshness' },
+  { key: 'physique', label: 'Physique Match' },
+  { key: 'pose', label: 'Pose' },
+  { key: 'confidence', label: 'Confidence' },
 ];
 
 /** xmur3 string hash → 32-bit seed. */

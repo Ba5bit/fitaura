@@ -369,16 +369,22 @@ export async function renameBattleDb(accountKey: string, battleId: string, name:
   await txDone(tx);
 }
 
-/** Load an account's battles, pruning expired rows; newest first. */
+/** A battle row is renderable only for the modes we still support. Legacy
+ * `both`-mode battles (saved before the Both option was removed) can no longer be
+ * computed/rendered, so they are dropped on load like expired rows. */
+const isSupportedMode = (mode: string): boolean => mode === 'face' || mode === 'fit';
+
+/** Load an account's battles, pruning expired and legacy-mode rows; newest first. */
 export async function loadBattles(accountKey: string, now: number, maxAgeDays = MAX_AGE_DAYS): Promise<SavedBattle[]> {
   const d = await db();
   const all = await getBattles(d, accountKey);
-  const expired = all.filter((b) => isExpired(b.producedAt, now, maxAgeDays));
-  if (expired.length) {
+  const live = (b: SavedBattle) => !isExpired(b.producedAt, now, maxAgeDays) && isSupportedMode(b.mode);
+  const dead = all.filter((b) => !live(b));
+  if (dead.length) {
     const tx = d.transaction(BATTLES, 'readwrite');
     const store = tx.objectStore(BATTLES);
-    for (const b of expired) store.delete(battleRowId(accountKey, b.battleId));
+    for (const b of dead) store.delete(battleRowId(accountKey, b.battleId));
     await txDone(tx);
   }
-  return trimBattlesToCap(all.filter((b) => !isExpired(b.producedAt, now, maxAgeDays)));
+  return trimBattlesToCap(all.filter(live));
 }

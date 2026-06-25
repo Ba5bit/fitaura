@@ -7,10 +7,10 @@
  * the real model output drops in here later.
  */
 
-/** Which modalities the battle compares. `both` runs face + fit. */
-export type VersusMode = 'face' | 'fit' | 'both';
+/** Which modality the battle compares — face or fit (never both at once). */
+export type VersusMode = 'face' | 'fit';
 
-export const VERSUS_MODES: readonly VersusMode[] = ['face', 'fit', 'both'] as const;
+export const VERSUS_MODES: readonly VersusMode[] = ['face', 'fit'] as const;
 
 /** A is always the left/icy contender, B the right/magenta one. */
 export type Side = 'a' | 'b';
@@ -43,9 +43,9 @@ export interface MetricGroupResult {
 /** The full head-to-head verdict the result deck renders. */
 export interface BattleVerdict {
   mode: VersusMode;
-  /** Present when the mode includes face (`face` | `both`). */
+  /** Present when the mode is `face`. */
   face: MetricGroupResult | null;
-  /** Present when the mode includes fit (`fit` | `both`). */
+  /** Present when the mode is `fit`. */
   fit: MetricGroupResult | null;
   /** Combined averages across the active modalities. */
   overall: { avgA: number; avgB: number; winner: BattleWinner };

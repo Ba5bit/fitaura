@@ -76,7 +76,7 @@ function readStored(): Battle | null {
     const parsed = JSON.parse(raw) as Partial<Battle>;
     if (!parsed || typeof parsed !== 'object') return null;
     const mode = parsed.mode;
-    if (mode !== 'face' && mode !== 'fit' && mode !== 'both') return null;
+    if (mode !== 'face' && mode !== 'fit') return null;
     return {
       mode,
       nameA: typeof parsed.nameA === 'string' ? parsed.nameA : DEFAULT_NAME_A,
@@ -97,7 +97,7 @@ function readStoredResult(): VersusResult | null {
     const parsed = JSON.parse(raw) as Partial<VersusResult>;
     if (!parsed || typeof parsed !== 'object') return null;
     const mode = parsed.mode;
-    if (mode !== 'face' && mode !== 'fit' && mode !== 'both') return null;
+    if (mode !== 'face' && mode !== 'fit') return null;
     if (!parsed.copy || typeof parsed.copy !== 'object') return null;
     return parsed as VersusResult;
   } catch {

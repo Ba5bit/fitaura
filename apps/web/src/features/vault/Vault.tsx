@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { VaultNav } from './VaultNav';
 import { SoloMode } from './SoloMode';
@@ -53,7 +54,13 @@ function ModeRail({ mode, onSelect }: { mode: ScanModeId; onSelect: (id: ScanMod
  * forced. Ported from the design's `vault-app` shell.
  */
 export function Vault() {
-  const [mode, setMode] = useState<ScanModeId>('solo');
+  // A result page can hand back the mode to open (e.g. returning from a Friend vs
+  // Friend verdict reopens the Friend tab, a Solo verdict reopens Solo). Validated
+  // against the known modes; anything else (or a direct visit) falls back to Solo.
+  const { state } = useLocation();
+  const requested = (state as { vaultMode?: ScanModeId } | null)?.vaultMode;
+  const initialMode: ScanModeId = requested && SCAN_MODES.some((m) => m.id === requested) ? requested : 'solo';
+  const [mode, setMode] = useState<ScanModeId>(initialMode);
   const active = SCAN_MODES.find((m) => m.id === mode)!;
 
   return (

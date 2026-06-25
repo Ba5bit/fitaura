@@ -23,11 +23,11 @@ export function dataUrlToInline(dataUrl: string): InlineImage {
 
 /** Invoke the `versus-scan` Edge Function with the contenders' active photos.
  * The mode decides which of the four slots count (face → aFace,bFace;
- * fit → aFit,bFit; both → all four). */
+ * fit → aFit,bFit). */
 export async function runVersusScan(battle: Battle): Promise<VersusScanOutcome> {
   const { mode, imgs } = battle;
-  const wantFace = mode === 'face' || mode === 'both';
-  const wantFit = mode === 'fit' || mode === 'both';
+  const wantFace = mode === 'face';
+  const wantFit = mode === 'fit';
 
   const images: { aFace?: InlineImage; aFit?: InlineImage; bFace?: InlineImage; bFit?: InlineImage } = {};
   try {

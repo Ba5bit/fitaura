@@ -244,7 +244,19 @@ export function VersusScan() {
                 <p className="sub">
                   {names.a} vs {names.b} — both contenders scored. Reveal the head-to-head.
                 </p>
-                <button className="go" onClick={() => navigate('/versus/result')}>
+                <button
+                  className="go"
+                  onClick={() => {
+                    // One-shot flag the result page consumes to play the stats
+                    // reveal exactly once (see VersusResult `firstView`).
+                    try {
+                      sessionStorage.setItem('fvf:reveal', '1');
+                    } catch {
+                      /* sessionStorage unavailable — result just renders static */
+                    }
+                    navigate('/versus/result');
+                  }}
+                >
                   <Icon.bolt /> Reveal the verdict
                 </button>
               </div>
