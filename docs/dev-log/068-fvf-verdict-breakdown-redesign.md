@@ -77,6 +77,27 @@ the stored `copy` shape.
   desktop (2-col) and mobile (stacked). Confirmed: blue/lime/red palette, roast row red,
   tiers correct, no digits in any read sentence, no console errors.
 
+## Addendum — card deck variations + reads carousel (same day)
+
+First pass only added decorative backers behind the *one* existing card and the
+breakdown list overflowed. Reworked per feedback:
+
+- **Swipeable card deck (`VerdictShareCard.tsx`).** Ported the handoff's four share
+  cards faithfully (Face Verdict humiliation-circle, Face Stats stacked-split, Outfit
+  Verdict full-bleed, Outfit Stats side-by-side bars). A battle is single-mode, so the
+  deck shows the **two** cards for the active mode and a **Verdict / Stats** toggle (+ dots)
+  flips between them inside the peek-behind stage. Rendered at native 360×640 and scaled to
+  fit the column via a resize effect; the export still captures the unscaled card. Photos
+  use `background-image` (snapdom drops `<img>` in absolute layers — the existing gotcha).
+  Removed the old `BattleCard`/`CardBar`/`topMetricChips`/`BARS` (the duel card).
+- **Reads carousel.** The breakdown reads now sit in a fixed-height **horizontal carousel**
+  (`ReadsCarousel`, ~2 rows/slide, arrows + dots) so the panel never scrolls.
+- **Bigger superlative type** (title 13.5→15.5, score 30→34, name 15→18, why 11→12.5, etc.).
+
+Verified locally (Playwright) across **all four** card variants (face + fit, verdict +
+stats), the toggle/dots, and the carousel paging — palette blue/red, no console errors;
+tsc + lint + 195 tests green.
+
 ## Follow-up — deploy
 
 The prompt/schema change needs a **manual `versus-scan` edge-function redeploy** (see

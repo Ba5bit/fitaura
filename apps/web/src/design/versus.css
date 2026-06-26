@@ -422,11 +422,18 @@
 .vs-stack-dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--hair); transition: .2s; }
 .vs-stack-dots button[aria-current="true"] { background: #fff; width: 22px; border-radius: 99px; }
 
+/* Verdict / Stats card-view toggle (the handoff's subTabs). */
+.vs-viewseg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 11px; background: rgba(255,255,255,0.03); border: 1px solid var(--hair); }
+.vs-viewseg .seg { font-family: "Space Mono", monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+  padding: 8px 16px; border-radius: 8px; border: 0; cursor: pointer; color: var(--ink-faint); background: transparent; transition: .18s; }
+.vs-viewseg .seg.on { color: #fff; background: rgba(255,255,255,0.09); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18); }
+
 /* peek-behind deck — the share card sits sharp on top of two rotated, dimmed backers
-   (adopted from the Solo Scan result stage). The backers are sized to the card via inset. */
-.vs-cardstage { position: relative; display: inline-grid; }
-.vs-cardstage > .vs-card { position: relative; z-index: 2; }
-.vs-cardback { position: absolute; inset: 0; z-index: 1; border-radius: 22px; border: 1px solid var(--hair-soft);
+   (adopted from the Solo Scan result stage). The stage box is sized (inline) to the
+   SCALED card; backers fill it and the card is scaled into place from its 360×640 native. */
+.vs-cardstage { position: relative; flex: none; }
+.vs-cardscale { position: absolute; top: 0; left: 0; transform-origin: top left; z-index: 2; }
+.vs-cardback { position: absolute; inset: 0; z-index: 1; border-radius: 24px; border: 1px solid var(--hair-soft);
   background: linear-gradient(170deg, #12151c, #0a0c11); pointer-events: none; }
 .vs-cardback.one { transform: rotate(-5deg) translateY(10px) scale(0.97); opacity: 0.5; }
 .vs-cardback.two { transform: rotate(3.5deg) translateY(5px) scale(0.985); opacity: 0.72; }
@@ -454,37 +461,49 @@
 /* hairline under the scoreline */
 .vs-bd .rule { height: 1px; margin: 22px 0 0; background: linear-gradient(90deg, transparent, var(--hair), transparent); }
 
-/* "Superlatives / Most likely to…" header */
-.vs-reads-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 22px; }
-.vs-reads-head .l { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink); }
-.vs-reads-head .r { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+/* "Superlatives / Most likely to…" header (arrows live on the right) */
+.vs-reads-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 22px; }
+.vs-reads-head .l { font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink); }
+.vs-reads-head .r { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
 
-/* the reads list */
-.vs-reads { display: flex; flex-direction: column; gap: 9px; margin-top: 14px; }
+/* reads carousel — fixed-height horizontal slider, ~2 rows per slide (no scroll) */
+.vs-readslider { position: relative; overflow: hidden; margin-top: 14px; }
+.vs-readslider .track { display: flex; transition: transform .35s cubic-bezier(.4, 0, .2, 1); }
+.vs-readslide { flex: 0 0 100%; display: flex; flex-direction: column; gap: 10px; }
+.vs-readnav { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+.vs-readnav .dots { display: flex; gap: 8px; }
+.vs-readnav .dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--hair); transition: .2s; }
+.vs-readnav .dots button[aria-current="true"] { background: #fff; width: 22px; border-radius: 99px; }
+.vs-readnav .arrows { display: flex; gap: 8px; }
+.vs-readnav .arrows button { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--hair); background: var(--panel); color: var(--ink); transition: .2s; }
+.vs-readnav .arrows button:hover:not(:disabled) { border-color: color-mix(in oklab, var(--icy) 55%, var(--hair)); color: var(--icy); }
+.vs-readnav .arrows button:disabled { opacity: .4; cursor: not-allowed; }
+.vs-readnav .arrows svg { width: 16px; height: 16px; }
 
 /* one read row — left "the joke", right "the read". --c is the side colour;
    --rc is the read accent (side colour for a flex, red for a roast). */
 .vs-readrow { --rc: var(--c); display: grid; grid-template-columns: 1fr 1fr;
   border: 1px solid var(--hair-soft); border-radius: 13px; background: color-mix(in oklab, #fff 2.5%, transparent); overflow: hidden; }
 .vs-readrow[data-roast="1"] { --rc: var(--vs-red); }
-.vs-readrow .joke { display: flex; align-items: center; gap: 13px; padding: 14px 15px; border-right: 1px solid var(--hair); }
-.vs-readrow .badge { width: 36px; height: 36px; flex: none; border-radius: 10px; display: grid; place-items: center;
+.vs-readrow .joke { display: flex; align-items: center; gap: 14px; padding: 16px 17px; border-right: 1px solid var(--hair); }
+.vs-readrow .badge { width: 40px; height: 40px; flex: none; border-radius: 11px; display: grid; place-items: center;
   color: var(--c); background: color-mix(in oklab, var(--c) 15%, transparent); border: 1px solid color-mix(in oklab, var(--c) 40%, transparent); }
-.vs-readrow .badge svg { width: 15px; height: 15px; }
-.vs-readrow .title { font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 13.5px; color: var(--ink); line-height: 1.25; }
-.vs-readrow .tag { font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; color: var(--ink-faint); }
+.vs-readrow .badge svg { width: 17px; height: 17px; }
+.vs-readrow .title { font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 15.5px; color: var(--ink); line-height: 1.25; }
+.vs-readrow .tag { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 5px; color: var(--ink-faint); }
 .vs-readrow[data-roast="1"] .tag { color: var(--vs-red); }
-.vs-readrow .read { padding: 13px 15px; display: flex; flex-direction: column; min-width: 0; }
+.vs-readrow .read { padding: 15px 17px; display: flex; flex-direction: column; min-width: 0; }
 .vs-readrow .rtop { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
-.vs-readrow .mlabel { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
-.vs-readrow .name { font-family: "Anton", sans-serif; font-size: 15px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c);
-  white-space: nowrap; text-shadow: 0 0 14px color-mix(in oklab, var(--c) 45%, transparent); margin-top: 2px; }
-.vs-readrow .score { font-family: "Anton", sans-serif; font-size: 30px; line-height: 0.8; color: var(--rc); text-align: right; }
-.vs-readrow .tier { font-family: "Space Mono", monospace; font-size: 8.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rc); margin-top: 3px; text-align: right; }
-.vs-readrow .bar { height: 5px; border-radius: 99px; background: color-mix(in oklab, #fff 9%, transparent); overflow: hidden; margin-top: 10px; }
+.vs-readrow .mlabel { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
+.vs-readrow .name { font-family: "Anton", sans-serif; font-size: 18px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c);
+  white-space: nowrap; text-shadow: 0 0 14px color-mix(in oklab, var(--c) 45%, transparent); margin-top: 3px; }
+.vs-readrow .score { font-family: "Anton", sans-serif; font-size: 34px; line-height: 0.8; color: var(--rc); text-align: right; }
+.vs-readrow .tier { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rc); margin-top: 4px; text-align: right; }
+.vs-readrow .bar { height: 6px; border-radius: 99px; background: color-mix(in oklab, #fff 9%, transparent); overflow: hidden; margin-top: 12px; }
 .vs-readrow .bar i { display: block; height: 100%; border-radius: 99px;
   background: linear-gradient(90deg, color-mix(in oklab, var(--rc) 55%, #fff), var(--rc)); box-shadow: 0 0 10px -2px var(--rc); }
-.vs-readrow .why { margin: 10px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 500; font-size: 11px; line-height: 1.4; color: var(--ink-dim); text-wrap: pretty; }
+.vs-readrow .why { margin: 11px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 500; font-size: 12.5px; line-height: 1.45; color: var(--ink-dim); text-wrap: pretty; }
 
 /* final word — the AI crown punchline in a dual-corner tinted card */
 .vs-finalword { margin-top: 18px; border-radius: 14px; padding: 16px 18px; border: 1px solid var(--hair);

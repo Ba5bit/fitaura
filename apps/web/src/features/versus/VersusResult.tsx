@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type Ref } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   computeBattle,
   deriveReads,
   generateMetrics,
-  splitPercent,
   summarizeBattle,
   winnerOf,
   type BattleVerdict,
   type BattleWinner,
+  type DerivedRead,
   type Metric,
   type MetricGroupResult,
   type Side,
@@ -29,11 +29,17 @@ import {
   SplitBar,
   VerdictReadRow,
 } from './components/versusBits';
+import { VerdictShareCard } from './components/VerdictShareCard';
 import '../../design/result-shell.css';
 import '../../design/versus.css';
 
 type Tab = 'face' | 'outfit' | 'verdict';
-type CardVariant = 'face' | 'fit' | 'overall';
+/** Which share-card layout the deck is showing for the active mode. */
+type CardView = 'verdict' | 'stats';
+
+/** Native share-card dimensions (see VerdictShareCard); the deck scales to fit. */
+const CARD_W = 360;
+const CARD_H = 640;
 
 // FvF contender palettes — drawn from Solo Scan's own semantic tokens for consistency.
 // A is always Solo's brand accent (icy blue); B varies per matchup among Solo's other
@@ -66,17 +72,6 @@ const TAB_LABEL: Record<Tab, string> = {
 
 function whoLabel(winner: BattleWinner, names: { a: string; b: string }): string {
   return winner === 'a' ? names.a : winner === 'b' ? names.b : 'Dead heat';
-}
-
-/** Deterministic barcode bar widths for a share-card footer. */
-const BARS = Array.from({ length: 28 }, (_, i) => 1 + ((i * 7) % 4));
-
-/** A side's two strongest metrics as `{label, value}` chips (own score, descending). */
-function topMetricChips(metrics: Metric[], side: Side): { key: string; label: string; value: number }[] {
-  return [...metrics]
-    .sort((m1, m2) => (side === 'a' ? m2.a - m1.a : m2.b - m1.b))
-    .slice(0, 2)
-    .map((m) => ({ key: m.key, label: m.label, value: side === 'a' ? m.a : m.b }));
 }
 
 /** One side's column of a face/outfit comparison. */
@@ -259,152 +254,50 @@ function ComparisonTab({
   );
 }
 
-/** A two-toned face/outfit bar inside a share card. */
-function CardBar({ label, a, b }: { label: string; a: number; b: number }) {
-  const p = splitPercent(a, b);
+/** The breakdown reads as a fixed-height horizontal carousel (≈2 per slide) so the
+ * panel never grows a scrollbar. Arrows + dots page through; one slide on ≤2 reads. */
+function ReadsCarousel({ reads }: { reads: DerivedRead[] }) {
+  const PER = 2;
+  const pages: DerivedRead[][] = [];
+  for (let i = 0; i < reads.length; i += PER) pages.push(reads.slice(i, i + PER));
+  const [page, setPage] = useState(0);
+  const at = Math.min(page, pages.length - 1);
+
   return (
-    <div className="cbar">
-      <div className="l">
-        <span className="a">{a}</span>
-        <span className="x">{label}</span>
-        <span className="b">{b}</span>
+    <>
+      <div className="vs-reads-head">
+        <span className="l">Superlatives</span>
+        <span className="r">Most likely to…</span>
       </div>
-      <div className="vs-track">
-        <span className="fa" style={{ width: `${p.a}%` }} />
-        <span className="fb" style={{ width: `${p.b}%` }} />
-        <span className="divline" style={{ left: `${p.a}%` }} />
-      </div>
-    </div>
-  );
-}
-
-/** A single share/export card (photo band + name + stats). */
-function BattleCard({
-  variant,
-  battle,
-  names,
-  verdict,
-  cardRef,
-}: {
-  variant: CardVariant;
-  battle: Battle;
-  names: { a: string; b: string };
-  verdict: BattleVerdict;
-  cardRef?: Ref<HTMLDivElement>;
-}) {
-  const split = variant === 'face' ? 'h' : 'v';
-  const group = variant === 'face' ? verdict.face : variant === 'fit' ? verdict.fit : null;
-  const winner = variant === 'overall' ? verdict.overall.winner : group?.winner ?? 'tie';
-  const avgA = variant === 'overall' ? verdict.overall.avgA : group?.avgA ?? 0;
-  const avgB = variant === 'overall' ? verdict.overall.avgB : group?.avgB ?? 0;
-  const photoA = variant === 'face' ? battle.imgs.aFace : variant === 'fit' ? battle.imgs.aFit : battle.imgs.aFit ?? battle.imgs.aFace;
-  const photoB = variant === 'face' ? battle.imgs.bFace : variant === 'fit' ? battle.imgs.bFit : battle.imgs.bFit ?? battle.imgs.bFace;
-  const kind = variant === 'face' ? 'Face · VS · 01' : variant === 'fit' ? 'Fit · VS · 02' : 'Overall · VS · 03';
-  const who = whoLabel(winner, names);
-  const wlText =
-    winner === 'tie'
-      ? 'Dead heat'
-      : variant === 'face'
-        ? 'Face winner'
-        : variant === 'fit'
-          ? 'Outfit winner'
-          : 'Overall winner';
-
-  // FACE card — "duel" layout: two stacked photo halves, each carrying its own
-  // score, name and top-2 metric chips. The winning half reads in its contender
-  // colour (icy A / gold B) while the loser greys out. No VS medallion.
-  if (variant === 'face' && verdict.face) {
-    const g = verdict.face;
-    const halves = [
-      { side: 'a' as Side, name: names.a, photo: photoA, score: g.avgA },
-      { side: 'b' as Side, name: names.b, photo: photoB, score: g.avgB },
-    ];
-    return (
-      <div className="vs-card is-duel" ref={cardRef}>
-        <div className="cardtop">
-          <span className="wm">Fitaura</span>
-          <span className="kindwrap">
-            <span className="kind">Face · VS</span>
-            <CrownGlyph size={13} />
-          </span>
-        </div>
-        {halves.map((h) => {
-          const state = g.winner === h.side ? 'win' : g.winner === 'tie' ? 'tie' : 'lose';
-          return (
-            <div key={h.side} className={'dhalf ' + h.side} data-state={state}>
-              <div
-                className="photo"
-                role="img"
-                aria-label={h.name}
-                style={h.photo ? { backgroundImage: `url("${h.photo}")` } : undefined}
-              >
-                {!h.photo && <span className="ph" />}
-              </div>
-              <span className="dscrim" />
-              <div className="dside">
-                <div className="sc">{h.score}</div>
-                <div className="lab">{h.side === 'a' ? 'Player A' : 'Player B'}</div>
-                <div className="nm">{h.name}</div>
-                <div className="chips">
-                  {topMetricChips(g.metrics, h.side).map((c) => (
-                    <span key={c.key} className="dchip">
-                      {c.label} <b>{c.value}</b>
-                    </span>
-                  ))}
-                </div>
-              </div>
+      <div className="vs-readslider">
+        <div className="track" style={{ transform: `translateX(-${at * 100}%)` }}>
+          {pages.map((grp, pi) => (
+            <div className="vs-readslide" key={pi}>
+              {grp.map((r) => (
+                <VerdictReadRow key={r.metricKey} read={r} />
+              ))}
             </div>
-          );
-        })}
-        <span className="corner" />
-      </div>
-    );
-  }
-
-  return (
-    <div className="vs-card" ref={cardRef}>
-      <div className="cphoto">
-        <div className="duo" data-split={split}>
-          <div className="half" data-side="a" role="img" aria-label={names.a} style={photoA ? { backgroundImage: `url("${photoA}")` } : undefined}>
-            {!photoA && <span className="ph" />}
-          </div>
-          <div className="half" data-side="b" role="img" aria-label={names.b} style={photoB ? { backgroundImage: `url("${photoB}")` } : undefined}>
-            {!photoB && <span className="ph" />}
-          </div>
-        </div>
-        <span className="scrim" />
-        <div className="cardtop">
-          <span className="wm">Fitaura</span>
-          <span className="kind">{kind}</span>
-        </div>
-        <div className="pscore a">
-          A · {names.a}
-          <span className="v">{avgA}</span>
-        </div>
-        <div className="pscore b">
-          B · {names.b}
-          <span className="v">{avgB}</span>
-        </div>
-      </div>
-
-      <div className="cbody">
-        <div className="wl">{wlText}</div>
-        <div className="wn">{winner === 'tie' ? 'Dead heat' : who}</div>
-        <div className="cbars">
-          {variant !== 'fit' && verdict.face && <CardBar label="Face" a={verdict.face.avgA} b={verdict.face.avgB} />}
-          {variant !== 'face' && verdict.fit && <CardBar label="Outfit" a={verdict.fit.avgA} b={verdict.fit.avgB} />}
-        </div>
-      </div>
-
-      <div className="cfoot">
-        <span className="url">fitaura.studio</span>
-        <div className="barcode">
-          {BARS.map((w, i) => (
-            <i key={i} style={{ width: w }} />
           ))}
         </div>
       </div>
-    </div>
+      {pages.length > 1 && (
+        <div className="vs-readnav">
+          <div className="dots">
+            {pages.map((_, i) => (
+              <button key={i} aria-current={i === at} aria-label={`Reads page ${i + 1}`} onClick={() => setPage(i)} />
+            ))}
+          </div>
+          <div className="arrows">
+            <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={at === 0} aria-label="Previous reads">
+              <Icon.chevronLeft />
+            </button>
+            <button onClick={() => setPage((p) => Math.min(pages.length - 1, p + 1))} disabled={at === pages.length - 1} aria-label="More reads">
+              <Icon.chevronRight />
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -428,9 +321,25 @@ function VerdictTab({
 }) {
   const summary = useMemo(() => summarizeBattle(verdict), [verdict]);
   const reads = useMemo(() => deriveReads(verdict, copy, names), [verdict, copy, names]);
-  const variant: CardVariant = battle.mode === 'face' ? 'face' : 'fit';
+  const kind: 'face' | 'fit' = battle.mode === 'face' ? 'face' : 'fit';
+  const group = (kind === 'face' ? verdict.face : verdict.fit)!;
+  const [view, setView] = useState<CardView>('verdict');
   const [busy, setBusy] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const stackRef = useRef<HTMLDivElement>(null);
+
+  // Fit the 360-wide native card into the column (scale only; the export captures
+  // the unscaled card so the PNG stays crisp).
+  const [scale, setScale] = useState(1);
+  useEffect(() => {
+    const fit = () => {
+      const w = stackRef.current?.clientWidth ?? CARD_W;
+      setScale(Math.max(0.5, Math.min(1, w / CARD_W)));
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, []);
 
   const overall = verdict.overall;
   const tie = overall.winner === 'tie';
@@ -451,7 +360,7 @@ function VerdictTab({
   async function buildCard() {
     if (!cardRef.current) return null;
     const out = await renderCardBlob({ el: cardRef.current, kind: 'face', verdict: 'green_flag', accentHex: overall.winner === 'b' ? palette.b : palette.a });
-    out.filename = `fitaura-versus-${variant}.png`;
+    out.filename = `fitaura-versus-${kind}-${view}.png`;
     return out;
   }
   async function download() {
@@ -479,16 +388,30 @@ function VerdictTab({
     }
   }
 
+  const views: CardView[] = ['verdict', 'stats'];
+
   return (
     <div className="vs-verdict">
-      {/* LEFT — the share-card deck (peek-behind stack) */}
-      <div className="vs-stack">
-        <div className="vs-stack-row">
-          <div className="vs-cardstage">
-            <span className="vs-cardback one" aria-hidden="true" />
-            <span className="vs-cardback two" aria-hidden="true" />
-            <BattleCard variant={variant} battle={battle} names={names} verdict={verdict} cardRef={cardRef} />
+      {/* LEFT — the share-card deck: Verdict/Stats variants in a peek-behind stage */}
+      <div className="vs-stack" ref={stackRef}>
+        <div className="vs-viewseg" role="tablist" aria-label="Card view">
+          {views.map((v) => (
+            <button key={v} role="tab" aria-selected={view === v} className={'seg' + (view === v ? ' on' : '')} onClick={() => setView(v)}>
+              {v === 'verdict' ? 'Verdict' : 'Stats'}
+            </button>
+          ))}
+        </div>
+        <div className="vs-cardstage" style={{ width: CARD_W * scale, height: CARD_H * scale }}>
+          <span className="vs-cardback one" aria-hidden="true" />
+          <span className="vs-cardback two" aria-hidden="true" />
+          <div className="vs-cardscale" style={{ transform: `scale(${scale})` }}>
+            <VerdictShareCard view={view} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} cardRef={cardRef} />
           </div>
+        </div>
+        <div className="vs-stack-dots">
+          {views.map((v, i) => (
+            <button key={v} aria-current={view === v} aria-label={`Card ${i + 1}`} onClick={() => setView(v)} />
+          ))}
         </div>
         <button className="ctrl primary" onClick={download} disabled={busy} style={{ minWidth: 210 }}>
           <Icon.download /> {busy ? 'Rendering…' : 'Download card'}
@@ -519,19 +442,7 @@ function VerdictTab({
 
         <div className="rule" />
 
-        {reads.length > 0 && (
-          <>
-            <div className="vs-reads-head">
-              <span className="l">Superlatives</span>
-              <span className="r">Most likely to…</span>
-            </div>
-            <div className="vs-reads">
-              {reads.map((r) => (
-                <VerdictReadRow key={r.metricKey} read={r} />
-              ))}
-            </div>
-          </>
-        )}
+        {reads.length > 0 && <ReadsCarousel reads={reads} />}
 
         <div className="vs-finalword">
           <div className="k">Final word</div>
