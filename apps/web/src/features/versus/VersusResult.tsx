@@ -225,7 +225,7 @@ function ComparisonTab({
               <SplitBar key={m.key} label={m.label} a={m.a} b={m.b} win={winnerOf(m.a, m.b)} reveal={doReveal} index={i} />
             ))}
           </div>
-          <button className="vs-shot-btn ctrl primary" onClick={downloadShot} disabled={busy}>
+          <button className="vs-shot-btn ctrl" onClick={downloadShot} disabled={busy}>
             <Icon.download /> {busy ? 'Rendering…' : 'Download card'}
           </button>
           <button className="vs-shot-btn ctrl" onClick={onRematch} style={{ marginTop: 10 }}>
