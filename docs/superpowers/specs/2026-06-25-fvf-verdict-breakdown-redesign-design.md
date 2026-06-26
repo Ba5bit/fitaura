@@ -137,10 +137,18 @@ Mirrors the reference (`Result Deck v2.dc.html` lines 449–511), restyled to ou
   metrics, invent a funny `title` ("most likely to…"); set `flex:true` to crown that
   metric's leader as a flex or `flex:false` to **roast its trailer**; set `metricKey` to one
   of the active metric keys; write `reason` as **one complete, human-sounding sentence** that
-  explains the read like a friend talking — grounded in a specific visible detail, savage on
-  roasts, warm on flexes. **Never state scores or numbers** and **do not start with
-  "{name}'s {metric} read…"**; the score badge already shows the figures. Cover at least one
-  roast. Keep `title` ≤ ~70 chars, `reason` ≤ ~170.
+  explains the read like a friend talking — grounded in a specific visible detail. **Never
+  state scores or numbers** and **do not start with "{name}'s {metric} read…"**; the score
+  badge already shows the figures. Cover at least one roast. Keep `title` ≤ ~70 chars,
+  `reason` ≤ ~170.
+- **Voice — savage roasts.** Roast `title`s should be brutal group-chat superlatives about
+  the social fallout of the photo, not flat metric restatements — e.g. _"Most likely to
+  fumble his first date"_, _"Most likely to get left on read"_, _"Most likely to peak in the
+  group photo"_. Flex `title`s stay cocky-funny (_"Gatekeeps their skincare routine"_).
+  The `reason` lands the burn hard. **The existing HARD NEVER list still governs every line
+  unchanged** — aim at the photo, fit, angle, lighting, pose, effort, and ego; never at
+  identity, body, or anything the person can't change. Savage at the bit, never an actual
+  bully.
 
 ### `assemble.ts`
 - Remove `coerceOneLocked`. Add `shapeReads(ai.reads, mode)`:
