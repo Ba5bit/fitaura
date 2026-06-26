@@ -265,7 +265,7 @@
    contender colour, big Anton name beneath). */
 .vs-col .plabel { font-family: "Space Mono", monospace; font-size: 10px; font-weight: 700;
   letter-spacing: 0.2em; text-transform: uppercase; color: color-mix(in oklab, var(--c) 75%, #fff); margin-top: 14px; }
-.vs-col .nm { font-family: "Anton", sans-serif; font-weight: 400; font-size: 23px; letter-spacing: 0.01em; text-transform: uppercase; color: var(--c); text-shadow: 0 0 16px color-mix(in oklab, var(--c) 45%, transparent); margin-top: 4px; }
+.vs-col .nm { font-family: "Anton", sans-serif; font-weight: 400; font-size: 23px; letter-spacing: 0.01em; text-transform: uppercase; color: #fff; margin-top: 4px; }
 /* Score as a bordered "SCORE" badge (Solo .score-badge style): a small mono label over
    the big number, in a contender-coloured pill with a soft glow. */
 .vs-col .score { display: inline-flex; flex-direction: column; align-items: center; gap: 3px;

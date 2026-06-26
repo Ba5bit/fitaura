@@ -260,7 +260,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
               {/* light bottom-only scrim for the text — keeps the face clear (no heavy gradient) */}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(6,7,10,.85) 0%, rgba(6,7,10,.32) 22%, transparent 44%)' }} />
               {isLose && <div style={{ position: 'absolute', inset: 0, background: 'rgba(6,7,10,0.4)', zIndex: 2 }} />}
-              <div style={{ position: 'absolute', right: 18, bottom: 26, zIndex: 4, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <div style={{ position: 'absolute', right: 18, top: i === 0 ? 48 : 16, zIndex: 4, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                 <span style={{ fontFamily: mono, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#06070a', padding: '4px 10px', borderRadius: 7, background: sideCol }}>{kindLabel}</span>
                 <span style={{ fontFamily: anton, fontSize: 64, lineHeight: 0.78, color: '#fff', textShadow: '0 3px 20px #000', marginTop: 2 }}>{sideScore}</span>
               </div>
