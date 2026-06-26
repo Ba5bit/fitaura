@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type TouchEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   computeBattle,
@@ -259,13 +259,30 @@ function ReadsCarousel({ reads }: { reads: DerivedRead[] }) {
   const [page, setPage] = useState(0);
   const at = Math.min(page, pages.length - 1);
 
+  // Swipe between slides on touch devices (horizontal only — vertical scroll passes).
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: TouchEvent<HTMLDivElement>) => {
+    const t = e.touches[0];
+    touch.current = { x: t.clientX, y: t.clientY };
+  };
+  const onTouchEnd = (e: TouchEvent<HTMLDivElement>) => {
+    if (!touch.current) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - touch.current.x;
+    const dy = t.clientY - touch.current.y;
+    touch.current = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      setPage((p) => Math.max(0, Math.min(pages.length - 1, p + (dx < 0 ? 1 : -1))));
+    }
+  };
+
   return (
     <>
       <div className="vs-reads-head">
         <span className="l">Superlatives</span>
         <span className="r">Most likely to…</span>
       </div>
-      <div className="vs-readslider">
+      <div className="vs-readslider" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <div className="track" style={{ transform: `translateX(-${at * 100}%)` }}>
           {pages.map((grp, pi) => (
             <div className="vs-readslide" key={pi}>

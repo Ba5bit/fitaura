@@ -471,7 +471,7 @@
 .vs-reads-head .r { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
 
 /* reads carousel — fixed-height horizontal slider, ~2 rows per slide (no scroll) */
-.vs-readslider { position: relative; overflow: hidden; margin-top: 11px; }
+.vs-readslider { position: relative; overflow: hidden; margin-top: 11px; touch-action: pan-y; }
 .vs-readslider .track { display: flex; transition: transform .35s cubic-bezier(.4, 0, .2, 1); }
 .vs-readslide { flex: 0 0 100%; display: flex; flex-direction: column; gap: 9px; }
 .vs-readnav { display: flex; align-items: center; justify-content: space-between; margin-top: 11px; }
