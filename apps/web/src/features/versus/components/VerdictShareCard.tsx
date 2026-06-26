@@ -162,7 +162,10 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
   if (view === 'verdict' && kind === 'fit') {
     return (
       <div className="vs-sharecard" ref={cardRef} style={rootStyle}>
-        <div style={{ position: 'absolute', inset: 0, background: FALLBACK_BG }} />
+        {/* In-flow sizer — every other layer is position:absolute, so without an
+            in-flow child the block collapses to 0 height in snapdom's export clone
+            (the "blurry blob" download bug). This gives the card its real height. */}
+        <div style={{ width: CARD_W, height: CARD_H, background: FALLBACK_BG }} />
         <div style={{ position: 'absolute', inset: 0, ...photo(s.winFit) }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(6,7,10,.5) 0%, transparent 22%, rgba(6,7,10,.22) 52%, rgba(6,7,10,.97) 84%)' }} />
         <div style={{ position: 'absolute', inset: 0, borderRadius: 24, boxShadow: `inset 0 0 0 2px ${s.winRim}`, pointerEvents: 'none' }} />
