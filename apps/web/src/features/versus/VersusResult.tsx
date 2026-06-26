@@ -437,18 +437,6 @@ function VerdictTab({
           <span className="vs-margin-pill">{summary.marginLabel}</span>
         </div>
 
-        <div className="vs-scoreline">
-          <div className="s a">
-            <span className="nm">{names.a}</span>
-            <span className="v">{overall.avgA}</span>
-          </div>
-          <span className="slash">/</span>
-          <div className="s b">
-            <span className="nm">{names.b}</span>
-            <span className="v">{overall.avgB}</span>
-          </div>
-        </div>
-
         <div className="rule" />
 
         {reads.length > 0 && <ReadsCarousel reads={reads} />}

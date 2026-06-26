@@ -483,24 +483,24 @@
 .vs-readrow { --rc: var(--c); display: grid; grid-template-columns: 1fr 1fr;
   border: 1px solid var(--hair-soft); border-radius: 13px; background: color-mix(in oklab, #fff 2.5%, transparent); overflow: hidden; }
 .vs-readrow[data-roast="1"] { --rc: var(--vs-red); }
-.vs-readrow .joke { display: flex; align-items: center; gap: 14px; padding: 13px 15px; border-right: 1px solid var(--hair); }
-.vs-readrow .badge { width: 40px; height: 40px; flex: none; border-radius: 11px; display: grid; place-items: center;
+.vs-readrow .joke { display: flex; align-items: center; gap: 12px; padding: 10px 13px; border-right: 1px solid var(--hair); }
+.vs-readrow .badge { width: 34px; height: 34px; flex: none; border-radius: 10px; display: grid; place-items: center;
   color: var(--c); background: color-mix(in oklab, var(--c) 15%, transparent); border: 1px solid color-mix(in oklab, var(--c) 40%, transparent); }
-.vs-readrow .badge svg { width: 17px; height: 17px; }
-.vs-readrow .title { font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 15.5px; color: var(--ink); line-height: 1.25; }
-.vs-readrow .tag { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 5px; color: var(--ink-faint); }
+.vs-readrow .badge svg { width: 16px; height: 16px; }
+.vs-readrow .title { font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 15px; color: var(--ink); line-height: 1.2; }
+.vs-readrow .tag { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; color: var(--ink-faint); }
 .vs-readrow[data-roast="1"] .tag { color: var(--vs-red); }
-.vs-readrow .read { padding: 13px 15px; display: flex; flex-direction: column; min-width: 0; }
+.vs-readrow .read { padding: 10px 13px; display: flex; flex-direction: column; min-width: 0; }
 .vs-readrow .rtop { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .vs-readrow .mlabel { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
 .vs-readrow .name { font-family: "Anton", sans-serif; font-size: 18px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c);
-  white-space: nowrap; text-shadow: 0 0 14px color-mix(in oklab, var(--c) 45%, transparent); margin-top: 3px; }
-.vs-readrow .score { font-family: "Anton", sans-serif; font-size: 34px; line-height: 0.8; color: var(--rc); text-align: right; }
-.vs-readrow .tier { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rc); margin-top: 4px; text-align: right; }
-.vs-readrow .bar { height: 6px; border-radius: 99px; background: color-mix(in oklab, #fff 9%, transparent); overflow: hidden; margin-top: 12px; }
+  white-space: nowrap; text-shadow: 0 0 14px color-mix(in oklab, var(--c) 45%, transparent); margin-top: 2px; }
+.vs-readrow .score { font-family: "Anton", sans-serif; font-size: 33px; line-height: 0.8; color: var(--rc); text-align: right; }
+.vs-readrow .tier { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rc); margin-top: 3px; text-align: right; }
+.vs-readrow .bar { height: 6px; border-radius: 99px; background: color-mix(in oklab, #fff 9%, transparent); overflow: hidden; margin-top: 8px; }
 .vs-readrow .bar i { display: block; height: 100%; border-radius: 99px;
   background: linear-gradient(90deg, color-mix(in oklab, var(--rc) 55%, #fff), var(--rc)); box-shadow: 0 0 10px -2px var(--rc); }
-.vs-readrow .why { margin: 11px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 500; font-size: 12.5px; line-height: 1.45; color: var(--ink-dim); text-wrap: pretty; }
+.vs-readrow .why { margin: 7px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 500; font-size: 12px; line-height: 1.35; color: var(--ink-dim); text-wrap: pretty; }
 
 /* final word — the AI crown punchline in a dual-corner tinted card */
 .vs-finalword { margin-top: 12px; border-radius: 14px; padding: 13px 16px; border: 1px solid var(--hair);

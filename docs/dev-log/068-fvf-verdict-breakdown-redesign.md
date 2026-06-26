@@ -110,6 +110,11 @@ tsc + lint + 195 tests green.
 - **Headline wrap fix.** The share-card `WINNER word loser` headline used `line-height:.84`,
   so long names (e.g. the default "Player A … Player B") collided when wrapping; bumped to
   `.96` so wrapped Anton cap-lines have clean spacing.
+- **Headline colours.** Winner name + the verb ("HUMILIATED") now read in the winner's
+  colour; the loser name is white (was: winner colour / white verb / loser colour).
+- **Removed the scoreline** (`nameA avgA / avgB nameB`) from the breakdown per feedback, and
+  **compacted the read rows** (tighter padding/margins, fonts kept big) — together with the
+  fit-to-height the verdict tab now fits without scrolling (breakdown ≈ 559px @900-tall).
 
 ## Follow-up — deploy
 
