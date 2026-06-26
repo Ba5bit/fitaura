@@ -663,6 +663,10 @@
   /* Stack each read row: the joke sits above the read, divided by a bottom hairline. */
   .vs-readrow { grid-template-columns: 1fr; }
   .vs-readrow .joke { border-right: 0; border-bottom: 1px solid var(--hair); }
+  /* The comparison column is full-width on mobile, so the contender photo/avatar can
+     be a lot bigger than the cramped desktop-column clamp. */
+  .vs-avatar { width: 210px; height: 210px; }
+  .vs-fitframe { width: min(78vw, 280px); }
 }
 /* Match Solo Scan's mobile header spacing (.ua-page 12 + .ua-pad 14 = 26px top,
    16px sides) instead of the desktop 52px/24px. */
