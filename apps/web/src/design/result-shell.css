@@ -386,9 +386,13 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
     background:color-mix(in oklab,var(--bg-1) 92%,transparent);
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
     border-top:1px solid var(--hair); }
+  /* Secondary footer buttons echo the desktop "New scan" pill — a translucent accent
+     fill + accent border (instead of a flat grey panel) so the trio reads as one set. */
   .rs-mobilebar .mb-btn{ flex:1; display:flex; align-items:center; justify-content:center; gap:8px;
     min-height:48px; border-radius:12px; cursor:pointer; font-family:"Hanken Grotesk"; font-weight:700;
-    font-size:14px; border:1px solid var(--hair); background:var(--panel-2); color:var(--ink); }
+    font-size:14px; color:var(--ink);
+    border:1px solid color-mix(in oklab,var(--accent) 45%,var(--hair));
+    background:color-mix(in oklab,var(--accent) 13%,transparent); }
   .rs-mobilebar .mb-btn svg{ width:16px;height:16px; }
   .rs-mobilebar .mb-btn.primary{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
   .rs-app.editing .rs-mobilebar{ display:none; }

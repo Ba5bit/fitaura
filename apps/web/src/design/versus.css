@@ -30,6 +30,9 @@
 .vs-page { position: relative; z-index: 1; min-height: 100dvh; display: flex; flex-direction: column; }
 /* 52px top matches Solo Scan's header height (.ua-page 28 + .ua-pad 24). */
 .vs-wrap { width: 100%; max-width: 1080px; margin: 0 auto; padding: 52px 24px 32px; flex: 1; }
+/* The result page packs tighter than upload/scan, and leaves room for the fixed
+   mobile action bar (see the mobile override below). */
+.vs-result-app .vs-wrap { padding: 14px 24px 18px; }
 
 /* Align the header (brand · credits) to the action-bar/button content width
    (footInner 880 − 26px padding = 828) so brand and credits line up with the
@@ -672,6 +675,7 @@
    16px sides) instead of the desktop 52px/24px. */
 @media (max-width: 760px) {
   .vs-wrap { padding-top: 26px; padding-left: 16px; padding-right: 16px; }
+  .vs-result-app .vs-wrap { padding: 26px 16px 100px; } /* bottom room for the fixed action bar */
   .vs-shot-btn { display: none; } /* head-to-head download is desktop-only */
 }
 @media (max-width: 560px) {

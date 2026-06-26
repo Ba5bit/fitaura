@@ -502,6 +502,11 @@ export function VersusResult() {
   // doesn't replay it).
   const playedRef = useRef<Set<string>>(new Set());
 
+  // Mobile action bar export — captures an offscreen verdict card (the headline
+  // shareable), so Save/Share work from any tab on mobile.
+  const [mobileBusy, setMobileBusy] = useState(false);
+  const mobileCardRef = useRef<HTMLDivElement>(null);
+
   // Clear the one-shot flag after `firstView` has captured it (effects run after the
   // initializer), so a refresh or a later vault reopen renders the final state.
   useEffect(() => {
@@ -529,6 +534,27 @@ export function VersusResult() {
   const idx = tabs.indexOf(activeTab);
   const go = (d: number) => setTab(tabs[(idx + d + tabs.length) % tabs.length]);
   const oWho = whoLabel(verdict.winner, names);
+
+  // Mobile footer Save/Share — export the verdict share card (the headline) from
+  // an offscreen full-size copy, so it works regardless of the active tab.
+  const mobileKind: 'face' | 'fit' = battle.mode === 'face' ? 'face' : 'fit';
+  const mobileGroup = (mobileKind === 'face' ? verdict.face : verdict.fit)!;
+  async function buildMobileCard() {
+    if (!mobileCardRef.current) return null;
+    const out = await renderCardBlob({ el: mobileCardRef.current, kind: 'face', verdict: 'green_flag', accentHex: verdict.winner === 'b' ? palette.b : palette.a });
+    out.filename = `fitaura-versus-${mobileKind}-verdict.png`;
+    return out;
+  }
+  async function mobileSave() {
+    if (mobileBusy) return;
+    setMobileBusy(true);
+    try { const o = await buildMobileCard(); if (o) downloadResult(o); } catch { /* export failed */ } finally { setMobileBusy(false); }
+  }
+  async function mobileShare() {
+    if (mobileBusy) return;
+    setMobileBusy(true);
+    try { const o = await buildMobileCard(); if (o) await shareResult(o); } catch { /* share failed */ } finally { setMobileBusy(false); }
+  }
 
   return (
     <div className="rs-app vs-result-app" style={{ ['--icy']: palette.a, ['--gold']: palette.b } as CSSProperties}>
@@ -596,7 +622,7 @@ export function VersusResult() {
         </div>
       </nav>
 
-      <main className="vs-wrap" style={{ padding: '14px 24px 18px' }}>
+      <main className="vs-wrap">
         {activeTab === 'face' && verdict.face && (
           <ComparisonTab
             category="face"
@@ -625,6 +651,27 @@ export function VersusResult() {
           <VerdictTab battle={battle} names={names} verdict={verdict} copy={copy} palette={palette} onRematch={rematch} />
         )}
       </main>
+
+      {/* Offscreen verdict card — the mobile footer's Save/Share capture target. */}
+      <div className="vs-export-offscreen" aria-hidden="true">
+        <VerdictShareCard view="verdict" kind={mobileKind} group={mobileGroup} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} cardRef={mobileCardRef} />
+      </div>
+
+      {/* Mobile action bar — mirrors the Solo Scan footer (Save / Share / New battle). */}
+      <div className="rs-mobilebar">
+        <button className="mb-btn" onClick={mobileSave} disabled={mobileBusy}>
+          <Icon.download />
+          Save
+        </button>
+        <button className="mb-btn" onClick={mobileShare} disabled={mobileBusy}>
+          <Icon.share />
+          Share
+        </button>
+        <button className="mb-btn primary" onClick={rematch}>
+          <Icon.plus />
+          New battle
+        </button>
+      </div>
     </div>
   );
 }
