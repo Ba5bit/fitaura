@@ -394,7 +394,12 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
     border:1px solid color-mix(in oklab,var(--accent) 45%,var(--hair));
     background:color-mix(in oklab,var(--accent) 13%,transparent); }
   .rs-mobilebar .mb-btn svg{ width:16px;height:16px; }
-  .rs-mobilebar .mb-btn.primary{ background:var(--accent); color:var(--accent-ink); border-color:transparent; }
+  /* Primary (New scan / New battle) matches the desktop "New scan" pill — translucent
+     accent fill + accent text + a soft glow (not a solid block). */
+  .rs-mobilebar .mb-btn.primary{ color:var(--accent);
+    border:1px solid color-mix(in oklab,var(--accent) 65%,transparent);
+    background:color-mix(in oklab,var(--accent) 18%,transparent);
+    box-shadow:0 0 0 1px color-mix(in oklab,var(--accent) 22%,transparent), 0 16px 40px -22px var(--accent); }
   .rs-app.editing .rs-mobilebar{ display:none; }
 }
 

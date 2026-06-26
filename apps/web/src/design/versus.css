@@ -677,6 +677,10 @@
   .vs-wrap { padding-top: 26px; padding-left: 16px; padding-right: 16px; }
   .vs-result-app .vs-wrap { padding: 26px 16px 100px; } /* bottom room for the fixed action bar */
   .vs-shot-btn { display: none; } /* head-to-head download is desktop-only */
+  /* The fixed mobile action bar now carries Save / Share, so drop the redundant
+     inline "Download card" + "Share the verdict" buttons (Rematch stays). */
+  .vs-stack > .ctrl.primary { display: none; }
+  .vs-bd .actions .vs-cta { display: none; }
 }
 @media (max-width: 560px) {
   .vs-tabsbar { justify-content: center; }
