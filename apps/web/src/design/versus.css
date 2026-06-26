@@ -252,7 +252,7 @@
    Sized like Solo Scan's "Download" button (base .ctrl). Desktop only (mobile users
    export the share card on the Verdict tab, which carries the same stats); excluded
    from the rendered shot and hidden at the mobile breakpoint. */
-.vs-shot-btn { display: flex; width: fit-content; margin: 18px auto 2px; justify-content: center; }
+.vs-shot-btn { display: flex; width: fit-content; min-width: 168px; margin: 18px auto 2px; justify-content: center; }
 
 /* winner banner — tints to the winning side via --bc */
 .vs-banner { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px;

@@ -144,6 +144,7 @@ function ComparisonTab({
   palette,
   reveal = false,
   onRevealed,
+  onRematch,
 }: {
   category: 'face' | 'fit';
   group: MetricGroupResult;
@@ -157,6 +158,8 @@ function ComparisonTab({
   reveal?: boolean;
   /** Called on mount when this section reveals — so it doesn't replay on re-entry. */
   onRevealed?: () => void;
+  /** Start a new battle (rematch). */
+  onRematch: () => void;
 }) {
   // Freeze the reveal decision at mount: a spurious parent re-render must not flip
   // `reveal` to false mid-animation (which would snap the count-ups to final). The
@@ -224,6 +227,9 @@ function ComparisonTab({
           </div>
           <button className="vs-shot-btn ctrl primary" onClick={downloadShot} disabled={busy}>
             <Icon.download /> {busy ? 'Rendering…' : 'Download card'}
+          </button>
+          <button className="vs-shot-btn ctrl" onClick={onRematch} style={{ marginTop: 10 }}>
+            <Icon.refresh /> Rematch
           </button>
         </div>
         <Column side="b" category={category} name={names.b} photo={photoB} group={group} copy={copyB} reveal={doReveal} />
@@ -637,6 +643,7 @@ export function VersusResult() {
             palette={palette}
             reveal={firstView && !playedRef.current.has('face')}
             onRevealed={() => playedRef.current.add('face')}
+            onRematch={rematch}
           />
         )}
         {activeTab === 'outfit' && verdict.fit && (
@@ -649,6 +656,7 @@ export function VersusResult() {
             palette={palette}
             reveal={firstView && !playedRef.current.has('fit')}
             onRevealed={() => playedRef.current.add('fit')}
+            onRematch={rematch}
           />
         )}
         {activeTab === 'verdict' && (
