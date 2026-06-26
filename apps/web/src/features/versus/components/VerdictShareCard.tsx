@@ -229,7 +229,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: s.loseRim }}>Humiliated by {s.winName}</div>
-              <div style={{ fontWeight: 800, fontSize: 21, color: s.loseRim, lineHeight: 1.12, marginTop: 1 }}>{s.loseName}</div>
+              <div style={{ fontWeight: 800, fontSize: 21, color: '#fff', lineHeight: 1.12, marginTop: 1 }}>{s.loseName}</div>
               <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.02em', color: 'rgba(243,246,249,0.72)', marginTop: 3 }}>{s.loserLine}</div>
             </div>
             <div style={{ textAlign: 'right', flex: 'none' }}>
@@ -266,7 +266,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
               </div>
               <div style={{ position: 'absolute', left: 18, right: 18, bottom: 18, zIndex: 4 }}>
                 {!isLose && s.winner !== 'tie' && <div style={{ lineHeight: 0, marginBottom: 5 }}><CrownMark size={22} /></div>}
-                <span style={{ display: 'block', fontFamily: anton, fontSize: 30, lineHeight: 0.86, textTransform: 'uppercase', color: sideCol, textShadow: '0 2px 12px rgba(0,0,0,.8)' }}>{sideName}</span>
+                <span style={{ display: 'block', fontFamily: anton, fontSize: 30, lineHeight: 0.86, textTransform: 'uppercase', color: '#fff', textShadow: '0 2px 12px rgba(0,0,0,.8)' }}>{sideName}</span>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
                   {pills.map((p) => (
                     <span key={p.label} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 13px', borderRadius: 999, border: `1px solid color-mix(in oklab, ${sideCol} 60%, transparent)`, background: `color-mix(in oklab, ${sideCol} 24%, rgba(0,0,0,0.4))`, fontFamily: mono, fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.94)' }}>
