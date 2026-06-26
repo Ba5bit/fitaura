@@ -48,10 +48,10 @@ function BattleThumb({ b, onOpen }: { b: SavedBattle; onOpen: (b: SavedBattle) =
       <span className="vs-pip">VS</span>
       <div className="vs-tags">
         <span className="t a">
-          {nm(b.nameA, 'Player A')} <b>{verdict.overall.avgA}</b>
+          <b>{verdict.overall.avgA}</b>
         </span>
         <span className="t b">
-          <b>{verdict.overall.avgB}</b> {nm(b.nameB, 'Player B')}
+          <b>{verdict.overall.avgB}</b>
         </span>
       </div>
     </div>
