@@ -454,8 +454,12 @@ export function VersusResult() {
   // The AI copy when a stored verdict exists; null on the dev fallback (refresh
   // straight onto /versus/result), which hides the AI-only bits rather than crash.
   const copy = result?.copy ?? null;
-  // This battle's contender colours — varied per matchup, stable for a given one.
-  const palette = useMemo(() => pickPalette(`${names.a}|${names.b}`), [names.a, names.b]);
+  // This battle's contender colours — frozen on the battle at upload time; the
+  // name-hash is only a fallback for legacy battles saved before that existed.
+  const palette = useMemo(
+    () => battle?.palette ?? pickPalette(`${names.a}|${names.b}`),
+    [battle?.palette, names.a, names.b],
+  );
   const verdict = useMemo<BattleVerdict | null>(() => {
     if (!battle) return null;
     // Prefer the stored AI metrics; fall back to the deterministic seed in dev.
@@ -538,9 +542,10 @@ export function VersusResult() {
   // an offscreen full-size copy, so it works regardless of the active tab.
   const mobileKind: 'face' | 'fit' = battle.mode === 'face' ? 'face' : 'fit';
   const mobileGroup = (mobileKind === 'face' ? verdict.face : verdict.fit)!;
+  const mobileAccent = verdict.winner === 'b' ? palette.b : palette.a;
   async function buildMobileCard() {
     if (!mobileCardRef.current) return null;
-    const out = await renderCardBlob({ el: mobileCardRef.current, kind: 'face', verdict: 'green_flag', accentHex: verdict.winner === 'b' ? palette.b : palette.a });
+    const out = await renderCardBlob({ el: mobileCardRef.current, kind: 'face', verdict: 'green_flag', accentHex: mobileAccent });
     out.filename = `fitaura-versus-${mobileKind}-verdict.png`;
     return out;
   }

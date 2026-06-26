@@ -22,3 +22,9 @@ export function pickPalette(seed: string): { a: string; b: string } {
   for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
   return PALETTES[h % PALETTES.length];
 }
+
+/** A random palette — chosen once when the upload page opens, then frozen on the
+ * battle so the result and the saved thumbnail keep that exact colour. */
+export function randomPalette(): { a: string; b: string } {
+  return PALETTES[Math.floor(Math.random() * PALETTES.length)];
+}

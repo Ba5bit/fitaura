@@ -7,7 +7,7 @@ import { useMediaQuery } from '../../lib/useMediaQuery';
 import { useAccount } from '../account/AccountContext';
 import { useBattle, type BattleImages } from '../../state/battle';
 import { DualGlowButton, ModeSelector } from './components/versusBits';
-import { pickPalette } from './palette';
+import { randomPalette } from './palette';
 import '../../design/upload.css';
 import '../../design/versus.css';
 
@@ -142,15 +142,16 @@ export function VersusUpload() {
     }
     const kept: BattleImages = {};
     for (const k of required) kept[k] = imgs[k];
-    commit({ mode, nameA: nameA.trim(), nameB: nameB.trim(), imgs: kept });
+    commit({ mode, nameA: nameA.trim(), nameB: nameB.trim(), imgs: kept, palette });
     navigate('/versus/run');
   }
 
   const labelA = nameA.trim() || 'Player A';
   const labelB = nameB.trim() || 'Player B';
-  // Same per-matchup palette the result page uses (seeded by the two names), so the
-  // A/B colours match across upload → result. A is always icy; B varies by matchup.
-  const palette = pickPalette(`${labelA}|${labelB}`);
+  // Pick the contender colours ONCE when the scan opens (random B), not from the
+  // names — so typing a name doesn't recolour the cards. Frozen onto the battle at
+  // launch so the result keeps the exact same colour.
+  const [palette] = useState(randomPalette);
 
   return (
     <div className="vs-page" style={{ ['--icy']: palette.a, ['--gold']: palette.b } as CSSProperties}>

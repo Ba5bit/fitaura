@@ -30,6 +30,7 @@ function BattleThumb({ b, onOpen }: { b: SavedBattle; onOpen: (b: SavedBattle) =
   return (
     <div
       className="vlt-thumb vlt-vs-thumb"
+      style={b.palette ? ({ ['--icy']: b.palette.a, ['--gold']: b.palette.b } as CSSProperties) : undefined}
       role="button"
       tabIndex={0}
       onClick={() => onOpen(b)}

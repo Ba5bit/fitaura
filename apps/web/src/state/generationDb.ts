@@ -26,6 +26,8 @@ export interface SavedBattle {
   nameA: string;
   nameB: string;
   imgs: { aFace?: string; aFit?: string; bFace?: string; bFit?: string };
+  /** Contender colours frozen at upload time (A icy, B random). Optional for legacy. */
+  palette?: { a: string; b: string };
   result: VersusResult;
 }
 

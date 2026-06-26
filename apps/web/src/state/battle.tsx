@@ -32,6 +32,9 @@ export interface Battle {
   nameA: string;
   nameB: string;
   imgs: BattleImages;
+  /** Contender colours chosen at upload time (A icy, B random) — frozen so the
+   * result + saved thumbnail keep the same colour. Optional for legacy battles. */
+  palette?: { a: string; b: string };
 }
 
 const STORAGE_KEY = 'fvf:battle';
@@ -82,6 +85,10 @@ function readStored(): Battle | null {
       nameA: typeof parsed.nameA === 'string' ? parsed.nameA : DEFAULT_NAME_A,
       nameB: typeof parsed.nameB === 'string' ? parsed.nameB : DEFAULT_NAME_B,
       imgs: parsed.imgs && typeof parsed.imgs === 'object' ? parsed.imgs : {},
+      palette:
+        parsed.palette && typeof parsed.palette.a === 'string' && typeof parsed.palette.b === 'string'
+          ? parsed.palette
+          : undefined,
     };
   } catch {
     return null;
@@ -185,6 +192,7 @@ export function BattleProvider({ children }: { children: ReactNode }) {
       nameA: b.nameA,
       nameB: b.nameB,
       imgs: b.imgs,
+      palette: b.palette,
       result: r,
     };
     void putBattle(key, saved);
@@ -195,7 +203,7 @@ export function BattleProvider({ children }: { children: ReactNode }) {
   const openBattle = useCallback((battleId: string): boolean => {
     const saved = history.find((b) => b.battleId === battleId);
     if (!saved) return false;
-    const b: Battle = { mode: saved.mode, nameA: saved.nameA, nameB: saved.nameB, imgs: saved.imgs };
+    const b: Battle = { mode: saved.mode, nameA: saved.nameA, nameB: saved.nameB, imgs: saved.imgs, palette: saved.palette };
     setBattle(b);
     setResult(saved.result);
     try {
