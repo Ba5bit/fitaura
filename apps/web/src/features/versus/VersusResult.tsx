@@ -104,12 +104,7 @@ function Column({
   // Player label + name, and the score badge — placed BELOW on the face tab (under the
   // round avatar) but OVERLAID on the photo on the outfit tab (so the column stays
   // compact and the page doesn't scroll).
-  const nameBlock = (
-    <>
-      <div className="plabel">Player {side === 'a' ? 'A' : 'B'}</div>
-      <div className="nm">{name}</div>
-    </>
-  );
+  const nameBlock = <div className="nm">{name}</div>;
   const scoreBadge = (
     <div className="score">
       <span className="lbl">Score</span>
@@ -349,18 +344,6 @@ function VerdictTab({
   const overall = verdict.overall;
   const tie = overall.winner === 'tie';
   const who = whoLabel(overall.winner, names);
-  const otherName = overall.winner === 'a' ? names.b : names.a;
-  const hi = Math.max(overall.avgA, overall.avgB);
-  const lo = Math.min(overall.avgA, overall.avgB);
-
-  // The "final word" — prefer the AI crown punchline (already reconciled to the
-  // computed winner in assemble.ts); fall back to a templated line for the dev /
-  // legacy paths that carry no copy.
-  const finalWord =
-    copy?.crown.line ||
-    (tie
-      ? `${names.a} and ${names.b} land in a dead heat. Run it back and settle it.`
-      : `${who} edges ${otherName} ${hi}–${lo}. Screenshot it. Gloat responsibly.`);
 
   async function buildCard() {
     if (!cardRef.current) return null;
@@ -397,6 +380,14 @@ function VerdictTab({
 
   return (
     <div className="vs-verdict">
+      {/* Offscreen, un-transformed, full-size copy of the ACTIVE card — the export
+          capture target. Capturing the on-screen card fails because it lives inside
+          the fan deck's CSS scale transforms, which makes snapdom mis-size the flex
+          stats cards (clipped / stretched PNGs). This copy is plain 360×640. */}
+      <div className="vs-export-offscreen" aria-hidden="true">
+        <VerdictShareCard view={view} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} cardRef={cardRef} />
+      </div>
+
       {/* LEFT — the fanned share-card deck (Solo Scan card-stack logic). The other
           card splays behind; tap the front (or a peek / dot) to switch. */}
       <div className="vs-stack" ref={stackRef}>
@@ -411,7 +402,7 @@ function VerdictTab({
                   aria-hidden={!isFront}
                   onClick={() => setView(isFront ? otherView(view) : v)}
                 >
-                  <VerdictShareCard view={v} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} cardRef={isFront ? cardRef : undefined} />
+                  <VerdictShareCard view={v} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} />
                 </div>
               );
             })}
@@ -440,11 +431,6 @@ function VerdictTab({
         <div className="rule" />
 
         {reads.length > 0 && <ReadsCarousel reads={reads} />}
-
-        <div className="vs-finalword">
-          <div className="k">Final word</div>
-          <p>{finalWord}</p>
-        </div>
 
         <div className="actions">
           <button className="ctrl" onClick={onRematch}>
