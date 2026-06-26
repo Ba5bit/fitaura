@@ -260,8 +260,9 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
               {/* light bottom-only scrim for the text — keeps the face clear (no heavy gradient) */}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(6,7,10,.85) 0%, rgba(6,7,10,.32) 22%, transparent 44%)' }} />
               {isLose && <div style={{ position: 'absolute', inset: 0, background: 'rgba(6,7,10,0.4)', zIndex: 2 }} />}
-              <div style={{ position: 'absolute', right: 18, bottom: 18, zIndex: 4 }}>
-                <span style={{ fontFamily: anton, fontSize: 64, lineHeight: 0.78, color: '#fff', textShadow: '0 3px 20px #000' }}>{sideScore}</span>
+              <div style={{ position: 'absolute', right: 18, bottom: 18, zIndex: 4, textAlign: 'right' }}>
+                <div style={{ fontFamily: mono, fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: sideCol, textShadow: '0 1px 6px rgba(0,0,0,.75)' }}>{kindLabel} score</div>
+                <span style={{ display: 'block', fontFamily: anton, fontSize: 64, lineHeight: 0.78, color: '#fff', textShadow: '0 3px 20px #000' }}>{sideScore}</span>
               </div>
               <div style={{ position: 'absolute', left: 18, right: 18, bottom: 18, zIndex: 4 }}>
                 {!isLose && s.winner !== 'tie' && <div style={{ lineHeight: 0, marginBottom: 5 }}><CrownMark size={22} /></div>}
