@@ -122,14 +122,14 @@ function TopChrome({ label }: { label: string }) {
   );
 }
 
-/** Verdict headline: WINNER · word · loser. The winner name + verb read in the
- * winner's colour; the loser name is white. line-height is kept clear of 1× so long
- * names that wrap to multiple lines don't collide (Anton caps stick together under a
- * sub-1 line-height). */
-function Headline({ winName, loseName, word, winRim, size }: { winName: string; loseName: string; word: string; winRim: string; size: number }) {
+/** Verdict headline: WINNER · word · loser, all white. line-height is kept clear of
+ * 1× so long names that wrap to multiple lines don't collide (Anton caps stick
+ * together under a sub-1 line-height); a soft dark shadow keeps it legible on the
+ * photo. */
+function Headline({ winName, loseName, word, size }: { winName: string; loseName: string; word: string; size: number }) {
   return (
-    <h2 style={{ fontFamily: anton, fontWeight: 400, margin: '6px 0 0', fontSize: size, lineHeight: 0.96, textTransform: 'uppercase', color: winRim }}>
-      <span style={{ textShadow: `0 0 22px color-mix(in oklab, ${winRim} 55%, transparent)` }}>{winName}</span> {word} <span style={{ color: '#fff' }}>{loseName}</span>
+    <h2 style={{ fontFamily: anton, fontWeight: 400, margin: '6px 0 0', fontSize: size, lineHeight: 0.96, textTransform: 'uppercase', color: '#fff', textShadow: '0 2px 14px rgba(0,0,0,0.55)' }}>
+      {winName} {word} {loseName}
     </h2>
   );
 }
@@ -154,7 +154,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
         </div>
         <div style={{ position: 'absolute', left: 17, right: 17, bottom: 16, zIndex: 5 }}>
           <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.62)' }}>The verdict is in</div>
-          <Headline winName={s.winName} loseName={s.loseName} word={s.word} winRim={s.winRim} size={30} />
+          <Headline winName={s.winName} loseName={s.loseName} word={s.word} size={30} />
           <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 7 }}>
             {s.statLines.map((r) => (
               <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -193,7 +193,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
         </div>
         <div style={{ position: 'relative', flex: 1, background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.1)', padding: '16px 20px 14px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.42)' }}>The verdict is in</div>
-          <Headline winName={s.winName} loseName={s.loseName} word={s.word} winRim={s.winRim} size={35} />
+          <Headline winName={s.winName} loseName={s.loseName} word={s.word} size={35} />
           <p style={{ margin: '9px 0 0', fontWeight: 800, fontSize: 13, lineHeight: 1.3, letterSpacing: '0.02em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.78)' }}>{s.sub}</p>
           <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.46)', marginTop: 12 }}>Most recognised</div>
           <div style={{ marginTop: 7, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
