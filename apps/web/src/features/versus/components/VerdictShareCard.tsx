@@ -135,12 +135,16 @@ function TopChrome({ label }: { label: string }) {
  * 1× so long names that wrap to multiple lines don't collide (Anton caps stick
  * together under a sub-1 line-height); a soft dark shadow keeps it legible on the
  * photo. */
-function Headline({ text, size, crown }: { text: string; size: number; crown?: boolean }) {
+function Headline({ winnerLabel, winRim, tie, size, crown }: { winnerLabel: string; winRim: string; tie: boolean; size: number; crown?: boolean }) {
   return (
     <>
       {crown && <div style={{ lineHeight: 0, margin: '4px 0 2px' }}><CrownMark size={Math.round(size * 0.74)} /></div>}
       <h2 style={{ fontFamily: anton, fontWeight: 400, margin: '6px 0 0', fontSize: size, lineHeight: 0.96, textTransform: 'uppercase', color: '#fff', textShadow: '0 2px 14px rgba(0,0,0,0.55)' }}>
-        {text}
+        {tie ? 'Dead heat' : (
+          <>
+            <span style={{ color: winRim, textShadow: `0 1px 18px color-mix(in oklab, ${winRim} 60%, transparent)` }}>{winnerLabel}</span> wins
+          </>
+        )}
       </h2>
     </>
   );
@@ -153,7 +157,6 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
   // Short headline "{winner} wins". Long names (that would wrap to a 2nd line) fall
   // back to the generic "Player A/B" so the headline stays a single tidy line.
   const winnerLabel = s.winName.length > 10 ? `Player ${s.winnerKey.toUpperCase()}` : s.winName;
-  const headlineText = s.tie ? 'Dead heat' : `${winnerLabel} wins`;
 
   // ---- OUTFIT VERDICT — full-bleed winner photo + verdict + stat lines + humiliated panel
   if (view === 'verdict' && kind === 'fit') {
@@ -170,7 +173,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
         </div>
         <div style={{ position: 'absolute', left: 17, right: 17, bottom: 16, zIndex: 5 }}>
           <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.62)' }}>The verdict is in</div>
-          <Headline text={headlineText} size={30} crown />
+          <Headline winnerLabel={winnerLabel} winRim={s.winRim} tie={s.tie} size={30} crown />
           <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
             {s.statLines.map((r) => (
               <div key={r.key} style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
@@ -209,7 +212,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
         </div>
         <div style={{ position: 'relative', flex: 1, background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.1)', padding: '16px 20px 24px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.42)' }}>The verdict is in</div>
-          <Headline text={headlineText} size={35} />
+          <Headline winnerLabel={winnerLabel} winRim={s.winRim} tie={s.tie} size={35} />
           <p style={{ margin: '9px 0 0', fontWeight: 800, fontSize: 13, lineHeight: 1.3, letterSpacing: '0.02em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.78)' }}>{s.sub}</p>
           <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.46)', marginTop: 12 }}>Most recognised</div>
           <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
