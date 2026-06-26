@@ -700,10 +700,10 @@
 }
 .vlt-vs-thumb .vs-tags {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 3;
-  display: flex; justify-content: space-between; gap: 8px; padding: 11px 12px;
-  font: 600 11px/1.05 "Hanken Grotesk", sans-serif; text-transform: uppercase; letter-spacing: 0.04em;
+  display: flex; justify-content: space-between; gap: 8px; padding: 11px 13px;
+  font: 700 13px/1 "Hanken Grotesk", sans-serif; text-transform: uppercase; letter-spacing: 0.03em;
 }
-.vlt-vs-thumb .vs-tags .t { display: inline-flex; align-items: baseline; gap: 5px; }
-.vlt-vs-thumb .vs-tags .t b { font-family: "Anton", sans-serif; font-size: 16px; line-height: .9; }
+.vlt-vs-thumb .vs-tags .t { display: inline-flex; align-items: baseline; gap: 7px; white-space: nowrap; }
+.vlt-vs-thumb .vs-tags .t b { font-family: "Anton", sans-serif; font-weight: 400; font-size: 28px; line-height: .8; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
 .vlt-vs-thumb .vs-tags .t.a { color: var(--icy); }
 .vlt-vs-thumb .vs-tags .t.b { color: var(--gold); }
