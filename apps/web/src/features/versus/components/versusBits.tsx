@@ -1,6 +1,5 @@
 import { useEffect, useState, type ButtonHTMLAttributes, type CSSProperties, type ReactNode } from 'react';
-import { splitPercent, type BattleWinner, type Superlative, type VersusMode } from '@fitaura/shared';
-import { Icon } from '../../../lib/icons';
+import { splitPercent, type BattleWinner, type DerivedRead, type VersusMode } from '@fitaura/shared';
 import { useCountUp } from '../../../lib/useCountUp';
 
 /** Per-row delay for the first-view stats reveal (top-to-bottom stagger). */
@@ -161,72 +160,45 @@ export function ModeSelector({ mode, onChange }: { mode: VersusMode; onChange: (
 }
 
 /**
- * A single crowned superlative chip. A=icy, B=gold; the crowned side's colour
- * flows via `--c` (set on the chip). The locked chip starts as a "tap to reveal"
- * wildcard and reveals its winner on click/Enter/Space (local state).
+ * One verdict breakdown read — the "joke" half (badge + funny title + tag) and the
+ * "read" half (metric, subject name, score, tier, bar, and the human read line).
+ * `--c` is the subject side's colour; roast rows flip the score/tier/bar/tag to red
+ * via `[data-roast]` (handled in CSS). All numbers come from `DerivedRead` (which
+ * `deriveReads` resolves from the real metric), never from the prose.
  */
-function SuperlativeChip({ item, names }: { item: Superlative; names: { a: string; b: string } }) {
-  const [revealed, setRevealed] = useState(false);
-  const sideVar = item.winner === 'a' ? 'var(--icy)' : 'var(--gold)';
-  const who = item.winner === 'a' ? names.a : names.b;
-  const locked = item.locked && !revealed;
-
-  if (locked) {
-    return (
-      <button
-        type="button"
-        className="vs-superlative locked"
-        onClick={() => setRevealed(true)}
-        aria-label={`${item.label} — tap to reveal the winner`}
-      >
-        <span className="ic">
-          <Icon.lock />
-        </span>
-        <span className="txt">
-          <span className="lbl">{item.label}</span>
-          <span className="reveal">
-            <Icon.eye /> Tap to reveal
-          </span>
-        </span>
-      </button>
-    );
-  }
-
+export function VerdictReadRow({ read }: { read: DerivedRead }) {
+  const sideVar = read.side === 'a' ? 'var(--icy)' : 'var(--gold)';
   return (
-    <div className="vs-superlative" data-side={item.winner} style={{ ['--c']: sideVar } as CSSProperties}>
-      <span className="ic crown">
-        <CrownGlyph size={13} />
-      </span>
-      <span className="txt">
-        <span className="lbl">{item.label}</span>
-        <span className="who">{who}</span>
-      </span>
-    </div>
-  );
-}
-
-/**
- * The superlatives row — a row of crowned chips (A=icy, B=gold) with exactly one
- * locked "tap to reveal" wildcard. Renders nothing when there are no superlatives
- * (e.g. the dev no-AI fallback path).
- */
-export function SuperlativesRow({
-  items,
-  names,
-  heading = 'Superlatives',
-}: {
-  items: Superlative[];
-  names: { a: string; b: string };
-  heading?: string;
-}) {
-  if (!items.length) return null;
-  return (
-    <div className="vs-superlatives">
-      <div className="hd">{heading}</div>
-      <div className="row">
-        {items.map((item, i) => (
-          <SuperlativeChip key={`${item.label}-${i}`} item={item} names={names} />
-        ))}
+    <div
+      className="vs-readrow"
+      data-side={read.side}
+      data-roast={read.isRoast ? '1' : undefined}
+      style={{ ['--c']: sideVar } as CSSProperties}
+    >
+      <div className="joke">
+        <span className="badge" aria-hidden="true">
+          <CrownGlyph size={15} />
+        </span>
+        <div style={{ minWidth: 0 }}>
+          <div className="title">{read.title}</div>
+          <div className="tag">{read.tag}</div>
+        </div>
+      </div>
+      <div className="read">
+        <div className="rtop">
+          <div style={{ minWidth: 0 }}>
+            <div className="mlabel">{read.metricLabel}</div>
+            <div className="name">{read.name}</div>
+          </div>
+          <div style={{ textAlign: 'right', flex: 'none' }}>
+            <div className="score">{read.score}</div>
+            <div className="tier">{read.tier}</div>
+          </div>
+        </div>
+        <div className="bar">
+          <i style={{ width: `${read.score}%` }} />
+        </div>
+        <p className="why">{read.reason}</p>
       </div>
     </div>
   );

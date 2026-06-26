@@ -31,10 +31,9 @@ function sample(over: Partial<VersusAIResult> = {}): VersusAIResult {
       a: { face: sideCopy(), fit: sideCopy() },
       b: { face: sideCopy(), fit: sideCopy() },
     },
-    superlatives: [
-      { label: 'Most likely to get a free drink', winner: 'a', locked: false },
-      { label: 'Most likely to text back', winner: 'b', locked: false },
-      { label: 'Secret final boss', winner: 'a', locked: true },
+    reads: [
+      { metricKey: 'jawline', title: 'Could cut glass with that jaw', flex: true, reason: 'The angle did the heavy lifting.' },
+      { metricKey: 'aura', title: 'Most likely to be the NPC', flex: false, reason: 'Let the background win the frame.' },
     ],
     ...over,
   } as VersusAIResult;
@@ -82,37 +81,33 @@ describe('shapeVersusResult', () => {
     expect(out.copy.crown.line.length).toBeGreaterThan(0);
   });
 
-  it('coerces superlatives to exactly one locked when none are locked', () => {
-    const ai = sample({
-      superlatives: [
-        { label: 'x', winner: 'a', locked: false },
-        { label: 'y', winner: 'b', locked: false },
-        { label: 'z', winner: 'a', locked: false },
-      ],
-    });
-    const out = shapeVersusResult(ai, META);
-    expect(out.copy.superlatives.filter((s) => s.locked)).toHaveLength(1);
-    expect(out.copy.superlatives[out.copy.superlatives.length - 1].locked).toBe(true);
-  });
-
-  it('coerces superlatives to exactly one locked when several are locked', () => {
-    const ai = sample({
-      superlatives: [
-        { label: 'x', winner: 'a', locked: true },
-        { label: 'y', winner: 'b', locked: true },
-        { label: 'z', winner: 'a', locked: true },
-      ],
-    });
-    const out = shapeVersusResult(ai, META);
-    expect(out.copy.superlatives.filter((s) => s.locked)).toHaveLength(1);
-    expect(out.copy.superlatives[out.copy.superlatives.length - 1].locked).toBe(true);
-  });
-
-  it('keeps a single existing locked superlative untouched', () => {
+  it('keeps reads whose metricKey is in the active modality', () => {
     const out = shapeVersusResult(sample(), META);
-    const locked = out.copy.superlatives.filter((s) => s.locked);
-    expect(locked).toHaveLength(1);
-    expect(locked[0].label).toBe('Secret final boss');
+    expect(out.copy.reads.map((r) => r.metricKey)).toEqual(['jawline', 'aura']);
+    expect(out.copy.reads[0]).toMatchObject({ title: 'Could cut glass with that jaw', flex: true });
+  });
+
+  it('drops reads pointing at an inactive-modality metric key', () => {
+    const ai = sample({
+      reads: [
+        { metricKey: 'jawline', title: 'a', flex: true, reason: 'r' },
+        { metricKey: 'drip', title: 'b', flex: true, reason: 'r' }, // fit key, face mode
+      ],
+    });
+    const out = shapeVersusResult(ai, META);
+    expect(out.copy.reads.map((r) => r.metricKey)).toEqual(['jawline']);
+  });
+
+  it('de-duplicates reads by metric key (first wins)', () => {
+    const ai = sample({
+      reads: [
+        { metricKey: 'rizz', title: 'first', flex: true, reason: 'r' },
+        { metricKey: 'rizz', title: 'second', flex: false, reason: 'r' },
+      ],
+    });
+    const out = shapeVersusResult(ai, META);
+    expect(out.copy.reads).toHaveLength(1);
+    expect(out.copy.reads[0].title).toBe('first');
   });
 
   it('handles face-only mode (fit null)', () => {

@@ -73,14 +73,20 @@ export interface SideCopy {
   roast: string;
 }
 
-/** One AI-invented "Who's more likely to ___" verdict crowned to a side. */
-export interface Superlative {
-  /** AI-invented, e.g. "Most likely to get a free drink". */
-  label: string;
-  /** Which side it crowns. */
-  winner: Side;
-  /** Exactly one true → the tap-to-reveal wildcard. */
-  locked: boolean;
+/**
+ * One AI-authored breakdown read, linked to a real metric. The numbers (winner,
+ * score, tier, bar) are derived from the metric by `deriveReads`; the AI supplies
+ * only the funny title, the flex/roast framing, and a full human-sounding sentence.
+ */
+export interface VerdictRead {
+  /** Active-modality metric key this read is about (e.g. `jawline`). */
+  metricKey: string;
+  /** Funny "most likely to…" line. */
+  title: string;
+  /** true = flex (crown the metric leader); false = roast (mock the trailer). */
+  flex: boolean;
+  /** The full human-sounding read sentence, rendered verbatim. No numbers. */
+  reason: string;
 }
 
 /** The comparative roast payload the AI returns alongside the scores. */
@@ -91,8 +97,8 @@ export interface VersusCopy {
   decisiveRead: string;
   /** Per-side, per-modality copy; a category is null when inactive for the mode. */
   sides: Record<Side, { face: SideCopy | null; fit: SideCopy | null }>;
-  /** ~3 comparative superlatives, exactly one locked. */
-  superlatives: Superlative[];
+  /** ~4–6 metric-linked breakdown reads (a mix of flexes and at least one roast). */
+  reads: VerdictRead[];
 }
 
 /** The stored verdict the result deck renders. */

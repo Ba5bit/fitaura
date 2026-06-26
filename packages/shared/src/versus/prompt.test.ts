@@ -50,10 +50,18 @@ describe('buildVersusResponseSchema', () => {
     expect(fitKeys).toEqual(FIT_METRICS.map((m) => m.key));
   });
 
-  it('always requires crown, decisiveRead, sides, superlatives', () => {
+  it('always requires crown, decisiveRead, sides, reads', () => {
     const schema = buildVersusResponseSchema('face');
     expect(schema.required).toEqual(
-      expect.arrayContaining(['scores', 'crown', 'decisiveRead', 'sides', 'superlatives']),
+      expect.arrayContaining(['scores', 'crown', 'decisiveRead', 'sides', 'reads']),
     );
+  });
+
+  it('shapes reads items with metricKey, title, flex and reason', () => {
+    const schema = buildVersusResponseSchema('face');
+    const item = schema.properties.reads.items;
+    expect(Object.keys(item.properties)).toEqual(['metricKey', 'title', 'flex', 'reason']);
+    expect(item.required).toEqual(['metricKey', 'title', 'flex', 'reason']);
+    expect(item.properties.flex.type).toBe('BOOLEAN');
   });
 });

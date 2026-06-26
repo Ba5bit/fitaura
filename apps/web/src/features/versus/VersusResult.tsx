@@ -2,13 +2,13 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties, type Ref } fr
 import { useNavigate } from 'react-router-dom';
 import {
   computeBattle,
+  deriveReads,
   generateMetrics,
   splitPercent,
   summarizeBattle,
   winnerOf,
   type BattleVerdict,
   type BattleWinner,
-  type CategoryRead,
   type Metric,
   type MetricGroupResult,
   type Side,
@@ -27,7 +27,7 @@ import {
   CrownGlyph,
   FlagChip,
   SplitBar,
-  SuperlativesRow,
+  VerdictReadRow,
 } from './components/versusBits';
 import '../../design/result-shell.css';
 import '../../design/versus.css';
@@ -408,58 +408,7 @@ function BattleCard({
   );
 }
 
-/** A "category winner" chip — green if that category's winner is the overall winner, else red. */
-function CatChip({
-  label,
-  group,
-  overallWinner,
-  names,
-}: {
-  label: string;
-  group: MetricGroupResult;
-  overallWinner: BattleWinner;
-  names: { a: string; b: string };
-}) {
-  if (group.winner === 'tie') return <FlagChip tone="gold">{label} · dead heat</FlagChip>;
-  const who = group.winner === 'a' ? names.a : names.b;
-  const tone = group.winner === overallWinner ? 'green' : 'red';
-  return (
-    <FlagChip tone={tone}>
-      {who} · {label}
-    </FlagChip>
-  );
-}
-
-/** One "where it was won" read card. */
-function WonCard({ read, names }: { read: CategoryRead; names: { a: string; b: string } }) {
-  const m = read.metric;
-  const p = splitPercent(m.a, m.b);
-  const lc = read.leader === 'a' ? 'var(--icy)' : 'var(--gold)';
-  const leadName = read.leader === 'a' ? names.a : names.b;
-  return (
-    <div className="vs-woncard" style={{ ['--lc']: lc } as CSSProperties}>
-      <div className="top">
-        <span>{read.category === 'face' ? 'Face' : 'Outfit'} · {m.label}</span>
-        <span className="lead" title={leadName}>{read.leader === 'a' ? 'A leads' : 'B leads'}</span>
-      </div>
-      <div className="row">
-        <span className="na">{m.a}</span>
-        <span className="vs-track" style={{ flex: 1 }}>
-          <span className="fa" style={{ width: `${p.a}%` }} />
-          <span className="fb" style={{ width: `${p.b}%` }} />
-          <span className="divline" style={{ left: `${p.a}%` }} />
-        </span>
-        <span className="nb">{m.b}</span>
-      </div>
-    </div>
-  );
-}
-
-/** Temporarily hidden while the verdict breakdown is redesigned (2026-06-25).
- * Flip to `true` — or revert the commit that introduced this — to restore it. */
-const SHOW_BREAKDOWN = false;
-
-/** The verdict tab: swipeable card stack + rich breakdown panel. */
+/** The verdict tab: the share-card deck (left) + the roasted breakdown (right). */
 function VerdictTab({
   battle,
   names,
@@ -471,34 +420,38 @@ function VerdictTab({
   battle: Battle;
   names: { a: string; b: string };
   verdict: BattleVerdict;
-  /** AI copy, or null on the dev fallback (punchline/decisiveRead/superlatives hidden then). */
+  /** AI copy, or null on the dev fallback (reads fall back to the static bank then). */
   copy?: VersusCopy | null;
   /** This battle's contender colours (for the exported card's accent). */
   palette: { a: string; b: string };
   onRematch: () => void;
 }) {
   const summary = useMemo(() => summarizeBattle(verdict), [verdict]);
-  const cards: CardVariant[] = battle.mode === 'face' ? ['face'] : ['fit'];
-  const [idx, setIdx] = useState(cards.length - 1);
+  const reads = useMemo(() => deriveReads(verdict, copy, names), [verdict, copy, names]);
+  const variant: CardVariant = battle.mode === 'face' ? 'face' : 'fit';
   const [busy, setBusy] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const overall = verdict.overall;
+  const tie = overall.winner === 'tie';
   const who = whoLabel(overall.winner, names);
   const otherName = overall.winner === 'a' ? names.b : names.a;
-  const catsWon = overall.winner === 'a' ? summary.categoriesA : summary.categoriesB;
-  const metricsWon = overall.winner === 'a' ? summary.metricsWonA : summary.metricsWonB;
-  const catLabel = battle.mode === 'face' ? 'Face' : 'Outfit';
+  const hi = Math.max(overall.avgA, overall.avgB);
+  const lo = Math.min(overall.avgA, overall.avgB);
 
-  const breakdownCopy =
-    overall.winner === 'tie'
-      ? `${names.a} and ${names.b} are neck and neck — the scores land in a dead heat.`
-      : `${who} edges ${otherName} by ${summary.marginPts} point${summary.marginPts === 1 ? '' : 's'}, taking ${catsWon} of ${summary.categoryCount} categor${summary.categoryCount === 1 ? 'y' : 'ies'} and ${metricsWon} of ${summary.metricsTotal} metrics.${summary.marginPts <= 4 ? ' Close enough that a restyle could flip it.' : ''}`;
+  // The "final word" — prefer the AI crown punchline (already reconciled to the
+  // computed winner in assemble.ts); fall back to a templated line for the dev /
+  // legacy paths that carry no copy.
+  const finalWord =
+    copy?.crown.line ||
+    (tie
+      ? `${names.a} and ${names.b} land in a dead heat. Run it back and settle it.`
+      : `${who} edges ${otherName} ${hi}–${lo}. Screenshot it. Gloat responsibly.`);
 
   async function buildCard() {
     if (!cardRef.current) return null;
     const out = await renderCardBlob({ el: cardRef.current, kind: 'face', verdict: 'green_flag', accentHex: overall.winner === 'b' ? palette.b : palette.a });
-    out.filename = `fitaura-versus-${cards[idx]}.png`;
+    out.filename = `fitaura-versus-${variant}.png`;
     return out;
   }
   async function download() {
@@ -527,45 +480,31 @@ function VerdictTab({
   }
 
   return (
-    <div
-      className="vs-verdict"
-      style={SHOW_BREAKDOWN ? undefined : ({ gridTemplateColumns: '1fr', justifyItems: 'center' } as CSSProperties)}
-    >
+    <div className="vs-verdict">
+      {/* LEFT — the share-card deck (peek-behind stack) */}
       <div className="vs-stack">
         <div className="vs-stack-row">
-          {cards.length > 1 && (
-            <button className="vs-stack-nav" aria-label="Previous card" onClick={() => setIdx((i) => (i - 1 + cards.length) % cards.length)}>
-              <Icon.chevronLeft />
-            </button>
-          )}
-          <BattleCard variant={cards[idx]} battle={battle} names={names} verdict={verdict} cardRef={cardRef} />
-          {cards.length > 1 && (
-            <button className="vs-stack-nav" aria-label="Next card" onClick={() => setIdx((i) => (i + 1) % cards.length)}>
-              <Icon.chevronRight />
-            </button>
-          )}
-        </div>
-        {cards.length > 1 && (
-          <div className="vs-stack-dots">
-            {cards.map((c, i) => (
-              <button key={c} aria-current={i === idx} aria-label={`Card ${i + 1}`} onClick={() => setIdx(i)} />
-            ))}
+          <div className="vs-cardstage">
+            <span className="vs-cardback one" aria-hidden="true" />
+            <span className="vs-cardback two" aria-hidden="true" />
+            <BattleCard variant={variant} battle={battle} names={names} verdict={verdict} cardRef={cardRef} />
           </div>
-        )}
+        </div>
         <button className="ctrl primary" onClick={download} disabled={busy} style={{ minWidth: 210 }}>
           <Icon.download /> {busy ? 'Rendering…' : 'Download card'}
         </button>
       </div>
 
-      {SHOW_BREAKDOWN && (
+      {/* RIGHT — the verdict, roasted */}
       <div className="vs-bd" style={{ ['--c2']: SIDE_VAR[overall.winner] } as CSSProperties}>
-        <div className="eyebrow">Verdict breakdown · Overall</div>
-        <div className="wlabel">{overall.winner === 'tie' ? 'Dead heat' : 'Overall winner'}</div>
         <div className="whead">
-          <h2>{overall.winner === 'tie' ? 'Dead heat' : who}</h2>
+          <div>
+            <div className="wlabel">{tie ? 'Dead heat' : 'Overall winner'}</div>
+            <h2>{tie ? 'Dead heat' : who}</h2>
+          </div>
           <span className="vs-margin-pill">{summary.marginLabel}</span>
         </div>
-        {copy?.crown.line && <p className="vs-punchline">{copy.crown.line}</p>}
+
         <div className="vs-scoreline">
           <div className="s a">
             <span className="nm">{names.a}</span>
@@ -578,49 +517,26 @@ function VerdictTab({
           </div>
         </div>
 
-        <div className="vs-statcards">
-          <div className="vs-statcard">
-            <div className="k">Win margin</div>
-            <div className="v">
-              {summary.marginPts}
-              <small> pts</small>
-            </div>
-            <div className="s">{overall.winner === 'tie' ? 'Dead heat' : `${who} ahead`}</div>
-          </div>
-          <div className="vs-statcard">
-            <div className="k">Categories</div>
-            <div className="v">{summary.categoriesA}-{summary.categoriesB}</div>
-            <div className="s">{catLabel}</div>
-          </div>
-          <div className="vs-statcard">
-            <div className="k">Metrics won</div>
-            <div className="v">
-              {summary.metricsWonA}-{summary.metricsWonB}
-              <small> /{summary.metricsTotal}</small>
-            </div>
-            <div className="s">All reads</div>
-          </div>
-        </div>
+        <div className="rule" />
 
-        <p className="copy">{copy?.decisiveRead || breakdownCopy}</p>
-
-        <div className="vs-catchips">
-          {verdict.face && <CatChip label="Face" group={verdict.face} overallWinner={overall.winner} names={names} />}
-          {verdict.fit && <CatChip label="Outfit" group={verdict.fit} overallWinner={overall.winner} names={names} />}
-        </div>
-
-        {copy && <SuperlativesRow items={copy.superlatives} names={names} />}
-
-        {summary.topReads.length > 0 && (
+        {reads.length > 0 && (
           <>
-            <div className="vs-wonhead">Where it was won · Top {summary.topReads.length}</div>
-            <div className="vs-wongrid">
-              {summary.topReads.map((r) => (
-                <WonCard key={r.category + r.metric.key} read={r} names={names} />
+            <div className="vs-reads-head">
+              <span className="l">Superlatives</span>
+              <span className="r">Most likely to…</span>
+            </div>
+            <div className="vs-reads">
+              {reads.map((r) => (
+                <VerdictReadRow key={r.metricKey} read={r} />
               ))}
             </div>
           </>
         )}
+
+        <div className="vs-finalword">
+          <div className="k">Final word</div>
+          <p>{finalWord}</p>
+        </div>
 
         <div className="actions">
           <button className="ctrl" onClick={onRematch}>
@@ -631,7 +547,6 @@ function VerdictTab({
           </button>
         </div>
       </div>
-      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@
 // a hard failure and refunds.
 import { computeBattle } from './computeBattle.ts';
 import { FACE_METRICS, FIT_METRICS } from './metrics.ts';
-import type { Metric, Superlative, VersusMode, VersusResult } from './schema.ts';
+import type { Metric, VerdictRead, VersusMode, VersusResult } from './schema.ts';
 import type { VersusAIResult } from './aiSchema.ts';
 
 interface ShapeMeta {
@@ -48,15 +48,22 @@ function toMetrics(
 }
 
 /**
- * Ensure exactly one superlative is `locked`. If none/multiple are flagged, the
- * LAST one becomes the wildcard and the rest are unlocked. Returns a new array.
+ * Keep only reads that point at an ACTIVE-modality metric key, drop duplicate
+ * keys (first wins), and cap the count. The numbers are derived later from the
+ * metric, so this only validates the AI's title/framing payload. Returns a new
+ * array. `deriveReads` (schema.ts consumers) fills in any gaps from the metrics.
  */
-function coerceOneLocked(superlatives: Superlative[]): Superlative[] {
-  if (superlatives.length === 0) return superlatives;
-  const lockedCount = superlatives.filter((s) => s.locked).length;
-  if (lockedCount === 1) return superlatives.map((s) => ({ ...s }));
-  const lastIndex = superlatives.length - 1;
-  return superlatives.map((s, i) => ({ ...s, locked: i === lastIndex }));
+function shapeReads(reads: VerdictRead[], mode: VersusMode): VerdictRead[] {
+  const defs = mode === 'face' ? FACE_METRICS : FIT_METRICS;
+  const active = new Set(defs.map((d) => d.key));
+  const seen = new Set<string>();
+  const out: VerdictRead[] = [];
+  for (const r of reads) {
+    if (!active.has(r.metricKey) || seen.has(r.metricKey)) continue;
+    seen.add(r.metricKey);
+    out.push({ metricKey: r.metricKey, title: r.title, flex: r.flex, reason: r.reason });
+  }
+  return out;
 }
 
 /**
@@ -85,7 +92,7 @@ export function shapeVersusResult(ai: VersusAIResult, meta: ShapeMeta): VersusRe
       ? { winner: battle.winner, line: ai.crown.line }
       : { winner: battle.winner, line: CROWN_FALLBACK[battle.winner] };
 
-  const superlatives = coerceOneLocked(ai.superlatives);
+  const reads = shapeReads(ai.reads, meta.mode);
 
   return {
     mode: meta.mode,
@@ -98,7 +105,7 @@ export function shapeVersusResult(ai: VersusAIResult, meta: ShapeMeta): VersusRe
         a: { face: ai.sides.a.face, fit: ai.sides.a.fit },
         b: { face: ai.sides.b.face, fit: ai.sides.b.fit },
       },
-      superlatives,
+      reads,
     },
   };
 }

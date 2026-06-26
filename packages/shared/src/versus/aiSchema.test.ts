@@ -32,10 +32,9 @@ function sample(over: Record<string, unknown> = {}) {
       a: { face: sideCopy(), fit: sideCopy() },
       b: { face: sideCopy(), fit: sideCopy() },
     },
-    superlatives: [
-      { label: 'Most likely to get a free drink', winner: 'a', locked: false },
-      { label: 'Most likely to text back', winner: 'b', locked: false },
-      { label: 'Secret final boss', winner: 'a', locked: true },
+    reads: [
+      { metricKey: 'jawline', title: 'Could cut glass with that jaw', flex: true, reason: 'The angle did all the heavy lifting and got away with it.' },
+      { metricKey: 'aura', title: 'Most likely to be the NPC', flex: false, reason: 'Faded into the wall and let the background win.' },
     ],
     ...over,
   };
@@ -91,11 +90,27 @@ describe('versusAiResultSchema', () => {
     expect(versusAiResultSchema.safeParse(sample({ crown: { winner: 'tie', line: 'Dead heat.' } })).success).toBe(true);
   });
 
-  it('rejects a superlative with a tie winner (only a|b allowed)', () => {
+  it('accepts reads with a metric key, title, flex flag and reason', () => {
+    const ok = sample({
+      reads: [{ metricKey: 'rizz', title: 'Could talk into anywhere', flex: true, reason: 'Stared down the lens unbothered.' }],
+    });
+    expect(versusAiResultSchema.safeParse(ok).success).toBe(true);
+  });
+
+  it('rejects a read missing its reason', () => {
     const bad = sample({
-      superlatives: [{ label: 'x', winner: 'tie', locked: true }],
+      reads: [{ metricKey: 'rizz', title: 'x', flex: true }],
     });
     expect(versusAiResultSchema.safeParse(bad).success).toBe(false);
+  });
+
+  it('clamps an over-long read reason instead of rejecting', () => {
+    const long = 'word '.repeat(80);
+    const parsed = versusAiResultSchema.safeParse(sample({
+      reads: [{ metricKey: 'aura', title: 'x', flex: false, reason: long }],
+    }));
+    expect(parsed.success).toBe(true);
+    if (parsed.success) expect(parsed.data.reads[0].reason.length).toBeLessThanOrEqual(180);
   });
 
   it('rejects a missing crown line', () => {

@@ -52,15 +52,16 @@ export const versusAiResultSchema = z.object({
     a: z.object({ face: sideCopySchema, fit: sideCopySchema }),
     b: z.object({ face: sideCopySchema, fit: sideCopySchema }),
   }),
-  superlatives: z
+  reads: z
     .array(
       z.object({
-        label: clamped(80),
-        winner: z.enum(['a', 'b']),
-        locked: z.boolean(),
+        metricKey: z.string(),
+        title: clamped(80),
+        flex: z.boolean(),
+        reason: clamped(180), // full human sentence, no numbers
       }),
     )
-    .max(6),
+    .max(8),
 });
 
 export type VersusAIResult = z.infer<typeof versusAiResultSchema>;
