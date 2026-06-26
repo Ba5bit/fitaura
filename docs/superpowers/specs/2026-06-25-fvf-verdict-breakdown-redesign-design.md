@@ -18,8 +18,10 @@ restyled to Fitaura's existing palette and fonts. The reference's blue/pink neon
 rows use red.
 
 Each breakdown row is a funny "most likely to…" title tied to a **real** metric, with its
-own score, tier, bar, and a grounded one-line read — e.g.
-_"Theo's color read 91–78 — committed to one palette and never blinked."_
+own score, tier, bar, and a grounded one-line read. The read sentence is **human-sounding
+and carries no numbers** (the score/tier/bar beside it already do) — e.g.
+_"Committed to one palette and never blinked — every piece looked chosen, not grabbed."_
+(not _"Theo's color read 91–78 — committed to one palette…"_).
 
 ## Decisions (from brainstorming)
 
@@ -83,10 +85,10 @@ Mirrors the reference (`Result Deck v2.dc.html` lines 449–511), restyled to ou
      **Roast row** = names the metric's real trailer, accent/score/tier/bar/tag = red.
    - **Tier** (from the displayed score): flex → `Elite` ≥90, `Strong` ≥82, else `Solid`;
      roast → `Needs work`.
-   - **Why** line is assembled as
-     `` `${name}’s ${metricLabel.toLowerCase()} ${flex ? 'read' : 'slipped to'} ${hi}–${lo} — ${reason}.` ``
-     so the numeric part is always the real `computeBattle` scores; the AI supplies only
-     `title` + `reason` (no numbers in `reason`).
+   - **Read** line is the AI's `reason` rendered **verbatim** — a complete, human-sounding
+     sentence with **no numbers and no templated `"{name}'s {metric} read 88–82 —"` prefix**.
+     The figures live in the score/tier/bar to its right, so the prose never recites them and
+     never drifts. Flex reads describe the win conversationally; roast reads land the burn.
 6. **Final word** panel: dual-corner radial-tinted card; label `Final word`; body = AI
    `copy.crown.line` (already reconciled to the computed winner in `assemble.ts`), with the
    templated fallback `"{winner} edges {loser} {hi}–{lo}. Screenshot it. Gloat responsibly."`
@@ -107,7 +109,7 @@ Mirrors the reference (`Result Deck v2.dc.html` lines 449–511), restyled to ou
     title: string;
     /** true = flex (crown the metric leader); false = roast (mock the trailer). */
     flex: boolean;
-    /** Grounded flavor clause completing the templated read line (no numbers). */
+    /** The full human-sounding read sentence, rendered verbatim. No numbers. */
     reason: string;
   }
   ```
@@ -124,7 +126,7 @@ Mirrors the reference (`Result Deck v2.dc.html` lines 449–511), restyled to ou
     metricKey: z.string(),
     title: clamped(80),
     flex: z.boolean(),
-    reason: clamped(160),
+    reason: clamped(180), // full human sentence, no numbers
   })).max(8)
   ```
 
@@ -134,9 +136,11 @@ Mirrors the reference (`Result Deck v2.dc.html` lines 449–511), restyled to ou
 - Instruction: replace the `SUPERLATIVES:` paragraph with a `READS:` paragraph — for ~4–6
   metrics, invent a funny `title` ("most likely to…"); set `flex:true` to crown that
   metric's leader as a flex or `flex:false` to **roast its trailer**; set `metricKey` to one
-  of the active metric keys; write a short grounded `reason` **clause** (the app prepends
-  `"X's {metric} read 88–82 —"`, so do not restate numbers). Cover at least one roast.
-  Keep `title` ≤ ~70 chars, `reason` ≤ ~150.
+  of the active metric keys; write `reason` as **one complete, human-sounding sentence** that
+  explains the read like a friend talking — grounded in a specific visible detail, savage on
+  roasts, warm on flexes. **Never state scores or numbers** and **do not start with
+  "{name}'s {metric} read…"**; the score badge already shows the figures. Cover at least one
+  roast. Keep `title` ≤ ~70 chars, `reason` ≤ ~170.
 
 ### `assemble.ts`
 - Remove `coerceOneLocked`. Add `shapeReads(ai.reads, mode)`:
@@ -151,11 +155,12 @@ Mirrors the reference (`Result Deck v2.dc.html` lines 449–511), restyled to ou
 - `deriveReads(verdict: BattleVerdict, copy: VersusCopy | null, names): DerivedRead[]`:
   - **Source of titles/reasons:** `copy.reads` when present; else a static per-metric
     title/reason bank (so legacy battles without `reads` and the dev seed still render). The
-    static bank keys flex titles + `reason` clauses by metric key, plus one roast title +
-    reason per metric, mirroring the handoff's `_whyFlex`/`_whyRoast` tables.
+    static bank keys a flex title + a full human-sounding `reason` sentence by metric key,
+    plus one roast title + reason sentence per metric — same voice as the AI reads, no numbers
+    (the handoff's `_whyFlex`/`_whyRoast` tables, rewritten as complete sentences).
   - For each candidate metric: compute `gap`, skip `gap === 0`; resolve `flex`’s
-    leader/trailer from real scores; compute `score`, `otherVal`, `name`, `tier`, `barColor`,
-    `tag`, and the assembled `why`.
+    leader/trailer from real scores; compute `score`, `name`, `tier`, `barColor`, `tag`; the
+    read sentence is the `reason` verbatim (no number templating).
   - Sort by `gap` desc, take top 5; if no roast present, swap the 5th for the
     largest-gap roast candidate (handoff logic, `Result Deck v2.dc.html` lines 735–741).
   - Returns view-ready rows (numbers + resolved side + flags) — the React component only maps
@@ -165,7 +170,8 @@ Mirrors the reference (`Result Deck v2.dc.html` lines 449–511), restyled to ou
 - Update `aiSchema.test.ts`, `assemble.test.ts`, `prompt.test.ts` for `reads`
   (drop locked-coercion cases).
 - Add `deriveReads` unit tests: flex/roast resolution from scores, gap sort + roast
-  guarantee, legacy-superlatives fallback, dev-seed fallback, `gap===0` skip.
+  guarantee, `copy.reads` passthrough, no-`reads` (legacy/dev) static-bank fallback,
+  `gap===0` skip, and that no rendered read string contains a digit.
 
 ## UI changes (`apps/web/src/features/versus`)
 
