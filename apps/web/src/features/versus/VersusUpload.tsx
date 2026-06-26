@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Side, VersusMode } from '@fitaura/shared';
 import { Icon } from '../../lib/icons';
@@ -7,6 +7,7 @@ import { useMediaQuery } from '../../lib/useMediaQuery';
 import { useAccount } from '../account/AccountContext';
 import { useBattle, type BattleImages } from '../../state/battle';
 import { DualGlowButton, ModeSelector } from './components/versusBits';
+import { pickPalette } from './palette';
 import '../../design/upload.css';
 import '../../design/versus.css';
 
@@ -147,9 +148,12 @@ export function VersusUpload() {
 
   const labelA = nameA.trim() || 'Player A';
   const labelB = nameB.trim() || 'Player B';
+  // Same per-matchup palette the result page uses (seeded by the two names), so the
+  // A/B colours match across upload → result. A is always icy; B varies by matchup.
+  const palette = pickPalette(`${labelA}|${labelB}`);
 
   return (
-    <div className="vs-page">
+    <div className="vs-page" style={{ ['--icy']: palette.a, ['--gold']: palette.b } as CSSProperties}>
       <div className="vs-wrap" style={{ paddingBottom: footH ? footH + 16 : undefined }}>
         <div className="vs-top">
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>

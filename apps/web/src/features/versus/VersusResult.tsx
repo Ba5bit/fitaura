@@ -30,6 +30,7 @@ import {
   VerdictReadRow,
 } from './components/versusBits';
 import { VerdictShareCard } from './components/VerdictShareCard';
+import { pickPalette } from './palette';
 import '../../design/result-shell.css';
 import '../../design/versus.css';
 
@@ -42,25 +43,6 @@ const CARD_W = 360;
 const CARD_H = 640;
 const otherView = (v: CardView): CardView => (v === 'verdict' ? 'stats' : 'verdict');
 
-// FvF contender palettes — drawn from Solo Scan's own semantic tokens for consistency.
-// A is always Solo's brand accent (icy blue); B varies per matchup among Solo's other
-// distinct accents (lime / gold / red) so each matchup looks a bit different while both
-// sides keep a clear, on-brand identity. (cyan clashes with the icy A; magenta is the
-// blue+pink combo the user disliked — both left out.) Applied by overriding --icy/--gold
-// on the result root (see versus.css `.vs-result-app`).
-const PALETTES: { a: string; b: string }[] = [
-  { a: '#83b4ff', b: '#b6ff3c' }, // icy / lime
-  { a: '#83b4ff', b: '#ffcf66' }, // icy / gold
-  { a: '#83b4ff', b: '#ff3b49' }, // icy / red
-];
-
-/** Deterministic palette pick from the matchup, so a given battle keeps its colours
- * across refreshes (and as a saved battle) instead of flickering a new pair each view. */
-function pickPalette(seed: string): { a: string; b: string } {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return PALETTES[h % PALETTES.length];
-}
 const SIDE_VAR: Record<BattleWinner, string> = { a: 'var(--icy)', b: 'var(--gold)', tie: 'var(--ink)' };
 
 // Display label only; the tab number is the position in the active tab list (see
