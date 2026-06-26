@@ -422,24 +422,21 @@
 .vs-stack-dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--hair); transition: .2s; }
 .vs-stack-dots button[aria-current="true"] { background: #fff; width: 22px; border-radius: 99px; }
 
-/* Verdict / Stats card-view toggle (the handoff's subTabs). */
-.vs-viewseg { display: inline-flex; gap: 4px; padding: 4px; border-radius: 11px; background: rgba(255,255,255,0.03); border: 1px solid var(--hair); }
-.vs-viewseg .seg { font-family: "Space Mono", monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
-  padding: 8px 16px; border-radius: 8px; border: 0; cursor: pointer; color: var(--ink-faint); background: transparent; transition: .18s; }
-.vs-viewseg .seg.on { color: #fff; background: rgba(255,255,255,0.09); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18); }
-
-/* peek-behind deck — the share card sits sharp on top of two rotated, dimmed backers
-   (adopted from the Solo Scan result stage). The stage box is sized (inline) to the
-   SCALED card; backers fill it and the card is scaled into place from its 360×640 native. */
-.vs-cardstage { position: relative; flex: none; }
-.vs-cardscale { position: absolute; top: 0; left: 0; transform-origin: top left; z-index: 2; }
-.vs-cardback { position: absolute; inset: 0; z-index: 1; border-radius: 24px; border: 1px solid var(--hair-soft);
-  background: linear-gradient(170deg, #12151c, #0a0c11); pointer-events: none; }
-.vs-cardback.one { transform: rotate(-5deg) translateY(10px) scale(0.97); opacity: 0.5; }
-.vs-cardback.two { transform: rotate(3.5deg) translateY(5px) scale(0.985); opacity: 0.72; }
+/* Fanned card deck (Solo Scan's card-stack logic) — the active card sits sharp on
+   top; the other card splays behind it, rotated + dimmed, showing real content. Tap
+   the front to advance, tap a peek or a dot to bring it forward. The whole deck is
+   scaled (inline `--vs-scale`) to fit the column height so the page never scrolls. */
+.vs-fanwrap { position: relative; flex: none; }
+.vs-fandeck { position: absolute; top: 0; left: 0; width: 360px; height: 640px; transform-origin: top left; }
+.vs-fancard { position: absolute; inset: 0; transform-origin: 50% 50%;
+  transition: transform .5s cubic-bezier(.22, 1, .36, 1), opacity .45s ease, filter .45s ease;
+  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7)); }
+.vs-fancard.front { transform: scale(.96); z-index: 5; cursor: pointer; }
+.vs-fancard.back { transform: translateX(48px) translateY(2px) rotate(7deg) scale(.9); z-index: 2; cursor: pointer;
+  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7)) brightness(.74); }
 
 /* breakdown panel (right) — --c2 is set inline to the overall winner's color */
-.vs-bd { --vs-red: #ff3b49; border: 1px solid var(--hair); border-radius: 20px; padding: clamp(16px, 2vw, 24px);
+.vs-bd { --vs-red: #ff3b49; border: 1px solid var(--hair); border-radius: 20px; padding: clamp(14px, 1.6vw, 18px);
   background: linear-gradient(180deg, var(--bg-2), #0b0d12); display: flex; flex-direction: column; }
 .vs-bd .eyebrow { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); }
 .vs-bd .wlabel { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--c2, var(--gold)); margin-top: 8px; }
@@ -459,18 +456,18 @@
 .vs-scoreline .slash { font-family: "Anton", sans-serif; font-size: 24px; color: var(--ink-ghost); }
 
 /* hairline under the scoreline */
-.vs-bd .rule { height: 1px; margin: 22px 0 0; background: linear-gradient(90deg, transparent, var(--hair), transparent); }
+.vs-bd .rule { height: 1px; margin: 14px 0 0; background: linear-gradient(90deg, transparent, var(--hair), transparent); }
 
 /* "Superlatives / Most likely to…" header (arrows live on the right) */
-.vs-reads-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 22px; }
+.vs-reads-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 15px; }
 .vs-reads-head .l { font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink); }
 .vs-reads-head .r { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
 
 /* reads carousel — fixed-height horizontal slider, ~2 rows per slide (no scroll) */
-.vs-readslider { position: relative; overflow: hidden; margin-top: 14px; }
+.vs-readslider { position: relative; overflow: hidden; margin-top: 11px; }
 .vs-readslider .track { display: flex; transition: transform .35s cubic-bezier(.4, 0, .2, 1); }
-.vs-readslide { flex: 0 0 100%; display: flex; flex-direction: column; gap: 10px; }
-.vs-readnav { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+.vs-readslide { flex: 0 0 100%; display: flex; flex-direction: column; gap: 9px; }
+.vs-readnav { display: flex; align-items: center; justify-content: space-between; margin-top: 11px; }
 .vs-readnav .dots { display: flex; gap: 8px; }
 .vs-readnav .dots button { width: 8px; height: 8px; border-radius: 50%; border: 0; padding: 0; cursor: pointer; background: var(--hair); transition: .2s; }
 .vs-readnav .dots button[aria-current="true"] { background: #fff; width: 22px; border-radius: 99px; }
@@ -486,14 +483,14 @@
 .vs-readrow { --rc: var(--c); display: grid; grid-template-columns: 1fr 1fr;
   border: 1px solid var(--hair-soft); border-radius: 13px; background: color-mix(in oklab, #fff 2.5%, transparent); overflow: hidden; }
 .vs-readrow[data-roast="1"] { --rc: var(--vs-red); }
-.vs-readrow .joke { display: flex; align-items: center; gap: 14px; padding: 16px 17px; border-right: 1px solid var(--hair); }
+.vs-readrow .joke { display: flex; align-items: center; gap: 14px; padding: 13px 15px; border-right: 1px solid var(--hair); }
 .vs-readrow .badge { width: 40px; height: 40px; flex: none; border-radius: 11px; display: grid; place-items: center;
   color: var(--c); background: color-mix(in oklab, var(--c) 15%, transparent); border: 1px solid color-mix(in oklab, var(--c) 40%, transparent); }
 .vs-readrow .badge svg { width: 17px; height: 17px; }
 .vs-readrow .title { font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 15.5px; color: var(--ink); line-height: 1.25; }
 .vs-readrow .tag { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 5px; color: var(--ink-faint); }
 .vs-readrow[data-roast="1"] .tag { color: var(--vs-red); }
-.vs-readrow .read { padding: 15px 17px; display: flex; flex-direction: column; min-width: 0; }
+.vs-readrow .read { padding: 13px 15px; display: flex; flex-direction: column; min-width: 0; }
 .vs-readrow .rtop { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .vs-readrow .mlabel { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
 .vs-readrow .name { font-family: "Anton", sans-serif; font-size: 18px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c);
@@ -506,7 +503,7 @@
 .vs-readrow .why { margin: 11px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 500; font-size: 12.5px; line-height: 1.45; color: var(--ink-dim); text-wrap: pretty; }
 
 /* final word — the AI crown punchline in a dual-corner tinted card */
-.vs-finalword { margin-top: 18px; border-radius: 14px; padding: 16px 18px; border: 1px solid var(--hair);
+.vs-finalword { margin-top: 12px; border-radius: 14px; padding: 13px 16px; border: 1px solid var(--hair);
   background:
     radial-gradient(130% 150% at 0% 0%, color-mix(in oklab, var(--icy) 11%, transparent), transparent 58%),
     radial-gradient(130% 150% at 100% 100%, color-mix(in oklab, var(--gold) 11%, transparent), transparent 58%),
@@ -515,7 +512,7 @@
 .vs-finalword p { margin: 7px 0 0; font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 14px; line-height: 1.35;
   letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink); text-wrap: pretty; }
 
-.vs-bd .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+.vs-bd .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
 .vs-bd .actions .vs-cta { min-height: 44px; font-size: 14px; }
 .vs-bd .actions .ctrl { min-height: 44px; }
 

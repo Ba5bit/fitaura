@@ -122,10 +122,12 @@ function TopChrome({ label }: { label: string }) {
   );
 }
 
-/** Verdict headline: WINNER · word · loser, in contender colours. */
+/** Verdict headline: WINNER · word · loser, in contender colours. line-height is
+ * kept clear of 1× so long names that wrap to multiple lines don't collide (Anton
+ * caps stick together under a sub-1 line-height). */
 function Headline({ winName, loseName, word, winRim, loseRim, size }: { winName: string; loseName: string; word: string; winRim: string; loseRim: string; size: number }) {
   return (
-    <h2 style={{ fontFamily: anton, fontWeight: 400, margin: '6px 0 0', fontSize: size, lineHeight: 0.84, textTransform: 'uppercase', color: '#fff' }}>
+    <h2 style={{ fontFamily: anton, fontWeight: 400, margin: '6px 0 0', fontSize: size, lineHeight: 0.96, textTransform: 'uppercase', color: '#fff' }}>
       <span style={{ color: winRim, textShadow: `0 0 22px color-mix(in oklab, ${winRim} 55%, transparent)` }}>{winName}</span> {word} <span style={{ color: loseRim }}>{loseName}</span>
     </h2>
   );

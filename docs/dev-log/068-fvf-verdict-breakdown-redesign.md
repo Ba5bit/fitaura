@@ -98,6 +98,19 @@ Verified locally (Playwright) across **all four** card variants (face + fit, ver
 stats), the toggle/dots, and the carousel paging — palette blue/red, no console errors;
 tsc + lint + 195 tests green.
 
+### Addendum 2 — fanned deck + fit-to-height + headline wrap
+
+- **Fanned deck (Solo card-stack logic).** Dropped the flat backers + the Verdict/Stats
+  text toggle; the deck now renders BOTH cards — the active one sharp in front, the other
+  splayed behind (`rotate(7deg) translateX(48px) scale(.9)`, dimmed), tap front / peek / dot
+  to switch (`.vs-fanwrap` / `.vs-fandeck` / `.vs-fancard.front|.back`).
+- **No-scroll sizing.** The deck scales to fit BOTH column width and viewport height (capped
+  ≤ .78 so it stays compact), and the breakdown's padding/margins were trimmed (fonts kept
+  big) — the page no longer scrolls (verified 900-tall: scrollH === innerH, breakdown 742→682).
+- **Headline wrap fix.** The share-card `WINNER word loser` headline used `line-height:.84`,
+  so long names (e.g. the default "Player A … Player B") collided when wrapping; bumped to
+  `.96` so wrapped Anton cap-lines have clean spacing.
+
 ## Follow-up — deploy
 
 The prompt/schema change needs a **manual `versus-scan` edge-function redeploy** (see

@@ -40,6 +40,7 @@ type CardView = 'verdict' | 'stats';
 /** Native share-card dimensions (see VerdictShareCard); the deck scales to fit. */
 const CARD_W = 360;
 const CARD_H = 640;
+const otherView = (v: CardView): CardView => (v === 'verdict' ? 'stats' : 'verdict');
 
 // FvF contender palettes — drawn from Solo Scan's own semantic tokens for consistency.
 // A is always Solo's brand accent (icy blue); B varies per matchup among Solo's other
@@ -328,13 +329,17 @@ function VerdictTab({
   const cardRef = useRef<HTMLDivElement>(null);
   const stackRef = useRef<HTMLDivElement>(null);
 
-  // Fit the 360-wide native card into the column (scale only; the export captures
-  // the unscaled card so the PNG stays crisp).
-  const [scale, setScale] = useState(1);
+  // Scale the 360×640 deck to fit BOTH the column width and the available viewport
+  // height, so the card never forces the page to scroll. Capped below 1 so it always
+  // reads as a compact deck rather than dominating the column. Export captures the
+  // unscaled card, so the PNG stays crisp.
+  const [scale, setScale] = useState(0.78);
   useEffect(() => {
     const fit = () => {
-      const w = stackRef.current?.clientWidth ?? CARD_W;
-      setScale(Math.max(0.5, Math.min(1, w / CARD_W)));
+      const colW = stackRef.current?.clientWidth ?? CARD_W;
+      const availH = window.innerHeight - 300; // header + nav + dots + button + paddings
+      const s = Math.min(colW / CARD_W, availH / CARD_H);
+      setScale(Math.max(0.5, Math.min(0.78, s)));
     };
     fit();
     window.addEventListener('resize', fit);
@@ -392,20 +397,24 @@ function VerdictTab({
 
   return (
     <div className="vs-verdict">
-      {/* LEFT — the share-card deck: Verdict/Stats variants in a peek-behind stage */}
+      {/* LEFT — the fanned share-card deck (Solo Scan card-stack logic). The other
+          card splays behind; tap the front (or a peek / dot) to switch. */}
       <div className="vs-stack" ref={stackRef}>
-        <div className="vs-viewseg" role="tablist" aria-label="Card view">
-          {views.map((v) => (
-            <button key={v} role="tab" aria-selected={view === v} className={'seg' + (view === v ? ' on' : '')} onClick={() => setView(v)}>
-              {v === 'verdict' ? 'Verdict' : 'Stats'}
-            </button>
-          ))}
-        </div>
-        <div className="vs-cardstage" style={{ width: CARD_W * scale, height: CARD_H * scale }}>
-          <span className="vs-cardback one" aria-hidden="true" />
-          <span className="vs-cardback two" aria-hidden="true" />
-          <div className="vs-cardscale" style={{ transform: `scale(${scale})` }}>
-            <VerdictShareCard view={view} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} cardRef={cardRef} />
+        <div className="vs-fanwrap" style={{ width: CARD_W * scale, height: CARD_H * scale }}>
+          <div className="vs-fandeck" style={{ transform: `scale(${scale})` }}>
+            {views.map((v) => {
+              const isFront = v === view;
+              return (
+                <div
+                  key={v}
+                  className={'vs-fancard ' + (isFront ? 'front' : 'back')}
+                  aria-hidden={!isFront}
+                  onClick={() => setView(isFront ? otherView(view) : v)}
+                >
+                  <VerdictShareCard view={v} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} cardRef={isFront ? cardRef : undefined} />
+                </div>
+              );
+            })}
           </div>
         </div>
         <div className="vs-stack-dots">
