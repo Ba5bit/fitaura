@@ -1,18 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type TouchEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  stickersFor,
-  stickerFromPreset,
-  genderOf,
-  VERDICT_COLOR_VAR,
-  type StickerData,
-} from '@fitaura/shared';
+import { genderOf, VERDICT_COLOR_VAR } from '@fitaura/shared';
 import { FaceCard, OutfitCard, Receipt, ReceiptPremium } from '../../components/cards';
 import { CardSwitcher } from '../../components/cards/CardSwitcher';
 import { skinsFor, skinIndex } from '../../components/cards/skins/registry';
-import { StickerLayer } from '../../components/cards/StickerLayer';
 import { ReceiptStampEditor } from '../../components/cards/ReceiptStampEditor';
-import { StaticSticker, StaticStamp } from '../../components/cards/ExportOverlays';
+import { StaticStamp } from '../../components/cards/ExportOverlays';
 import {
   FaceAnalysisBlock,
   OutfitAnalysisBlock,
@@ -21,12 +14,11 @@ import {
 import { Icon } from '../../lib/icons';
 import { receiptDateTime } from '../../lib/format';
 import { renderCardBlob, downloadResult, shareResult } from '../../lib/exportCard';
-import { CARD_GEOM, RECEIPT_PRESETS, type Point } from './stickerGeometry';
-import { swipeStep, startsOnInteractiveSticker } from './swipeGesture';
+import { RECEIPT_PRESETS } from './stickerGeometry';
+import { swipeStep } from './swipeGesture';
 import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
 import { ProfileMenu } from '../account/ProfileMenu';
-import { useLocalStorage } from '../../state/useLocalStorage';
 import { usePreferences } from '../../state/preferences';
 import { usePerCardState } from '../../state/usePerCardState';
 import '../../design/result-shell.css';
@@ -89,32 +81,20 @@ export function Result() {
   // Premium + white share the "verified pass" (ReceiptPremium) layout and have no
   // editable seal slots — white is just its ivory/cream skin.
   const premiumLike = paper === 'premium' || paper === 'white';
-  const [stickerOn, setStickerOn] = useLocalStorage('fitaura.stickerOn', true);
   const [toast, setToast] = useState<string | null>(null);
   const [savedFlash, setSavedFlash] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const frameRef = useRef<HTMLDivElement>(null);
 
-  // Per-result sticker customization persists under the generation id, so
-  // reopening a card from the vault restores its stickers / positions / stamp.
+  // Per-result card customization persists under the generation id, so
+  // reopening a card from the vault restores its receipt stamp / skins.
   const fxKey = result ? `fitaura.cardfx.${result.receipt.generationId}` : null;
-  // Per-kind selected sticker index into the gender-filtered list (stickersFor).
-  const [stk, setStk] = usePerCardState<{ face: number; outfit: number }>(
-    fxKey ? `${fxKey}.stk` : null,
-    { face: 0, outfit: 0 },
-  );
-  // Per-kind sticker position (normalized) + receipt stamp preset — the
-  // customization state ported from the Card Studio, now part of this page.
-  const [pos, setPos] = usePerCardState<{ face: Point; outfit: Point }>(
-    fxKey ? `${fxKey}.pos` : null,
-    { face: { ...CARD_GEOM.face.def }, outfit: { ...CARD_GEOM.outfit.def } },
-  );
   const [receiptPreset, setReceiptPreset] = usePerCardState<string | null>(
     fxKey ? `${fxKey}.stamp` : null,
     'tr',
   );
   // Per-kind selected skin (B1: only 'dossier' exists, so the switcher is
-  // invisible). Persisted per generation, like the sticker state.
+  // invisible). Persisted per generation, like the stamp state.
   const [faceSkin, setFaceSkin] = usePerCardState<string>(fxKey ? `${fxKey}.skin.face` : null, 'dossier');
   const [outfitSkin, setOutfitSkin] = usePerCardState<string>(fxKey ? `${fxKey}.skin.outfit` : null, 'dossier');
 
@@ -159,8 +139,8 @@ export function Result() {
     document.documentElement.style.setProperty('--verdict', VERDICT_COLOR_VAR[result.verdict]);
   }, [result]);
 
-  // Keyboard nav — arrows change tabs, except while editing (arrows nudge the
-  // sticker). Esc exits edit mode.
+  // Keyboard nav — arrows change tabs, except while editing the receipt stamp.
+  // Esc exits edit mode.
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
@@ -181,14 +161,6 @@ export function Result() {
   const touch = useRef<{ x: number; y: number } | null>(null);
   const onTouchStart = (e: TouchEvent) => {
     if (editing) return;
-    // Don't arm a tab-swipe when the gesture begins on the sticker. The sticker
-    // drags via its own pointer events, but the same finger's touch events bubble
-    // up here — without this guard a horizontal sticker drag is misread as a card
-    // swipe and flips the tab (the "tapping the sticker changes the card" bug).
-    if (startsOnInteractiveSticker(e.target)) {
-      touch.current = null;
-      return;
-    }
     const t = e.touches[0];
     touch.current = { x: t.clientX, y: t.clientY };
   };
@@ -232,30 +204,9 @@ export function Result() {
   const kind = tabDef.slug;
 
   const gender = genderOf(result);
-  const faceStickers = stickersFor('face', gender);
-  const outfitStickers = stickersFor('outfit', gender);
-  // `stk` indexes into the (gender-filtered) bank; clamp in case a stored index
-  // is out of range for this gender's shorter list.
-  const facePreset = faceStickers[Math.min(stk.face, faceStickers.length - 1)];
-  const outfitPreset = outfitStickers[Math.min(stk.outfit, outfitStickers.length - 1)];
-  const kindStickers = kind === 'face' ? faceStickers : kind === 'outfit' ? outfitStickers : [];
-  const faceSticker: StickerData = stickerFromPreset(facePreset, !stickerOn);
-  const outfitSticker: StickerData = stickerFromPreset(outfitPreset, !stickerOn);
 
-  const swapSticker = () => {
-    if (kind === 'receipt' || kindStickers.length === 0) return;
-    setStk((s) => ({ ...s, [kind]: (s[kind] + 1) % kindStickers.length }));
-  };
-  const pickSticker = (i: number) => {
-    if (kind === 'receipt') return;
-    setStk((s) => ({ ...s, [kind]: i }));
-  };
   const resetPosition = () => {
-    if (kind === 'receipt') {
-      setReceiptPreset('tr');
-    } else {
-      setPos((p) => ({ ...p, [kind]: { ...CARD_GEOM[kind as 'face' | 'outfit'].def } }));
-    }
+    setReceiptPreset('tr');
     ping('Position reset');
   };
 
@@ -346,49 +297,31 @@ export function Result() {
     navigate('/scan');
   };
 
-  const faceContent = result.face ? { ...result.face.card, sticker: faceSticker } : null;
-  const outfitContent = result.outfit ? { ...result.outfit.card, sticker: outfitSticker } : null;
+  const faceContent = result.face ? result.face.card : null;
+  const outfitContent = result.outfit ? result.outfit.card : null;
   // The active skin's component per kind — used to render the SELECTED skin into
   // the offscreen export host (so a downloaded card matches the on-screen skin).
   const FaceSkinComp = skinsFor('face')[skinIndex('face', faceSkin)].Comp;
   const OutfitSkinComp = skinsFor('outfit')[skinIndex('outfit', outfitSkin)].Comp;
 
-  // Visible asset (built-in sticker/seal off — the editable layer renders it).
+  // Visible asset (built-in seal off — the editable layer renders it).
   const assetEl =
     kind === 'face' ? (
-      <FaceCard content={faceContent!} stickerOn={false} run roast={result.face!.analysis.roast} />
+      <FaceCard content={faceContent!} run roast={result.face!.analysis.roast} />
     ) : kind === 'outfit' ? (
-      <OutfitCard content={outfitContent!} stickerOn={false} run roast={result.outfit!.analysis.verdict} />
+      <OutfitCard content={outfitContent!} run roast={result.outfit!.analysis.verdict} />
     ) : premiumLike ? (
       <ReceiptPremium content={result.receipt} />
     ) : (
       <Receipt content={result.receipt} paper={paper} sealOn={false} />
     );
 
+  // Only the receipt has an editable overlay now (the stamp/seal). Image cards
+  // render their skin with no overlay.
   const overlayEl =
-    kind === 'face' ? (
-      <StickerLayer
-        kind="face"
-        sticker={facePreset}
-        pos={pos.face}
-        setPos={(p) => setPos((s) => ({ ...s, face: p }))}
-        editing={editing}
-        hidden={!stickerOn}
-        onCycle={swapSticker}
-      />
-    ) : kind === 'outfit' ? (
-      <StickerLayer
-        kind="outfit"
-        sticker={outfitPreset}
-        pos={pos.outfit}
-        setPos={(p) => setPos((s) => ({ ...s, outfit: p }))}
-        editing={editing}
-        hidden={!stickerOn}
-        onCycle={swapSticker}
-      />
-    ) : premiumLike ? null : (
+    kind === 'receipt' && !premiumLike ? (
       <ReceiptStampEditor preset={receiptPreset} setPreset={setReceiptPreset} editing={editing} />
-    );
+    ) : null;
 
   const animKey = `${kind}-${result.verdict}`;
   const analysisEl =
@@ -406,8 +339,6 @@ export function Result() {
         onNewScan={newScan}
       />
     );
-
-  const currentSticker = kind === 'face' ? faceSticker : outfitSticker;
 
   return (
     <div className={'rs-app' + (editing ? ' editing' : '')}>
@@ -518,7 +449,6 @@ export function Result() {
                       content: (kind === 'face' ? faceContent : outfitContent)!,
                       verdict: result.verdict,
                       gender,
-                      stickerOn: false,
                       roast: kind === 'face' ? result.face!.analysis.roast : result.outfit!.analysis.verdict,
                     }}
                     overlay={overlayEl}
@@ -546,31 +476,6 @@ export function Result() {
                   />
                 );
               })}
-            </div>
-          )}
-
-          {/* contextual controls — image cards */}
-          {!editing && kind !== 'receipt' && (
-            <div className="rs-controlbar">
-              <span className="rs-cb-label">Sticker</span>
-              <span className="rs-cb-current">
-                <i style={{ background: 'var(--accent)' }} />
-                {currentSticker.label}
-              </span>
-              <span className="rs-cb-hint">double-tap sticker to swap</span>
-              <span className="rs-cb-spacer" />
-              <button className="rs-cb-btn" onClick={swapSticker}>
-                <Icon.swap />
-                Swap
-              </button>
-              <button className={'rs-cb-btn' + (stickerOn ? ' on' : '')} onClick={() => setStickerOn(!stickerOn)}>
-                <Icon.eye />
-                {stickerOn ? 'Shown' : 'Hidden'}
-              </button>
-              <button className="rs-cb-btn" onClick={() => setEditing(true)} disabled={!stickerOn}>
-                <Icon.move />
-                Reposition
-              </button>
             </div>
           )}
 
@@ -608,48 +513,6 @@ export function Result() {
                   </button>
                 </>
               )}
-            </div>
-          )}
-
-          {/* edit-mode panel — image cards: sticker picker + reposition help */}
-          {editing && kind !== 'receipt' && (
-            <div className="rs-editpanel">
-              <div className="eh">
-                <span className="t">EDIT STICKER · {kind.toUpperCase()}</span>
-                <button className={'rs-cb-btn' + (stickerOn ? ' on' : '')} onClick={() => setStickerOn(!stickerOn)}>
-                  {stickerOn ? 'Visible' : 'Hidden'}
-                </button>
-              </div>
-              <div className="rs-stickergrid">
-                {kindStickers.map((s, i) => (
-                  <button
-                    key={s.id}
-                    className="rs-stickeropt"
-                    aria-pressed={stk[kind] === i}
-                    onClick={() => {
-                      pickSticker(i);
-                      if (!stickerOn) setStickerOn(true);
-                    }}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-              <div className="erow">
-                <button className="ctrl" onClick={resetPosition}>
-                  <Icon.reset />
-                  Reset position
-                </button>
-                <button
-                  className="ctrl primary"
-                  onClick={() => {
-                    setEditing(false);
-                    ping('Sticker updated');
-                  }}
-                >
-                  Done
-                </button>
-              </div>
             </div>
           )}
 
@@ -741,23 +604,12 @@ export function Result() {
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         {faceContent && (
         <div className="rs-export-card" ref={exportRefs.face} data-gender={gender}>
-          <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} stickerOn={false} run={false} roast={result.face!.analysis.roast} />
-          {stickerOn && (
-            <StaticSticker label={facePreset.label} tone={facePreset.tone} rotation={facePreset.rotation} pos={pos.face} />
-          )}
+          <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} run={false} roast={result.face!.analysis.roast} />
         </div>
         )}
         {outfitContent && (
         <div className="rs-export-card" ref={exportRefs.outfit} data-gender={gender}>
-          <OutfitSkinComp content={outfitContent} verdict={result.verdict} gender={gender} stickerOn={false} run={false} roast={result.outfit!.analysis.verdict} />
-          {stickerOn && (
-            <StaticSticker
-              label={outfitPreset.label}
-              tone={outfitPreset.tone}
-              rotation={outfitPreset.rotation}
-              pos={pos.outfit}
-            />
-          )}
+          <OutfitSkinComp content={outfitContent} verdict={result.verdict} gender={gender} run={false} roast={result.outfit!.analysis.verdict} />
         </div>
         )}
         <div

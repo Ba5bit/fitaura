@@ -85,7 +85,7 @@ export function CardPreview() {
       {SAMPLES.map((s) => (
         <div key={s.title} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
           <div style={{ position: 'relative', width: 360, height: 640 }}>
-            <NameplateOutfit content={s.content} verdict="green_flag" gender="masc" stickerOn={false} run={false} />
+            <NameplateOutfit content={s.content} verdict="green_flag" gender="masc" run={false} />
           </div>
           <span
             style={{

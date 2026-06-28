@@ -1,13 +1,11 @@
 import type { OutfitCardContent } from '@fitaura/shared';
 import { CardImage } from './CardImage';
-import { Sticker } from './Sticker';
 import { MiniStat } from './MiniStat';
 import { Bars } from './Bars';
 import { useCountUp } from '../../lib/useCountUp';
 
 interface OutfitCardProps {
   content: OutfitCardContent;
-  stickerOn?: boolean;
   run?: boolean;
   /** Optional one-liner roast shown as a borderless quote before the stats row. */
   roast?: string;
@@ -17,7 +15,7 @@ interface OutfitCardProps {
  * Outfit Check — image-led, EXPORTABLE shareable asset.
  * Ported 1:1 from the design's `OutfitCard`.
  */
-export function OutfitCard({ content, stickerOn = true, run = true, roast }: OutfitCardProps) {
+export function OutfitCard({ content, run = true, roast }: OutfitCardProps) {
   const score = useCountUp(content.overallScore, run);
   return (
     <div className="asset outfitcard">
@@ -31,7 +29,6 @@ export function OutfitCard({ content, stickerOn = true, run = true, roast }: Out
           <span className="sub">FIT SCORE</span>
           <span className="num">{score}</span>
         </div>
-        <Sticker sticker={content.sticker} hidden={!stickerOn} kind="outfit" />
         <div className="caption-bar">
           <div className="cap">{content.caption}</div>
           {roast && <p className="fc-roast">{roast}</p>}

@@ -1,14 +1,11 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import type { FaceCardContent } from '@fitaura/shared';
 import { CardImage } from './CardImage';
-import { Sticker } from './Sticker';
 import { MiniStat } from './MiniStat';
 import { Bars } from './Bars';
 
 interface FaceCardProps {
   content: FaceCardContent;
-  /** Sticker visibility override from the result-page control. */
-  stickerOn?: boolean;
   /** Trigger entrance animations (stat count-up). */
   run?: boolean;
   /** Optional one-liner roast shown as a borderless quote under the verdict. */
@@ -20,7 +17,7 @@ interface FaceCardProps {
  * Ported 1:1 from the design's `FaceCard`. Detail lives in the analysis block,
  * never on the card itself.
  */
-export function FaceCard({ content, stickerOn = true, run = true, roast }: FaceCardProps) {
+export function FaceCard({ content, run = true, roast }: FaceCardProps) {
   // The roast shrinks when the verdict wraps to 2–3 lines (less room), so the
   // card stays balanced. Measured from the rendered verdict's line count.
   const lineRef = useRef<HTMLHeadingElement>(null);
@@ -52,7 +49,6 @@ export function FaceCard({ content, stickerOn = true, run = true, roast }: FaceC
           <span className="br" />
         </div>
         <CardImage src={content.imageUrl} shape="circle" placeholder="drop face photo" alt="Your face" />
-        <Sticker sticker={content.sticker} hidden={!stickerOn} kind="face" />
       </div>
       <div className="fc-verdict">
         <div className="fc-eyebrow">{content.eyebrow}</div>
