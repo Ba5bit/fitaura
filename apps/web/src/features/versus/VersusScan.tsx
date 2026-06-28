@@ -6,6 +6,7 @@ import { CardImage } from '../../components/cards';
 import { useMediaQuery } from '../../lib/useMediaQuery';
 import { battleNames, useBattle } from '../../state/battle';
 import { useAccount } from '../account/AccountContext';
+import { useRevealGate } from '../account/useRevealGate';
 import { runVersusScan } from '../../services/versusScanService';
 import '../../design/scanner.css';
 
@@ -52,7 +53,7 @@ function prefersReducedMotion() {
 export function VersusScan() {
   const navigate = useNavigate();
   const { battle, result, hydrated, commitResult, saveBattle } = useBattle();
-  const { spendForBattle, refundBattle } = useAccount();
+  const { spendForBattle, refundBattle, signedIn, credits } = useAccount();
   const mobile = useMediaQuery('(max-width: 760px)');
 
   const [progress, setProgress] = useState(0);
@@ -81,11 +82,13 @@ export function VersusScan() {
     if (hydrated && !battle) navigate('/versus', { replace: true });
   }, [hydrated, battle, navigate]);
 
-  // Spend 2 credits up front, then fire the comparative scan. On success commit
-  // the verdict; on failure refund and surface an inline error. Runs exactly once
-  // (startedRef + StrictMode); the in-flight call is never aborted on cleanup —
-  // we only skip the state write if the tree unmounted for real.
-  const startScan = useCallback(async () => {
+  // Spend 2 credits, fire the comparative scan, commit + save on success. When
+  // `revealAfter` is set (the guest resume after register) we jump straight to
+  // the result; the eager signed-in path instead lands on the manual reveal CTA.
+  // Runs at most once per kickoff (startedRef / the gate's firedRef); the
+  // in-flight call is never aborted on cleanup — only the state write is skipped
+  // if the tree unmounted for real.
+  const startScan = useCallback(async (revealAfter = false) => {
     if (!battle) return;
     const ok = await spendForBattle();
     if (!ok) {
@@ -98,7 +101,16 @@ export function VersusScan() {
       commitResult(outcome.result);
       // Persist to the on-device vault so the battle shows as a saved card.
       saveBattle(battle, outcome.result);
-      setAiState('done');
+      if (revealAfter) {
+        try {
+          sessionStorage.setItem('fvf:reveal', '1');
+        } catch {
+          /* sessionStorage unavailable — result just renders static */
+        }
+        navigate('/versus/result', { replace: true });
+      } else {
+        setAiState('done');
+      }
       return;
     }
     await refundBattle();
@@ -107,6 +119,14 @@ export function VersusScan() {
     setAiReason(outcome.message);
     setAiState('error');
   }, [battle, spendForBattle, refundBattle, commitResult, saveBattle, navigate]);
+
+  // Guest deferral: a signed-out visitor runs the teaser only, then registers at
+  // the reveal; the battle (spend + AI) runs here, once, after register.
+  const { requestRegister } = useRevealGate({
+    redirectTo: '/versus/run',
+    readyToResume: credits >= 2,
+    onResume: () => startScan(true),
+  });
 
   useEffect(() => {
     mountedRef.current = true;
@@ -128,8 +148,10 @@ export function VersusScan() {
       return;
     }
     startedRef.current = true;
-    void startScan();
-  }, [hydrated, battle, result, startScan, navigate]);
+    // Signed-in: spend + scan eagerly so the AI runs during the timeline. Guests
+    // run the teaser only — no spend until they register at the reveal (the gate).
+    if (signedIn) void startScan();
+  }, [hydrated, battle, result, signedIn, startScan, navigate]);
 
   // Retry re-arms the kickoff (a fresh spend + call) after an inline error.
   const retry = useCallback(() => {
@@ -173,7 +195,7 @@ export function VersusScan() {
   // The reveal CTA needs BOTH the timeline finished AND the verdict landed.
   const revealReady = done && aiState === 'done';
   // Timeline finished but the AI is still in flight → a brief "finishing up" hold.
-  const finishingUp = done && aiState === 'pending';
+  const finishingUp = signedIn && done && aiState === 'pending';
   // Timeline finished and the AI failed → inline error (refund already issued).
   const errored = done && aiState === 'error';
   const stageIndex = done ? STAGES.length - 1 : Math.min(STAGES.length - 1, Math.floor(progress / 20));
@@ -207,7 +229,7 @@ export function VersusScan() {
             <div className="right">
               <span className="live-chip">
                 <span className="d" />
-                {revealReady ? 'Verdict ready' : errored ? 'Battle hiccup' : 'Scanning'}
+                {revealReady ? 'Verdict ready' : errored ? 'Battle hiccup' : finishingUp ? 'Finishing up' : 'Scanning'}
               </span>
               <button className="leave-btn" onClick={() => navigate('/versus')} aria-label="Leave scan">
                 <Icon.x />
@@ -216,7 +238,20 @@ export function VersusScan() {
           </div>
 
           {done ? (
-            errored ? (
+            !signedIn ? (
+              <div className="reveal">
+                <span className="stamp">✶ Battle scored ✶</span>
+                <h2>
+                  Crown the <span className="hl">winner</span>
+                </h2>
+                <p className="sub">
+                  {names.a} vs {names.b} — create your free account to reveal the head-to-head.
+                </p>
+                <button className="go" onClick={requestRegister}>
+                  <Icon.bolt /> Sign up to reveal the winner
+                </button>
+              </div>
+            ) : errored ? (
               <div className="reveal">
                 <span className="stamp" style={{ color: 'var(--red)' }}>
                   ✶ Battle hiccup ✶

@@ -4,6 +4,7 @@ import { Icon } from '../../lib/icons';
 import { CardImage } from '../../components/cards';
 import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
+import { useRevealGate } from '../account/useRevealGate';
 import { useMediaQuery } from '../../lib/useMediaQuery';
 import { resultMatchesPhotos } from './scanGuards';
 import '../../design/scanner.css';
@@ -125,10 +126,7 @@ function Rail({ stages, idx }: { stages: Stage[]; idx: number }) {
 export function Scan() {
   const navigate = useNavigate();
   const { face, outfit, result, canScanPhotos, runGeneration, hydrated } = useGeneration();
-  const { signedIn, openAuth, canScan, spendForScan, openPaywall, refundScan } = useAccount();
-  // Set when a guest hit "reveal" — once they sign in, the effect below finishes
-  // the reveal. The verdict is only generated after authentication.
-  const [pendingReveal, setPendingReveal] = useState(false);
+  const { signedIn, canScan, spendForScan, openPaywall, refundScan } = useAccount();
   const [revealing, setRevealing] = useState(false);
   const [scanError, setScanError] = useState<{ kind: 'retake' | 'error'; message: string; reason?: string } | null>(null);
   // Signed-in generation lifecycle — the AI runs DURING the scan animation (synced).
@@ -328,6 +326,12 @@ export function Scan() {
     }
   }, [spendForScan, openPaywall, runGeneration, refundScan, navigate]);
 
+  const { requestRegister } = useRevealGate({
+    redirectTo: '/scan/run',
+    readyToResume: canScan,
+    onResume: doRevealGuest,
+  });
+
   // Reveal: a signed-in user already has their verdict (generated during the scan)
   // — just open it. A guest is sent to sign-up; generation happens afterwards.
   const onReveal = useCallback(() => {
@@ -338,17 +342,8 @@ export function Scan() {
       }
       return;
     }
-    setPendingReveal(true);
-    openAuth('/scan/run');
-  }, [signedIn, navigate, openAuth]);
-
-  // Once a pending guest signs up (and the free credits land), run the generation.
-  useEffect(() => {
-    if (pendingReveal && signedIn && canScan) {
-      setPendingReveal(false);
-      void doRevealGuest();
-    }
-  }, [pendingReveal, signedIn, canScan, doRevealGuest]);
+    requestRegister();
+  }, [signedIn, navigate, requestRegister]);
 
   const micro = stage.micro[microIdx % stage.micro.length];
   const faceSrc = face?.url ?? null;
