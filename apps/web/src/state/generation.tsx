@@ -3,7 +3,7 @@ import { runSoloScan, type SoloScanOutcome } from '../services/soloScanService';
 import { useAccount } from '../features/account/AccountContext';
 import {
   accountKeyFor, loadAccount, putResult, putSession, deleteResult, renameResultDb,
-  moveAccountData, migrateLegacyLocalStorage, trimToCap,
+  moveAccountData, migrateLegacyLocalStorage, trimToCap, clearAccount,
   type UploadedPhoto, type GenerationResult,
 } from './generationDb';
 
@@ -35,6 +35,9 @@ interface GenerationContextValue {
   openResult: (generationId: string) => boolean;
   removeResult: (generationId: string) => void;
   renameResult: (generationId: string, name: string) => void;
+  /** Wipe ALL of this account's on-device data (every mode's cards + session)
+   * and reset the live Solo state. Used by Settings' "Clear all". */
+  clearAll: () => Promise<void>;
 }
 
 const GenerationContext = createContext<GenerationContextValue | null>(null);
@@ -193,12 +196,22 @@ export function GenerationProvider({ children }: { children: ReactNode }) {
     void renameResultDb(stateRef.current.accountKey, generationId, clean);
   }, []);
 
+  // Wipe EVERY on-device store for this account (clearAccount iterates them, so
+  // FvF and any future mode are covered), then reset the live Solo state.
+  const clearAll = useCallback(async () => {
+    await clearAccount(stateRef.current.accountKey);
+    setFaceState(null);
+    setOutfitState(null);
+    setHistory([]);
+    setCurrentId(null);
+  }, []);
+
   const value = useMemo<GenerationContextValue>(
     () => ({
       face, outfit, result, canScanPhotos, history, hydrated,
-      setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult,
+      setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult, clearAll,
     }),
-    [face, outfit, result, canScanPhotos, history, hydrated, setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult],
+    [face, outfit, result, canScanPhotos, history, hydrated, setFace, setOutfit, runGeneration, startNewScan, openResult, removeResult, renameResult, clearAll],
   );
 
   return <GenerationContext.Provider value={value}>{children}</GenerationContext.Provider>;

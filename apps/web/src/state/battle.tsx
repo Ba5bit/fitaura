@@ -68,6 +68,10 @@ interface BattleContextValue {
   removeBattle: (battleId: string) => void;
   /** Rename a saved battle on this device. */
   renameBattle: (battleId: string, name: string) => void;
+  /** Drop the live FvF view (saved history + transient battle/verdict). The
+   * IndexedDB rows are wiped by the Solo context's account-wide clearAll;
+   * this just resets what's on screen. Used by Settings' "Clear all". */
+  clearAll: () => void;
 }
 
 const BattleContext = createContext<BattleContextValue | null>(null);
@@ -226,12 +230,24 @@ export function BattleProvider({ children }: { children: ReactNode }) {
     void renameBattleDb(keyRef.current, battleId, clean);
   }, []);
 
+  const clearAll = useCallback(() => {
+    setHistory([]);
+    setBattle(null);
+    setResult(null);
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(RESULT_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const value = useMemo<BattleContextValue>(
     () => ({
       battle, result, hydrated, commit, commitResult, clear,
-      history, historyHydrated, saveBattle, openBattle, removeBattle, renameBattle,
+      history, historyHydrated, saveBattle, openBattle, removeBattle, renameBattle, clearAll,
     }),
-    [battle, result, hydrated, commit, commitResult, clear, history, historyHydrated, saveBattle, openBattle, removeBattle, renameBattle],
+    [battle, result, hydrated, commit, commitResult, clear, history, historyHydrated, saveBattle, openBattle, removeBattle, renameBattle, clearAll],
   );
 
   return <BattleContext.Provider value={value}>{children}</BattleContext.Provider>;

@@ -1,5 +1,6 @@
 import { Icon } from '../../lib/icons';
 import { useGeneration } from '../../state/generation';
+import { useBattle } from '../../state/battle';
 import { useAccount } from '../account/AccountContext';
 import { usePreferences } from '../../state/preferences';
 import { VaultNav } from './VaultNav';
@@ -7,18 +8,23 @@ import { SubHead } from './SubHead';
 
 /** Settings — privacy, on-device storage management and app preferences. */
 export function Settings() {
-  const { history, removeResult } = useGeneration();
+  const { history, clearAll: clearSolo } = useGeneration();
+  const { history: battles, clearAll: clearBattles } = useBattle();
   const { flash } = useAccount();
   // Account-synced (cross-device when signed in); device-local for guests.
   const { receiptPaper, reduceMotion, setReceiptPaper, setReduceMotion } = usePreferences();
 
-  const present = history.length;
+  // Count every mode's saved cards (Solo results + FvF battles + future modes).
+  const present = history.length + battles.length;
   const fill = Math.min(present * 25, 100);
 
-  const clearAll = () => {
+  const clearAll = async () => {
     if (present === 0) return;
     if (!window.confirm('Permanently remove every generated card and receipt from this device?')) return;
-    history.forEach((h) => removeResult(h.receipt.generationId));
+    // clearSolo wipes ALL on-device stores for this account (every mode); the
+    // FvF call just resets its live view afterwards.
+    await clearSolo();
+    clearBattles();
     flash('All on-device results cleared');
   };
 

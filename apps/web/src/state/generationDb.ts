@@ -252,16 +252,29 @@ export async function loadAccount(accountKey: string, now: number): Promise<Acco
   return { session, results };
 }
 
+/**
+ * Wipe every on-device record for an account across ALL object stores — solo
+ * results, the session row, saved FvF battles, and any store a future mode
+ * adds. It iterates `objectStoreNames` rather than naming each store, so a new
+ * mode's saved cards are cleared automatically without touching this function
+ * or the "Clear all" UI. Per-account collections are matched via the shared
+ * `by_account` index; single-row stores (SESSION) key on the account directly.
+ */
 export async function clearAccount(accountKey: string): Promise<void> {
   const d = await db();
-  const results = await getResults(d, accountKey);
-  const battles = await getBattles(d, accountKey);
-  const tx = d.transaction([RESULTS, SESSION, BATTLES], 'readwrite');
-  const rs = tx.objectStore(RESULTS);
-  for (const r of results) rs.delete(resultId(accountKey, r.receipt.generationId));
-  tx.objectStore(SESSION).delete(accountKey);
-  const bs = tx.objectStore(BATTLES);
-  for (const b of battles) bs.delete(battleRowId(accountKey, b.battleId));
+  const stores = Array.from(d.objectStoreNames);
+  const tx = d.transaction(stores, 'readwrite');
+  for (const name of stores) {
+    const store = tx.objectStore(name);
+    if (store.keyPath === 'accountKey') {
+      store.delete(accountKey);
+    } else if (store.indexNames.contains('by_account')) {
+      const req = store.index('by_account').getAllKeys(accountKey);
+      req.onsuccess = () => {
+        for (const key of req.result) store.delete(key);
+      };
+    }
+  }
   await txDone(tx);
 }
 

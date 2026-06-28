@@ -143,4 +143,13 @@ describe('generationDb — Friend vs Friend battles', () => {
     expect((await loadAccount('u1', NOW)).results).toHaveLength(0);
     expect(await loadBattles('u1', NOW)).toHaveLength(0);
   });
+
+  it('clearAccount leaves other accounts untouched', async () => {
+    await putResult('u1', res('r1', '2026-06-14T00:00:00Z'));
+    await putResult('u2', res('r2', '2026-06-14T00:00:00Z'));
+    await putBattle('u2', bat('b2', '2026-06-14T00:00:00Z'));
+    await clearAccount('u1');
+    expect((await loadAccount('u2', NOW)).results.map((r) => r.receipt.generationId)).toEqual(['r2']);
+    expect(await loadBattles('u2', NOW)).toHaveLength(1);
+  });
 });
