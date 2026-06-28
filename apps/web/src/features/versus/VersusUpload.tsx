@@ -143,7 +143,10 @@ export function VersusUpload() {
     const kept: BattleImages = {};
     for (const k of required) kept[k] = imgs[k];
     commit({ mode, nameA: nameA.trim(), nameB: nameB.trim(), imgs: kept, palette });
-    navigate('/versus/run');
+    // replace: collapse the battle wizard (upload → run → result) so browser-back from
+    // the result lands on the Vault, not the upload page. (The run→result navs already
+    // use replace.)
+    navigate('/versus/run', { replace: true });
   }
 
   const labelA = nameA.trim() || 'Player A';

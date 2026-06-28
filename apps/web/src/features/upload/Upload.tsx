@@ -62,7 +62,10 @@ export function Upload() {
       setAttempted(true);
       return;
     }
-    navigate('/scan/run');
+    // `replace`: the scan flow is a wizard (Vault → upload → run → result). Collapse
+    // the transient steps so browser-back from the result lands on the Vault, not the
+    // upload/scanning pages.
+    navigate('/scan/run', { replace: true });
   }
 
   return (

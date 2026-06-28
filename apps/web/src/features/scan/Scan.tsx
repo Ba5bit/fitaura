@@ -313,7 +313,8 @@ export function Scan() {
 
     if (outcome.ok) {
       localStorage.setItem('fitaura.tab', 'face');
-      navigate('/result#face');
+      // replace: collapse the scan wizard so back from the result lands on the Vault.
+      navigate('/result#face', { replace: true });
       return;
     }
     await refundScan();
@@ -338,7 +339,8 @@ export function Scan() {
     if (signedIn) {
       if (genStateRef.current === 'ready') {
         localStorage.setItem('fitaura.tab', 'face');
-        navigate('/result#face');
+        // replace: collapse the scan wizard so back from the result lands on the Vault.
+        navigate('/result#face', { replace: true });
       }
       return;
     }
