@@ -23,6 +23,14 @@ function reasonFor(code: string): string {
   return 'Something went wrong on our end.';
 }
 
+/** Fitaura is 18+. Apparent minors — detected by the AI's age estimate, or by an
+ * unblockable (non-configurable) safety block — are gently turned away with a
+ * "use a different photo" message instead of being roasted/rated. The age estimate
+ * is a fuzzy read, so the cutoff is the legal line; lower MINOR_AGE if young adults
+ * get over-flagged. */
+const MINOR_AGE = 18;
+const MINOR_MESSAGE = 'This photo looks like it may be of a minor. Fitaura is 18+ — please try a different photo.';
+
 interface ReqBody {
   scanId: string;
   face?: InlineImage;
@@ -83,6 +91,15 @@ Deno.serve(async (req) => {
     }
     const ai = parsed.data;
 
+    // Minor gate — never roast/rate an apparent minor. Short-circuit to a "use a
+    // different photo" retake (the client refunds the credit). Runs before the
+    // usability check so a minor takes precedence over a generic retake reason.
+    const age = ai.presentation.ageEstimate;
+    if (age != null && age < MINOR_AGE) {
+      console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: 'minor_detected', age, latency_ms: Date.now() - started }));
+      return json({ ok: false, kind: 'retake', faceUsable: false, outfitUsable: false, instruction: MINOR_MESSAGE });
+    }
+
     if (!ai.inputQuality.usable) {
       console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: 'unusable_input', latency_ms: Date.now() - started }));
       return json({
@@ -117,6 +134,12 @@ Deno.serve(async (req) => {
   } catch (e) {
     const code = e instanceof Error ? e.message : String(e);
     console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: code, latency_ms: Date.now() - started }));
+    // A safety block that survives the relaxed configurable filters is, for a single
+    // uploaded selfie, almost always Google's non-configurable minor-safety filter —
+    // so show the same 18+ "use a different photo" message rather than a generic error.
+    if (code === 'gemini_blocked') {
+      return json({ ok: false, kind: 'retake', faceUsable: false, outfitUsable: false, instruction: MINOR_MESSAGE });
+    }
     // 200 (not 502) so supabase-js exposes the body and the UI can show this reason.
     return json({ ok: false, kind: 'error', message: reasonFor(code) });
   }
