@@ -83,7 +83,7 @@
    big %, bars, pill and NOW LOADING stay magenta; the block turns cream + ink. ---- */
 .rs-card-mount[data-gender="femme"] .buffering-info,
 .rs-export-card[data-gender="femme"] .buffering-info {
-  --fem-ink: #241f1b; --fem-soft: #6c6157; --fem-gold: #a87c22; --fem-cream: #f4efe6;
+  /* --fem-* palette is defined on the femme card scope in gender-theme.css. */
   background: var(--fem-cream); color: var(--fem-ink);
 }
 .rs-card-mount[data-gender="femme"] .buffering-title,

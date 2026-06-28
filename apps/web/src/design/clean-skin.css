@@ -85,3 +85,36 @@
 .cleanface-info .clean-chips { margin-top: 22px; }
 /* Bigger pills than the shared Clean chip (outfit unaffected — scoped to face). */
 .cleanface .clean-chip { font-size: 12.5px; padding: 7px 13px; }
+
+/* ============================================================
+   CLEAN FACE — femme cream variant. The info block below the photo
+   takes the shared ivory palette (--fem-* from gender-theme.css), with
+   dark ink + a magenta highlight in place of the white-on-dark text.
+   Scoped to `.cleanface`, so the Clean OUTFIT skin stays dark.
+   ============================================================ */
+.rs-card-mount[data-gender="femme"] .cleanface-info,
+.rs-export-card[data-gender="femme"] .cleanface-info {
+  background: var(--fem-cream);
+}
+.rs-card-mount[data-gender="femme"] .cleanface .clean-verdict,
+.rs-export-card[data-gender="femme"] .cleanface .clean-verdict {
+  color: var(--fem-ink); text-shadow: none;
+}
+.rs-card-mount[data-gender="femme"] .cleanface .clean-verdict .hl,
+.rs-export-card[data-gender="femme"] .cleanface .clean-verdict .hl {
+  color: var(--accent);
+}
+.rs-card-mount[data-gender="femme"] .cleanface-roast,
+.rs-export-card[data-gender="femme"] .cleanface-roast {
+  color: var(--fem-ink);
+}
+.rs-card-mount[data-gender="femme"] .cleanface-age,
+.rs-export-card[data-gender="femme"] .cleanface-age {
+  color: var(--fem-soft);
+}
+.rs-card-mount[data-gender="femme"] .cleanface .clean-chip,
+.rs-export-card[data-gender="femme"] .cleanface .clean-chip {
+  background: rgba(40, 32, 24, .06);
+  color: var(--fem-ink);
+  border-color: rgba(40, 32, 24, .16);
+}

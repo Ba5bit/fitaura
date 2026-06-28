@@ -10,6 +10,9 @@
   /* The cards paint everything off --accent; remapping it here recolors the
      whole card (face + outfit) to magenta without touching page chrome. */
   --accent: var(--magenta);
+  /* Shared femme "cream" card palette — light ivory body + dark ink. Promoted
+     from the Buffering skin so the Clean + Dossier cards can reuse it. */
+  --fem-cream: #f4efe6; --fem-ink: #241f1b; --fem-soft: #6c6157; --fem-gold: #a87c22;
 }
 
 /* Gold detailing — the wordmark + footer index read gold for femme.
@@ -37,4 +40,103 @@
     color-mix(in oklab, var(--magenta) 25%, transparent),
     var(--magenta)
   );
+}
+
+/* ============================================================
+   FEMME CREAM CARDS — the Dossier face + outfit skins get the same
+   ivory body as the Buffering card. Dark ink replaces the white
+   text; magenta accent + darker gold keep contrast on cream. (The
+   Clean face skin's cream rules live in clean-skin.css next to it.)
+   ============================================================ */
+
+/* — Dossier FACE: the whole card flips to cream — */
+.rs-card-mount[data-gender="femme"] .facecard,
+.rs-export-card[data-gender="femme"] .facecard {
+  background: var(--fem-cream);
+  border-color: rgba(40, 32, 24, .14);
+}
+/* FITAURA wordmark + AURA INDEX foot read in the darker gold (the light --gold
+   washes out on cream). */
+.rs-card-mount[data-gender="femme"] .facecard .brand-tag,
+.rs-export-card[data-gender="femme"] .facecard .brand-tag,
+.rs-card-mount[data-gender="femme"] .facecard .fc-foot .kind-tag,
+.rs-export-card[data-gender="femme"] .facecard .fc-foot .kind-tag {
+  color: var(--fem-gold);
+}
+.rs-card-mount[data-gender="femme"] .facecard .fc-top .kind-tag,
+.rs-export-card[data-gender="femme"] .facecard .fc-top .kind-tag,
+.rs-card-mount[data-gender="femme"] .facecard .fc-eyebrow,
+.rs-export-card[data-gender="femme"] .facecard .fc-eyebrow {
+  color: var(--fem-soft);
+}
+.rs-card-mount[data-gender="femme"] .facecard .fc-line,
+.rs-export-card[data-gender="femme"] .facecard .fc-line {
+  color: var(--fem-ink); text-shadow: none;
+}
+/* Highlight word goes magenta (the dark-card semantic band colour is unreadable
+   on cream), matching the Buffering femme title. */
+.rs-card-mount[data-gender="femme"] .facecard .fc-line .hl,
+.rs-export-card[data-gender="femme"] .facecard .fc-line .hl {
+  color: var(--accent);
+}
+.rs-card-mount[data-gender="femme"] .facecard .fc-roast,
+.rs-export-card[data-gender="femme"] .facecard .fc-roast {
+  color: var(--fem-ink);
+}
+.rs-card-mount[data-gender="femme"] .facecard .mstat .lbl,
+.rs-export-card[data-gender="femme"] .facecard .mstat .lbl {
+  color: var(--fem-soft);
+}
+.rs-card-mount[data-gender="femme"] .facecard .mstat .val,
+.rs-export-card[data-gender="femme"] .facecard .mstat .val {
+  color: var(--fem-ink);
+}
+.rs-card-mount[data-gender="femme"] .facecard .mstat .track,
+.rs-export-card[data-gender="femme"] .facecard .mstat .track {
+  background: rgba(40, 32, 24, .12);
+}
+.rs-card-mount[data-gender="femme"] .facecard .fc-foot,
+.rs-export-card[data-gender="femme"] .facecard .fc-foot {
+  border-top-color: rgba(40, 32, 24, .14);
+}
+.rs-card-mount[data-gender="femme"] .facecard .barcode i,
+.rs-export-card[data-gender="femme"] .facecard .barcode i {
+  background: var(--fem-soft);
+}
+
+/* — Dossier OUTFIT: only the lower stats panel flips to cream; the photo,
+     caption + score badge stay as-is over the image — */
+.rs-card-mount[data-gender="femme"] .outfitcard .oc-body,
+.rs-export-card[data-gender="femme"] .outfitcard .oc-body {
+  background: var(--fem-cream);
+}
+.rs-card-mount[data-gender="femme"] .outfitcard .oc-body .mstat .lbl,
+.rs-export-card[data-gender="femme"] .outfitcard .oc-body .mstat .lbl {
+  color: var(--fem-soft);
+}
+.rs-card-mount[data-gender="femme"] .outfitcard .oc-body .mstat .val,
+.rs-export-card[data-gender="femme"] .outfitcard .oc-body .mstat .val {
+  color: var(--fem-ink);
+}
+.rs-card-mount[data-gender="femme"] .outfitcard .oc-body .mstat .track,
+.rs-export-card[data-gender="femme"] .outfitcard .oc-body .mstat .track {
+  background: rgba(40, 32, 24, .12);
+}
+.rs-card-mount[data-gender="femme"] .outfitcard .oc-foot,
+.rs-export-card[data-gender="femme"] .outfitcard .oc-foot {
+  border-top-color: rgba(40, 32, 24, .14);
+}
+.rs-card-mount[data-gender="femme"] .outfitcard .oc-foot .kind-tag,
+.rs-export-card[data-gender="femme"] .outfitcard .oc-foot .kind-tag {
+  color: var(--fem-gold);
+}
+
+/* "Hot" stat bars use the semantic band colour, which is low-contrast on cream —
+   recolour them to the magenta accent on the cream face + outfit panels. */
+.rs-card-mount[data-gender="femme"] .facecard .mstat.hot .fill,
+.rs-export-card[data-gender="femme"] .facecard .mstat.hot .fill,
+.rs-card-mount[data-gender="femme"] .outfitcard .oc-body .mstat.hot .fill,
+.rs-export-card[data-gender="femme"] .outfitcard .oc-body .mstat.hot .fill {
+  background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 55%, #fff), var(--accent));
+  box-shadow: 0 0 10px -1px var(--accent);
 }
