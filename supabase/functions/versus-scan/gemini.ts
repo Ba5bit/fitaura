@@ -85,6 +85,17 @@ function buildBody(opts: GeminiOpts) {
   return {
     systemInstruction: { parts: [{ text: opts.systemInstruction }] },
     contents: [{ role: 'user', parts }],
+    // Relax the CONFIGURABLE safety filters: an intentionally-edgy roast/compare app
+    // was getting benign ADULT matchups false-blocked (empty response → wasted
+    // retries → "garbled" error). BLOCK_ONLY_HIGH still stops genuinely severe
+    // content. NOTE: Google's child-safety filter is NOT configurable — a block that
+    // survives this is almost always a minor among the two, handled in index.ts.
+    safetySettings: [
+      { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_ONLY_HIGH' },
+      { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
+      { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
+      { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+    ],
     generationConfig: {
       temperature: 0.3,
       maxOutputTokens: opts.maxOutputTokens ?? 2900,
@@ -116,8 +127,22 @@ async function once(opts: GeminiOpts): Promise<GeminiCallResult> {
     throw new GeminiError(`gemini_http_${res.status}`, transient, body.slice(0, 300), retryAfterMs);
   }
   const json = await res.json();
-  const text: string | undefined = json?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new GeminiError('gemini_empty_response', true);
+  const cand = json?.candidates?.[0];
+  const text: string | undefined = cand?.content?.parts?.[0]?.text;
+  if (!text) {
+    // Distinguish a safety/policy BLOCK from a transient empty blip. A block is NOT
+    // transient (retrying just burns the budget), and — since the configurable
+    // filters are relaxed in buildBody — a block that still happens on personal
+    // photos almost always means one of the two contenders is a minor. Surface it
+    // as a distinct, non-retried code so index.ts can show the 18+ message.
+    const blockReason = json?.promptFeedback?.blockReason;
+    const finish = cand?.finishReason;
+    const SAFETY_FINISH = ['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'IMAGE_SAFETY'];
+    if (blockReason || (finish && SAFETY_FINISH.includes(finish))) {
+      throw new GeminiError('gemini_blocked', false, String(blockReason ?? finish));
+    }
+    throw new GeminiError('gemini_empty_response', true);
+  }
   let raw: unknown;
   try {
     raw = JSON.parse(text);

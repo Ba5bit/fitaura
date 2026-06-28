@@ -10,6 +10,7 @@ export interface InlineImage {
 
 export type VersusScanOutcome =
   | { kind: 'result'; result: VersusResult }
+  | { kind: 'minor'; message: string }
   | { kind: 'error'; message: string };
 
 /** Split a `data:<mime>;base64,<data>` URL into the inline image parts.
@@ -54,6 +55,11 @@ export async function runVersusScan(battle: Battle): Promise<VersusScanOutcome> 
   }
   if (data.ok && data.result) {
     return { kind: 'result', result: data.result as VersusResult };
+  }
+  // A minor was detected in one of the photos — its own outcome so the UI can show a
+  // clean "use different photos" line rather than a generic "try again" error.
+  if (data.kind === 'minor') {
+    return { kind: 'minor', message: String(data.message ?? '') };
   }
   return { kind: 'error', message: String(data.message ?? 'generation_failed') };
 }

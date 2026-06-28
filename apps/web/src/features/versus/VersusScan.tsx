@@ -63,7 +63,7 @@ export function VersusScan() {
 
   // Real AI lifecycle, run DURING the cosmetic timeline. The verdict comes back
   // from `versus-scan`; the reveal gates on BOTH this settling AND the timeline.
-  const [aiState, setAiState] = useState<'pending' | 'done' | 'error'>('pending');
+  const [aiState, setAiState] = useState<'pending' | 'done' | 'error' | 'minor'>('pending');
   const [aiError, setAiError] = useState<string | null>(null);
   // The real failure reason from the service (e.g. "The AI service is busy right
   // now.") shown under the generic line so a failed battle says *why* — parity
@@ -115,6 +115,13 @@ export function VersusScan() {
     }
     await refundBattle();
     if (!mountedRef.current) return;
+    // A minor in one of the photos gets its own clean screen (use different photos),
+    // not the generic "try again" error.
+    if (outcome.kind === 'minor') {
+      setAiError(outcome.message);
+      setAiState('minor');
+      return;
+    }
     setAiError('That battle did not go through. Your 2 credits were refunded, give it another go.');
     setAiReason(outcome.message);
     setAiState('error');
@@ -198,6 +205,8 @@ export function VersusScan() {
   const finishingUp = signedIn && done && aiState === 'pending';
   // Timeline finished and the AI failed → inline error (refund already issued).
   const errored = done && aiState === 'error';
+  // Timeline finished and a minor was detected → its own 18+ "use different photos" screen.
+  const isMinor = done && aiState === 'minor';
   const stageIndex = done ? STAGES.length - 1 : Math.min(STAGES.length - 1, Math.floor(progress / 20));
   const stage = STAGES[stageIndex];
   const accent = side === 'a' ? 'var(--icy)' : 'var(--gold)';
@@ -229,7 +238,7 @@ export function VersusScan() {
             <div className="right">
               <span className="live-chip">
                 <span className="d" />
-                {revealReady ? 'Verdict ready' : errored ? 'Battle hiccup' : finishingUp ? 'Finishing up' : 'Scanning'}
+                {revealReady ? 'Verdict ready' : isMinor ? '18+ only' : errored ? 'Battle hiccup' : finishingUp ? 'Finishing up' : 'Scanning'}
               </span>
               <button className="leave-btn" onClick={() => navigate('/versus')} aria-label="Leave scan">
                 <Icon.x />
@@ -249,6 +258,19 @@ export function VersusScan() {
                 </p>
                 <button className="go" onClick={requestRegister}>
                   <Icon.bolt /> Sign up to reveal the winner
+                </button>
+              </div>
+            ) : isMinor ? (
+              <div className="reveal">
+                <span className="stamp" style={{ color: 'var(--red)' }}>
+                  ✶ 18+ only ✶
+                </span>
+                <h2>
+                  Different <span className="hl">photos</span>
+                </h2>
+                <p className="sub">{aiError}</p>
+                <button className="go retry" onClick={() => navigate('/versus')}>
+                  <Icon.refresh /> Use different photos
                 </button>
               </div>
             ) : errored ? (
