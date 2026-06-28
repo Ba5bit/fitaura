@@ -25,7 +25,11 @@ export function NameplateOutfit({ content, gender, roast }: SkinProps) {
   const dossier = np?.dossier ?? [];
   const rating = Math.max(0, Math.min(5, c.overallScore / 20));
   const style = { '--accent': accent } as CSSProperties;
-  const starStyle = { '--r': rating } as CSSProperties;
+  // The gold fill width is set inline as a concrete percentage (not via a CSS
+  // custom property) so the partial-star clip survives the snapdom export — an
+  // inline `--r` + `calc()` doesn't carry into snapdom's clone, which made the
+  // exported card show all 5 stars filled.
+  const fillWidth = `${(rating / 5) * 100}%`;
   return (
     <div className="asset nameplate-card" data-kind="outfit" style={style}>
       <CardImage src={c.imageUrl} shape="rect" placeholder="drop outfit photo" alt="Your outfit" />
@@ -40,8 +44,8 @@ export function NameplateOutfit({ content, gender, roast }: SkinProps) {
         {eyebrow && <div className="np-eyebrow">{eyebrow}</div>}
         <h2 className="np-name">{name}</h2>
         <div className="np-rate">
-          <span className="np-stars" style={starStyle}>
-            <span className="base">★★★★★</span><span className="fill">★★★★★</span>
+          <span className="np-stars">
+            <span className="base">★★★★★</span><span className="fill" style={{ width: fillWidth }}>★★★★★</span>
           </span>
           <span className="np-score">{rating.toFixed(1)}<span className="u">/5</span></span>
         </div>

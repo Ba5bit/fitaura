@@ -59,8 +59,11 @@
 .np-rate { display: flex; align-items: baseline; gap: 10px; margin: 10px 0 8px; }
 .np-stars { position: relative; display: inline-block; font-size: 22px; letter-spacing: 2px; line-height: 1; }
 .np-stars .base { color: rgba(255,255,255,.22); }
+/* Width is set inline (a concrete % per rating) so the partial-star clip survives
+   the snapdom export; default to 0 so a missing inline width never reveals all five
+   stars (an inline `--r` + calc() didn't carry into snapdom's clone). */
 .np-stars .fill { position: absolute; inset: 0; overflow: hidden; white-space: nowrap; color: var(--gold);
-  width: calc(var(--r) / 5 * 100%); text-shadow: 0 0 12px color-mix(in oklab, var(--gold) 60%, transparent); }
+  width: 0; text-shadow: 0 0 12px color-mix(in oklab, var(--gold) 60%, transparent); }
 .np-score { font-family: "Anton", sans-serif; font-size: 26px; line-height: 1; color: #fff; }
 .np-score .u { font-size: 14px; color: var(--ink-dim); }
 .np-tagline { margin: 0 0 14px; font-family: "Anton", sans-serif; text-transform: uppercase;
