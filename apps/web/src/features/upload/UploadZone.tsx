@@ -2,12 +2,6 @@ import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type Poi
 import { Icon } from '../../lib/icons';
 import { WebcamCapture } from './WebcamCapture';
 import { ZOOM_MIN, ZOOM_MAX, clampView, imgStyle, bakeCrop, type View, type Frame } from './cropMath';
-// Same demo photos the landing's example Face/Outfit cards use, reused as the
-// "Use a sample" images so the sample reads as a real scan, not a placeholder.
-import exampleFace from '../../assets/example-face.jpg';
-import exampleFit from '../../assets/example-fit.jpg';
-
-const SAMPLE_PHOTO: Record<ZoneKind, string> = { face: exampleFace, outfit: exampleFit };
 
 export type ZoneKind = 'face' | 'outfit';
 type Status = 'empty' | 'uploading' | 'ready' | 'error';
@@ -180,22 +174,6 @@ export function UploadZone({ kind, mobile, missing, frame: frameOverride, onConf
     }, 90);
   }
 
-  async function loadSample() {
-    revokeObjUrl(); // drop any prior file's object URL before switching to the sample
-    const url = SAMPLE_PHOTO[kind];
-    const im = await loadImageEl(url);
-    const s = { url, w: im.naturalWidth, h: im.naturalHeight };
-    fileInfo.current = (kind === 'face' ? 'selfie' : 'outfit') + '.jpg · sample';
-    runProgress(() => {
-      const v = clampView({ zoom: 1, x: 0, y: 0 }, s, frame);
-      imgElRef.current = im;
-      setSrc({ ...s, name: fileInfo.current });
-      setView(v);
-      setStatus('ready');
-      bakeAndConfirm(im, v);
-    });
-  }
-
   function onPick(e: ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (f) ingest(f);
@@ -323,17 +301,7 @@ export function UploadZone({ kind, mobile, missing, frame: frameOverride, onConf
             <span className="or">
               or <u>browse files</u>
             </span>
-            <button
-              type="button"
-              className="sample"
-              onClick={(e) => {
-                e.stopPropagation();
-                loadSample();
-              }}
-            >
-              Use a sample
-            </button>
-            {kind === 'face' && !mobile && (
+            {!mobile && (
               <button
                 type="button"
                 className="sample"

@@ -7,8 +7,9 @@ interface WebcamCaptureProps {
   onCancel: () => void;
 }
 
-/** Inline webcam capture for the face zone (desktop). Shows a mirrored live preview,
- * captures the current frame to an un-mirrored JPEG File. Stops the stream on exit. */
+/** Inline webcam capture for the face or outfit zone (desktop). Shows a mirrored live
+ * preview, captures the current frame to a JPEG File (the zone then crops it to the
+ * right ratio). Stops the stream on exit. */
 export function WebcamCapture({ onCapture, onCancel }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
