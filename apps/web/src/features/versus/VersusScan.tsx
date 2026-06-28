@@ -122,7 +122,7 @@ export function VersusScan() {
 
   // Guest deferral: a signed-out visitor runs the teaser only, then registers at
   // the reveal; the battle (spend + AI) runs here, once, after register.
-  const { requestRegister, pending } = useRevealGate({
+  const { requestRegister } = useRevealGate({
     redirectTo: '/versus/run',
     readyToResume: credits >= 2,
     onResume: () => startScan(true),
@@ -195,7 +195,7 @@ export function VersusScan() {
   // The reveal CTA needs BOTH the timeline finished AND the verdict landed.
   const revealReady = done && aiState === 'done';
   // Timeline finished but the AI is still in flight → a brief "finishing up" hold.
-  const finishingUp = done && aiState === 'pending';
+  const finishingUp = signedIn && done && aiState === 'pending';
   // Timeline finished and the AI failed → inline error (refund already issued).
   const errored = done && aiState === 'error';
   const stageIndex = done ? STAGES.length - 1 : Math.min(STAGES.length - 1, Math.floor(progress / 20));
@@ -247,8 +247,8 @@ export function VersusScan() {
                 <p className="sub">
                   {names.a} vs {names.b} — create your free account to reveal the head-to-head.
                 </p>
-                <button className="go" onClick={requestRegister} disabled={pending}>
-                  <Icon.bolt /> {pending ? 'Opening sign-up…' : 'Sign up to reveal the winner'}
+                <button className="go" onClick={requestRegister}>
+                  <Icon.bolt /> Sign up to reveal the winner
                 </button>
               </div>
             ) : errored ? (
