@@ -276,11 +276,10 @@
 .vs-col .score { display: inline-flex; flex-direction: column; align-items: center; gap: 3px;
   margin-top: 10px; padding: 7px 18px 9px; border-radius: 13px;
   border: 1px solid color-mix(in oklab, var(--c) 48%, var(--hair));
-  background: color-mix(in oklab, var(--c) 12%, transparent);
-  box-shadow: 0 0 20px -9px var(--c); }
+  background: color-mix(in oklab, var(--c) 12%, transparent); }
 .vs-col .score .lbl { font-family: "Space Mono", monospace; font-size: 9px; font-weight: 700;
   letter-spacing: 0.24em; text-transform: uppercase; color: color-mix(in oklab, var(--c) 72%, #fff); }
-.vs-col .score .v { font-family: "Anton", sans-serif; font-size: 46px; line-height: .86; color: var(--c); }
+.vs-col .score .v { font-family: "Anton", sans-serif; font-size: 46px; line-height: .86; color: #fff; }
 .vs-col .score small { font-family: "Space Mono", monospace; font-size: 12px; color: var(--ink-faint); font-weight: 400; margin-left: 4px; }
 .vs-col .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin-top: 10px; }
 
@@ -445,7 +444,7 @@
   filter: drop-shadow(0 40px 70px rgba(0,0,0,.7)) brightness(.74); }
 
 /* breakdown panel (right) — --c2 is set inline to the overall winner's color */
-.vs-bd { --vs-red: #ff3b49; border: 1px solid var(--hair); border-radius: 20px; padding: clamp(14px, 1.6vw, 18px);
+.vs-bd { border: 1px solid var(--hair); border-radius: 20px; padding: clamp(14px, 1.6vw, 18px);
   background: linear-gradient(180deg, var(--bg-2), #0b0d12); display: flex; flex-direction: column; }
 .vs-bd .eyebrow { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); }
 .vs-bd .wlabel { font-family: "Space Mono", monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--c2, var(--gold)); margin-top: 8px; }
@@ -491,20 +490,18 @@
    --rc is the read accent (side colour for a flex, red for a roast). */
 .vs-readrow { --rc: var(--c); display: grid; grid-template-columns: 1fr 1fr;
   border: 1px solid var(--hair-soft); border-radius: 13px; background: color-mix(in oklab, #fff 2.5%, transparent); overflow: hidden; }
-.vs-readrow[data-roast="1"] { --rc: var(--vs-red); }
 .vs-readrow .joke { display: flex; align-items: center; gap: 12px; padding: 10px 13px; border-right: 1px solid var(--hair); }
 .vs-readrow .badge { width: 34px; height: 34px; flex: none; border-radius: 10px; display: grid; place-items: center;
   color: var(--c); background: color-mix(in oklab, var(--c) 15%, transparent); border: 1px solid color-mix(in oklab, var(--c) 40%, transparent); }
 .vs-readrow .badge svg { width: 16px; height: 16px; }
 .vs-readrow .title { font-family: "Hanken Grotesk", sans-serif; font-weight: 700; font-size: 15px; color: var(--ink); line-height: 1.2; }
 .vs-readrow .tag { font-family: "Space Mono", monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px; color: var(--ink-faint); }
-.vs-readrow[data-roast="1"] .tag { color: var(--vs-red); }
 .vs-readrow .read { padding: 10px 13px; display: flex; flex-direction: column; min-width: 0; }
 .vs-readrow .rtop { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
 .vs-readrow .mlabel { font-family: "Space Mono", monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
 .vs-readrow .name { font-family: "Anton", sans-serif; font-size: 18px; letter-spacing: 0.02em; text-transform: uppercase; color: var(--c);
-  white-space: nowrap; text-shadow: 0 0 14px color-mix(in oklab, var(--c) 45%, transparent); margin-top: 2px; }
-.vs-readrow .score { font-family: "Anton", sans-serif; font-size: 33px; line-height: 0.8; color: var(--rc); text-align: right; }
+  white-space: nowrap; margin-top: 2px; }
+.vs-readrow .score { font-family: "Anton", sans-serif; font-size: 33px; line-height: 0.8; color: #fff; text-align: right; }
 .vs-readrow .tier { font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--rc); margin-top: 3px; text-align: right; }
 .vs-readrow .bar { height: 6px; border-radius: 99px; background: color-mix(in oklab, #fff 9%, transparent); overflow: hidden; margin-top: 8px; }
 .vs-readrow .bar i { display: block; height: 100%; border-radius: 99px;
@@ -644,7 +641,6 @@
 .vs-sidecopy .super { margin: 0; padding: 13px 15px; border-radius: 12px;
   border: 1px solid color-mix(in oklab, var(--c) 40%, var(--hair));
   background: color-mix(in oklab, var(--c) 10%, transparent);
-  box-shadow: 0 0 22px -10px var(--c), inset 0 0 16px -12px var(--c);
   font-family: "Hanken Grotesk", sans-serif; font-weight: 800; font-size: 14px; line-height: 1.42;
   letter-spacing: 0.01em; color: color-mix(in oklab, var(--c) 82%, #fff); text-wrap: pretty; }
 /* Quote marks read in the solid contender colour — a touch deeper than the tinted text. */

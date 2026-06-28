@@ -382,8 +382,8 @@ body::before{
 .receipt[data-style="thermal"][data-verdict="green_flag"]{ --verdict:#0d6b2f; }
 .receipt[data-style="thermal"][data-verdict="normie"]{ --verdict:#0c6f7d; }
 .receipt[data-style="thermal"][data-verdict="red_flag"]{ --verdict:#c01c2b; }
-/* the black (neon) receipt keeps the neon cyan for normie, even though cards now use the main blue */
-.receipt[data-style="neon"][data-verdict="normie"]{ --verdict:var(--cyan); }
+/* the black (neon) receipt themes normie to the main blue (--icy), matching the cards (not the old neon cyan) */
+.receipt[data-style="neon"][data-verdict="normie"]{ --verdict:var(--icy); }
 .receipt[data-style="thermal"] .r-head .logo,
 .receipt[data-style="thermal"] .r-punch .big{ color:#16181d; }
 .receipt[data-style="thermal"] .receipt-inner{ background-image:linear-gradient(180deg, rgba(0,0,0,0.015), transparent 6%, transparent 94%, rgba(0,0,0,0.02)); }

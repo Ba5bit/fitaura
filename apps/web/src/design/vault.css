@@ -186,9 +186,8 @@
 .vlt-thumb .ph { position: absolute; top: 14px; left: 14px; z-index: 3; font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.18em; color: var(--ink-faint); text-transform: uppercase; }
 .vlt-thumb .vdot { position: absolute; top: 14px; left: 14px; z-index: 3; display: inline-flex; align-items: center; gap: 7px; font-family: "Space Mono", monospace; font-size: 9px; letter-spacing: 0.14em; color: #fff; text-transform: uppercase; }
 .vlt-thumb .vdot .d { width: 8px; height: 8px; border-radius: 50%; background: var(--vc); box-shadow: 0 0 10px var(--vc); }
-.vlt-thumb .badge { position: absolute; top: 13px; right: 13px; z-index: 3; width: 62px; height: 62px; border-radius: 16px; display: grid; place-items: center; text-align: center; background: rgba(6,7,10,.5); backdrop-filter: blur(8px); border: 1px solid color-mix(in oklab, var(--vc) 50%, var(--hair)); box-shadow: 0 0 28px -10px var(--vc); }
+.vlt-thumb .badge { position: absolute; top: 13px; right: 13px; z-index: 3; min-width: 50px; padding: 9px 14px; border-radius: 14px; display: grid; place-items: center; text-align: center; background: rgba(6,7,10,.5); backdrop-filter: blur(8px); border: 1px solid color-mix(in oklab, var(--vc) 50%, var(--hair)); box-shadow: 0 0 28px -10px var(--vc); }
 .vlt-thumb .badge .num { font-family: "Anton", sans-serif; font-size: 30px; line-height: .8; color: #fff; }
-.vlt-thumb .badge .sub { font-family: "Space Mono", monospace; font-size: 7.5px; letter-spacing: 0.12em; color: var(--vc); text-transform: uppercase; margin-top: 3px; }
 .vlt-thumb .cap { position: absolute; left: 14px; right: 14px; bottom: 13px; z-index: 3; font-family: "Anton", sans-serif; font-size: 17px; line-height: 0.98; letter-spacing: 0.005em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 14px #000; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 
 /* asset strip — "1 verdict = 3 cards" */

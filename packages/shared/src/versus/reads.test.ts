@@ -35,7 +35,7 @@ describe('deriveReads', () => {
     // rizz a=60,b=84 → trailer is A; the roast mocks the trailer.
     const rizz = rows.find((r) => r.metricKey === 'rizz')!;
     expect(rizz).toMatchObject({ flex: false, isRoast: true, side: 'a', name: 'Maya', score: 60, tier: 'Needs work' });
-    expect(rizz.tag).toBe('Roast · RIZZ · 24 behind');
+    expect(rizz.tag).toBe('RIZZ · 24 behind');
   });
 
   it('falls back to the static bank (all flex) and still guarantees one roast', () => {

@@ -74,6 +74,7 @@ function useShare({ group, names, imgs, colA, colB, kind }: Omit<VerdictShareCar
   const winName = winner === 'b' ? names.b : names.a;
   const loseName = winner === 'b' ? names.a : names.b;
   const winScore = Math.max(avgA, avgB);
+  const loseScore = Math.min(avgA, avgB);
   const margin = Math.abs(avgA - avgB);
 
   const sortedFor = (key: 'a' | 'b') =>
@@ -87,14 +88,13 @@ function useShare({ group, names, imgs, colA, colB, kind }: Omit<VerdictShareCar
       : tie ? 'Two fits, zero agreement. Run it back.' : margin >= 5 ? 'Out-dressed in every single frame. No notes.' : 'Won the fit by a thread — and gloating anyway.';
 
   return {
-    metrics, avgA, avgB, winner, tie, winnerKey, winRim, loseRim, winName, loseName, winScore, margin, reads, statLines, sub,
+    metrics, avgA, avgB, winner, tie, winnerKey, winRim, loseRim, winName, loseName, winScore, loseScore, margin, reads, statLines, sub,
     winFace: winnerKey === 'a' ? imgs.aFace : imgs.bFace,
     loseFace: winnerKey === 'a' ? imgs.bFace : imgs.aFace,
     winFit: winnerKey === 'a' ? imgs.aFit : imgs.bFit,
     word: tie ? 'TIES' : 'HUMILIATED',
     winTag: kind === 'face' ? 'Face' : 'Fit',
     loserLine: tie ? 'Refused to concede.' : margin >= 5 ? 'Took the L in 4K.' : `Lost by ${margin}. Wants a recount.`,
-    votePct: tie ? 50 : Math.min(99, 60 + margin * 6),
   };
 }
 
@@ -142,7 +142,7 @@ function Headline({ winnerLabel, winRim, tie, size, crown }: { winnerLabel: stri
       <h2 style={{ fontFamily: anton, fontWeight: 400, margin: '6px 0 0', fontSize: size, lineHeight: 0.96, textTransform: 'uppercase', color: '#fff', textShadow: '0 2px 14px rgba(0,0,0,0.55)' }}>
         {tie ? 'Dead heat' : (
           <>
-            <span style={{ color: winRim, textShadow: `0 1px 18px color-mix(in oklab, ${winRim} 60%, transparent)` }}>{winnerLabel}</span> wins
+            <span style={{ color: winRim }}>{winnerLabel}</span> wins
           </>
         )}
       </h2>
@@ -188,7 +188,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
               </div>
             ))}
           </div>
-          <HumiliatedBar loseName={s.loseName} loseRim={s.loseRim} winRim={s.winRim} winName={s.winName} votePct={s.votePct} />
+          <HumiliatedBar loseName={s.loseName} loseRim={s.loseRim} winRim={s.winRim} loseScore={s.loseScore} kindTag={s.winTag} />
         </div>
       </div>
     );
@@ -202,8 +202,8 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
         <div style={{ position: 'relative', height: 304, flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `radial-gradient(120% 84% at 50% 16%, color-mix(in oklab, ${s.winRim} 24%, transparent), transparent 62%)` }}>
           <TopChrome label="Face · VS" />
           <div style={{ position: 'relative', width: 224, height: 224, marginTop: 8 }}>
-            <span style={{ position: 'absolute', top: -22, left: '50%', transform: 'translateX(-50%)', zIndex: 6, color: CROWN, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.6))' }}>
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M3 7l4 4 5-7 5 7 4-4v11H3z" /></svg>
+            <span style={{ position: 'absolute', top: -36, left: '50%', transform: 'translateX(-50%)', zIndex: 6, color: CROWN, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.6))' }}>
+              <svg viewBox="0 0 24 24" width="42" height="42" fill="currentColor"><path d="M3 7l4 4 5-7 5 7 4-4v11H3z" /></svg>
             </span>
             <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: `conic-gradient(from 0deg, ${s.winRim}, color-mix(in oklab, ${s.winRim} 30%, #fff), ${s.winRim}, color-mix(in oklab, ${s.winRim} 10%, transparent), ${s.winRim})`, WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px))', mask: 'radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px))' }} />
             <div style={{ position: 'absolute', inset: 6, borderRadius: '50%', overflow: 'hidden', boxShadow: '0 0 0 3px #0a0c11', background: FALLBACK_BG, ...photo(s.winFace) }} />
@@ -220,24 +220,24 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
           <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.46)', marginTop: 12 }}>Most recognised</div>
           <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
             {s.reads.map((r, i) => (
-              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 12px', borderRadius: 999, fontFamily: mono, fontSize: 12, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)', whiteSpace: 'nowrap', border: `1px solid color-mix(in oklab, ${s.winRim} 55%, transparent)`, background: `color-mix(in oklab, ${s.winRim} 20%, rgba(0,0,0,0.35))` }}>
+              <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 999, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)', whiteSpace: 'nowrap', border: `1px solid color-mix(in oklab, ${s.winRim} 55%, transparent)`, background: `color-mix(in oklab, ${s.winRim} 20%, rgba(0,0,0,0.35))` }}>
                 {r.name} <b style={{ color: s.winRim }}>{r.v}</b>
               </span>
             ))}
           </div>
-          <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 14, paddingTop: 14 }}>
-            <div style={{ position: 'relative', width: 68, height: 68, flex: 'none' }}>
+          <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: 16, paddingTop: 18 }}>
+            <div style={{ position: 'relative', width: 84, height: 84, flex: 'none' }}>
               <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: `conic-gradient(from 0deg, ${s.loseRim}, color-mix(in oklab, ${s.loseRim} 30%, #fff), ${s.loseRim})`, WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))', mask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))' }} />
-              <div style={{ position: 'absolute', inset: 5, borderRadius: '50%', overflow: 'hidden', filter: 'grayscale(0.65)', background: FALLBACK_BG, ...photo(s.loseFace) }} />
+              <div style={{ position: 'absolute', inset: 5, borderRadius: '50%', overflow: 'hidden', background: FALLBACK_BG, ...photo(s.loseFace) }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: mono, fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: s.loseRim }}>Humiliated by {s.winName}</div>
-              <div style={{ fontWeight: 800, fontSize: 21, color: '#fff', lineHeight: 1.12, marginTop: 1 }}>{s.loseName}</div>
-              <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.02em', color: 'rgba(243,246,249,0.72)', marginTop: 3 }}>{s.loserLine}</div>
+              <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: s.loseRim }}>Humiliated by {s.winName}</div>
+              <div style={{ fontWeight: 800, fontSize: 26, color: '#fff', lineHeight: 1.12, marginTop: 2 }}>{s.loseName}</div>
+              <div style={{ fontFamily: mono, fontSize: 12.5, letterSpacing: '0.02em', color: 'rgba(243,246,249,0.72)', marginTop: 4 }}>{s.loserLine}</div>
             </div>
             <div style={{ textAlign: 'right', flex: 'none' }}>
-              <div style={{ fontFamily: anton, fontSize: 34, lineHeight: 0.78, color: '#fff' }}>{s.votePct}%</div>
-              <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.66)' }}>backed {s.winName}</div>
+              <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.6)', marginBottom: 2 }}>{s.winTag}</div>
+              <div style={{ fontFamily: anton, fontSize: 52, lineHeight: 0.78, color: '#fff' }}>{s.loseScore}</div>
             </div>
           </div>
         </div>
@@ -262,7 +262,6 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
               <div style={{ position: 'absolute', inset: 0, background: FALLBACK_BG, ...photo(face) }} />
               {/* light bottom-only scrim for the text — keeps the face clear (no heavy gradient) */}
               <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(0deg, rgba(6,7,10,.85) 0%, rgba(6,7,10,.32) 22%, transparent 44%)' }} />
-              {isLose && <div style={{ position: 'absolute', inset: 0, background: 'rgba(6,7,10,0.4)', zIndex: 2 }} />}
               <div style={{ position: 'absolute', right: 18, top: i === 0 ? 48 : 16, zIndex: 4, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
                 <span style={{ fontFamily: mono, fontSize: 9.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#06070a', padding: '4px 10px', borderRadius: 7, background: sideCol }}>{kindLabel}</span>
                 <span style={{ fontFamily: anton, fontSize: 64, lineHeight: 0.78, color: '#fff', textShadow: '0 3px 20px #000', marginTop: 2 }}>{sideScore}</span>
@@ -341,16 +340,16 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
 }
 
 /** The "humiliated" pill at the bottom of the outfit verdict card. */
-function HumiliatedBar({ loseName, loseRim, winRim, winName, votePct }: { loseName: string; loseRim: string; winRim: string; winName: string; votePct: number }) {
+function HumiliatedBar({ loseName, loseRim, winRim, loseScore, kindTag }: { loseName: string; loseRim: string; winRim: string; loseScore: number; kindTag: string }) {
   return (
-    <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', borderRadius: 13, background: 'rgba(0,0,0,0.5)', border: `1px solid color-mix(in oklab, ${winRim} 60%, transparent)`, boxShadow: `0 0 30px -10px ${winRim}, inset 0 0 0 1px rgba(255,255,255,0.04)` }}>
+    <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '10px 14px', borderRadius: 13, background: 'rgba(0,0,0,0.5)', border: `1px solid color-mix(in oklab, ${winRim} 60%, transparent)`, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.04)' }}>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.18em', textTransform: 'uppercase', color: loseRim }}>Humiliated</div>
         <div style={{ fontFamily: anton, fontSize: 27, lineHeight: 0.9, textTransform: 'uppercase', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{loseName}</div>
       </div>
       <div style={{ textAlign: 'right', flex: 'none' }}>
-        <div style={{ fontFamily: anton, fontSize: 32, lineHeight: 0.78, color: winRim, textShadow: `0 0 20px color-mix(in oklab, ${winRim} 60%, transparent)` }}>{votePct}%</div>
-        <div style={{ fontFamily: mono, fontSize: 7.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.65)' }}>backed {winName}</div>
+        <div style={{ fontFamily: mono, fontSize: 7.5, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.6)', marginBottom: 2 }}>{kindTag}</div>
+        <div style={{ fontFamily: anton, fontSize: 40, lineHeight: 0.78, color: '#fff' }}>{loseScore}</div>
       </div>
     </div>
   );

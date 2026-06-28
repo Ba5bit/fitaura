@@ -109,7 +109,7 @@ function buildRead(
   const name = aIsSubject ? names.a : names.b;
   const tag = flex
     ? `${m.label.toUpperCase()} · +${gap} ahead`
-    : `Roast · ${m.label.toUpperCase()} · ${gap} behind`;
+    : `${m.label.toUpperCase()} · ${gap} behind`;
   return {
     metricKey: m.key,
     metricLabel: m.label,

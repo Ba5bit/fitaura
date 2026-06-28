@@ -44,12 +44,10 @@ function OutfitThumb({ r, onOpen }: { r: GenerationResult; onOpen: (r: Generatio
       {r.outfit ? (
         <div className="badge">
           <span className="num">{r.outfit.card.overallScore}</span>
-          <span className="sub">FIT</span>
         </div>
       ) : r.face ? (
         <div className="badge">
           <span className="num">{r.face.analysis.aura}</span>
-          <span className="sub">AURA</span>
         </div>
       ) : null}
       {r.outfit && <div className="cap">{r.outfit.card.caption}</div>}
