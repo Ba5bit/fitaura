@@ -23,13 +23,14 @@ function reasonFor(code: string): string {
   return 'Something went wrong on our end.';
 }
 
-/** Fitaura is 18+. Apparent minors — detected by the AI's age estimate, or by an
- * unblockable (non-configurable) safety block — are gently turned away with a
- * "use a different photo" message instead of being roasted/rated. The age estimate
- * is a fuzzy read, so the cutoff is the legal line; lower MINOR_AGE if young adults
- * get over-flagged. */
+/** Apparent minors — detected by the AI's age estimate, or by an unblockable
+ * (non-configurable) safety block — are gently turned away instead of being
+ * roasted/rated. The user-facing copy is deliberately NEUTRAL: no "minor"/"18+"
+ * wording (that reads as accusatory, especially for a young-looking adult) — it
+ * just asks for a different photo. The age estimate is fuzzy, so the cutoff is the
+ * legal line; lower MINOR_AGE if young adults get over-flagged. */
 const MINOR_AGE = 18;
-const MINOR_MESSAGE = 'This photo looks like it may be of a minor. Fitaura is 18+ — please try a different photo.';
+const MINOR_MESSAGE = 'We could not analyze this photo — please try a different one.';
 
 interface ReqBody {
   scanId: string;
@@ -136,7 +137,7 @@ Deno.serve(async (req) => {
     console.log(JSON.stringify({ scan_id: scanId, model, success: false, failure_code: code, latency_ms: Date.now() - started }));
     // A safety block that survives the relaxed configurable filters is, for a single
     // uploaded selfie, almost always Google's non-configurable minor-safety filter —
-    // so show the same 18+ "use a different photo" message rather than a generic error.
+    // so show the same neutral "try a different photo" message rather than a generic error.
     if (code === 'gemini_blocked') {
       return json({ ok: false, kind: 'retake', faceUsable: false, outfitUsable: false, instruction: MINOR_MESSAGE });
     }

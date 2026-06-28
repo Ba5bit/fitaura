@@ -134,7 +134,7 @@ async function once(opts: GeminiOpts): Promise<GeminiCallResult> {
     // transient (retrying just burns the budget), and — since the configurable
     // filters are relaxed in buildBody — a block that still happens on personal
     // photos almost always means one of the two contenders is a minor. Surface it
-    // as a distinct, non-retried code so index.ts can show the 18+ message.
+    // as a distinct, non-retried code so index.ts can show the "try another" message.
     const blockReason = json?.promptFeedback?.blockReason;
     const finish = cand?.finishReason;
     const SAFETY_FINISH = ['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'IMAGE_SAFETY'];

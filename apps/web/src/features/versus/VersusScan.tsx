@@ -205,7 +205,8 @@ export function VersusScan() {
   const finishingUp = signedIn && done && aiState === 'pending';
   // Timeline finished and the AI failed → inline error (refund already issued).
   const errored = done && aiState === 'error';
-  // Timeline finished and a minor was detected → its own 18+ "use different photos" screen.
+  // Timeline finished and a block was hit (one photo couldn't be analyzed) → its own
+  // neutral "use different photos" screen, not the generic "try again" error.
   const isMinor = done && aiState === 'minor';
   const stageIndex = done ? STAGES.length - 1 : Math.min(STAGES.length - 1, Math.floor(progress / 20));
   const stage = STAGES[stageIndex];
@@ -238,7 +239,7 @@ export function VersusScan() {
             <div className="right">
               <span className="live-chip">
                 <span className="d" />
-                {revealReady ? 'Verdict ready' : isMinor ? '18+ only' : errored ? 'Battle hiccup' : finishingUp ? 'Finishing up' : 'Scanning'}
+                {revealReady ? 'Verdict ready' : isMinor ? 'Try another' : errored ? 'Battle hiccup' : finishingUp ? 'Finishing up' : 'Scanning'}
               </span>
               <button className="leave-btn" onClick={() => navigate('/versus')} aria-label="Leave scan">
                 <Icon.x />
@@ -263,7 +264,7 @@ export function VersusScan() {
             ) : isMinor ? (
               <div className="reveal">
                 <span className="stamp" style={{ color: 'var(--red)' }}>
-                  ✶ 18+ only ✶
+                  ✶ Try another ✶
                 </span>
                 <h2>
                   Different <span className="hl">photos</span>

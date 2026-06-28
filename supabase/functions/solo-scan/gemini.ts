@@ -132,7 +132,7 @@ async function once(opts: GeminiOpts): Promise<GeminiCallResult> {
     // transient (retrying just burns the budget), and — since the configurable
     // filters are relaxed in buildBody — a block that still happens on a personal
     // photo is almost always Google's non-configurable minor-safety filter. Surface
-    // it as a distinct, non-retried code so index.ts can show the 18+ message.
+    // it as a distinct, non-retried code so index.ts can show the "try another" message.
     const blockReason = json?.promptFeedback?.blockReason;
     const finish = cand?.finishReason;
     const SAFETY_FINISH = ['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'IMAGE_SAFETY'];

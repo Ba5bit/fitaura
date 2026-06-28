@@ -23,12 +23,13 @@ function reasonFor(code: string): string {
   return 'Something went wrong on our end.';
 }
 
-/** Fitaura is 18+. A safety block that survives the relaxed configurable filters
- * almost always means one of the two contenders reads as a minor — turn the battle
- * away with a "use different photos" message instead of roasting/rating them.
- * (Versus has no per-contender age estimate, so this block signal is the only gate;
- * an explicit age field would be needed to catch a minor Gemini doesn't block.) */
-const MINOR_MESSAGE = 'One of these photos looks like it may be of a minor. Fitaura is 18+ — please try different photos.';
+/** A safety block that survives the relaxed configurable filters almost always means
+ * one of the two contenders reads as a minor — turn the battle away instead of
+ * roasting/rating them. The user-facing copy is deliberately NEUTRAL: no "minor"/
+ * "18+" wording (accusatory, especially for a young-looking adult) — it just asks for
+ * different photos. (Versus has no per-contender age estimate, so this block signal is
+ * the only gate; an explicit age field would catch a minor Gemini doesn't block.) */
+const MINOR_MESSAGE = 'We could not analyze one of these photos — please try different ones.';
 
 type VersusMode = 'face' | 'fit';
 
@@ -146,7 +147,7 @@ Deno.serve(async (req) => {
     const code = e instanceof Error ? e.message : String(e);
     console.log(JSON.stringify({ battle_id: battleId, model, success: false, failure_code: code, latency_ms: Date.now() - started }));
     // A safety block surviving the relaxed configurable filters almost always means
-    // one contender reads as a minor — show the 18+ "use different photos" message.
+    // one contender reads as a minor — show the neutral "try different photos" message.
     if (code === 'gemini_blocked') {
       return json({ ok: false, kind: 'minor', message: MINOR_MESSAGE });
     }
