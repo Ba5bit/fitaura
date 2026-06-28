@@ -83,12 +83,20 @@ export function Vault() {
   }, [mode]);
   const active = SCAN_MODES.find((m) => m.id === mode)!;
 
+  // Each mode is its own page sharing one scrolling window, so switching modes
+  // must reset the window to the top — otherwise a scrolled-down list (e.g. many
+  // Friend battles) leaves the next mode scrolled into empty space.
+  const selectMode = (id: ScanModeId) => {
+    setMode(id);
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
   return (
     <div className="vlt">
       <VaultNav />
       <div className="vlt-body">
         <div className="vlt-cols">
-          <ModeRail mode={mode} onSelect={setMode} />
+          <ModeRail mode={mode} onSelect={selectMode} />
           <main>
             {active.id === 'friend' ? (
               // Friend vs Friend decides dev-launcher vs locked internally.
