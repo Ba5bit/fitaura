@@ -1,8 +1,9 @@
-import { supabase } from '../lib/supabase';
+import { getSupabase } from '../lib/supabase';
 import { getBalance } from './creditsService';
 
 /** Create a Polar checkout for a pack via the edge function. Returns the checkout URL. */
 export async function createCheckout(packId: string): Promise<string> {
+  const supabase = await getSupabase();
   const { data, error } = await supabase.functions.invoke('create-checkout', { body: { packId } });
   if (error) throw new Error(error.message ?? 'checkout_failed');
   if (!data?.ok || !data.url) throw new Error(data?.message ?? 'checkout_failed');

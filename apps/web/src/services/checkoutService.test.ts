@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
-vi.mock('../lib/supabase', () => ({ supabase: { functions: { invoke } } }));
+vi.mock('../lib/supabase', () => ({ getSupabase: () => Promise.resolve({ functions: { invoke } }) }));
 
 import { createCheckout, pollBalanceUntilChange } from './checkoutService';
 

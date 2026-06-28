@@ -29,17 +29,6 @@ export function Crown({ size = 34 }: { size?: number }) {
   );
 }
 
-/** VS medallion (icy | gold hard-split ring) that anchors the arena + share cards. */
-export function VersusMedallion({ small = false }: { small?: boolean }) {
-  return (
-    <div className={'vs-medal' + (small ? ' sm' : '')} aria-hidden="true">
-      <span className="spin" />
-      <span className="core" />
-      <span className="vs">VS</span>
-    </div>
-  );
-}
-
 /** Primary CTA — Solo's calm accent-on-subtle-fill button (.vs-cta). */
 export function DualGlowButton({
   children,

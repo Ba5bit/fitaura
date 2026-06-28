@@ -133,23 +133,6 @@
   background: color-mix(in oklab, var(--lime) 10%, transparent); }
 .vs-ready .gd { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-/* ============================ VS MEDALLION ============================ */
-.vs-medal { position: relative; width: 72px; height: 72px; display: grid; place-items: center; align-self: center;
-  margin-top: 44px; }
-.vs-medal.sm { width: 64px; height: 64px; margin: 0; }
-/* Hard two-tone split (solid icy | solid gold) — A vs B, no colour blend. */
-.vs-medal .spin { position: absolute; inset: -7px; border-radius: 50%;
-  background: conic-gradient(from -90deg, var(--icy) 0 50%, var(--gold) 50% 100%);
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
-          mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
-  opacity: .9; animation: vs-spin 7s linear infinite; }
-@keyframes vs-spin { to { transform: rotate(360deg); } }
-.vs-medal .core { position: absolute; inset: 0; border-radius: 50%; background: #0b0d12;
-  box-shadow: -12px 0 34px -12px var(--icy), 12px 0 34px -12px var(--gold), inset 0 0 0 1px rgba(255,255,255,0.08); }
-.vs-medal .vs { position: relative; font-family: "Anton", sans-serif; font-size: 24px; color: #fff;
-  text-shadow: 0 0 20px rgba(255,255,255,0.45); }
-.vs-medal.sm .vs { font-size: 21px; }
-
 /* ============================ PRIMARY CTA ============================ */
 /* Mirrors Solo's .cta.go: accent text on a subtle fill (not white-on-gradient),
    so it reads calm like the Solo Scan button rather than heavy/loud. --accent is
@@ -649,7 +632,7 @@
 
 /* ============================ REDUCED MOTION ============================ */
 @media (prefers-reduced-motion: reduce) {
-  .vs-medal .spin, .vs-avatar .ring, .vs-inset .ring, .vs-specimen .sweep { animation: none !important; }
+  .vs-avatar .ring, .vs-inset .ring, .vs-specimen .sweep { animation: none !important; }
   .vs-track .fa, .vs-track .fb, .vs-track .divline, .vs-pbar .fill { transition: none !important; }
   .vs-split[data-reveal="1"] { animation: none !important; opacity: 1 !important; }
 }

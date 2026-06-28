@@ -1,6 +1,6 @@
 // apps/web/src/services/soloScanService.ts
 import type { FullGenerationResult } from '@fitaura/shared';
-import { supabase } from '../lib/supabase';
+import { getSupabase } from '../lib/supabase';
 
 export interface InlineImage {
   mimeType: string;
@@ -41,6 +41,7 @@ export async function runSoloScan(
   if (face) body.face = face;
   if (outfit) body.outfit = outfit;
 
+  const supabase = await getSupabase();
   const { data, error } = await supabase.functions.invoke('solo-scan', { body });
 
   if (error || !data) {

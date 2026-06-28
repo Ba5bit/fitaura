@@ -13,8 +13,10 @@
   position: sticky; top: 0; z-index: 40;
   display: flex; align-items: center; justify-content: space-between; gap: 24px;
   padding: 16px clamp(20px, 4vw, 52px);
-  background: color-mix(in oklab, var(--bg-0) 78%, transparent);
-  backdrop-filter: blur(8px); border-bottom: 1px solid var(--hair-soft);
+  /* Near-opaque solid instead of backdrop-filter: a sticky blurred header
+     re-rasterizes the scrolling page beneath it every frame. */
+  background: color-mix(in oklab, var(--bg-0) 96%, transparent);
+  border-bottom: 1px solid var(--hair-soft);
 }
 .vlt-brand { display: flex; align-items: center; gap: 11px; cursor: pointer; background: none; border: 0; padding: 0; }
 .vlt-brand .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 3px #fff inset; }

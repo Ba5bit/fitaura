@@ -2,7 +2,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const invoke = vi.fn();
-vi.mock('../lib/supabase', () => ({ supabase: { functions: { invoke: (...a: unknown[]) => invoke(...a) } } }));
+vi.mock('../lib/supabase', () => ({ getSupabase: () => Promise.resolve({ functions: { invoke: (...a: unknown[]) => invoke(...a) } }) }));
 
 import { runSoloScan, dataUrlToInline } from './soloScanService';
 

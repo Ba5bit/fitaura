@@ -1,5 +1,5 @@
 import type { ReceiptPaper } from '@fitaura/shared';
-import { supabase } from '../lib/supabase';
+import { getSupabase } from '../lib/supabase';
 
 /**
  * Account preferences that follow the user across devices. Stored on the same
@@ -25,6 +25,7 @@ const asPaper = (v: unknown): ReceiptPaper =>
 
 /** Read the signed-in user's saved preferences (null on any error / missing row). */
 export async function getPreferences(userId: string): Promise<AccountPreferences | null> {
+  const supabase = await getSupabase();
   const { data, error } = await supabase
     .from('profiles')
     .select('receipt_paper, reduce_motion')
@@ -43,5 +44,6 @@ export async function savePreferences(userId: string, patch: Partial<AccountPref
   if (patch.receiptPaper !== undefined) row.receipt_paper = patch.receiptPaper;
   if (patch.reduceMotion !== undefined) row.reduce_motion = patch.reduceMotion;
   if (Object.keys(row).length === 0) return;
+  const supabase = await getSupabase();
   await supabase.from('profiles').update(row).eq('id', userId);
 }

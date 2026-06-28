@@ -12,7 +12,7 @@ const { single, eqUpdate, update, from } = vi.hoisted(() => {
   return { single, eqUpdate, update, from };
 });
 
-vi.mock('../lib/supabase', () => ({ supabase: { from } }));
+vi.mock('../lib/supabase', () => ({ getSupabase: () => Promise.resolve({ from }) }));
 
 import { getBalance, spendCredit, grantCredits, refundCredit, hasUsedFreeScan, markFreeScanUsed, FREE_SCAN_KEY } from './creditsService';
 

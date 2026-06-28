@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { getSupabase } from '../lib/supabase';
 
 export const FREE_SCAN_KEY = 'fitaura.freeScanUsed';
 
@@ -6,6 +6,7 @@ export type SpendResult = { ok: boolean; balance: number };
 
 /** Current server credit balance for a signed-in user (0 on any error). */
 export async function getBalance(userId: string): Promise<number> {
+  const supabase = await getSupabase();
   const { data, error } = await supabase.from('profiles').select('credits').eq('id', userId).single();
   if (error || !data) return 0;
   return data.credits;
@@ -16,6 +17,7 @@ export async function spendCredit(userId: string, amount = 1): Promise<SpendResu
   const balance = await getBalance(userId);
   if (balance < amount) return { ok: false, balance };
   const next = balance - amount;
+  const supabase = await getSupabase();
   const { error } = await supabase.from('profiles').update({ credits: next }).eq('id', userId);
   if (error) return { ok: false, balance };
   return { ok: true, balance: next };
@@ -25,6 +27,7 @@ export async function spendCredit(userId: string, amount = 1): Promise<SpendResu
 export async function grantCredits(userId: string, n: number): Promise<number> {
   const balance = await getBalance(userId);
   const next = balance + n;
+  const supabase = await getSupabase();
   await supabase.from('profiles').update({ credits: next }).eq('id', userId);
   return next;
 }

@@ -60,7 +60,7 @@ body { overflow-y: auto; }
   font-family: "Hanken Grotesk"; font-weight: 700; font-size: 15px; letter-spacing: 0.01em;
   padding: 15px 26px; border-radius: 13px; cursor: pointer; text-decoration: none;
   border: 1px solid var(--hair); background: var(--panel); color: var(--ink);
-  backdrop-filter: blur(8px); transition: .2s; white-space: nowrap;
+  transition: .2s; white-space: nowrap;
 }
 .ln-btn svg { width: 17px; height: 17px; }
 .ln-btn:hover { border-color: color-mix(in oklab, var(--accent) 55%, var(--hair)); box-shadow: 0 0 30px -14px var(--accent); transform: translateY(-1px); }
@@ -87,10 +87,12 @@ body { overflow-y: auto; }
   position: sticky; top: 0; z-index: 50;
   display: flex; align-items: center; justify-content: space-between;
   padding: 16px clamp(20px, 4vw, 52px); gap: 24px;
-  background: color-mix(in oklab, var(--bg-0) 72%, transparent);
-  backdrop-filter: blur(8px); border-bottom: 1px solid transparent; transition: .25s;
+  /* Near-opaque solid instead of backdrop-filter: a sticky blurred bar re-rasterizes
+     the whole page beneath it every scroll frame. Opaque background reads the same. */
+  background: color-mix(in oklab, var(--bg-0) 90%, transparent);
+  border-bottom: 1px solid transparent; transition: .25s;
 }
-.ln-nav.scrolled { border-bottom-color: var(--hair-soft); background: color-mix(in oklab, var(--bg-0) 88%, transparent); }
+.ln-nav.scrolled { border-bottom-color: var(--hair-soft); background: color-mix(in oklab, var(--bg-0) 97%, transparent); }
 .ln-brand { display: flex; align-items: center; gap: 11px; }
 .ln-brand .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 14px var(--accent), 0 0 3px #fff inset; }
 .ln-brand .wm { font-family: "Hanken Grotesk"; font-weight: 800; letter-spacing: 0.42em; font-size: 15px; text-transform: uppercase; padding-left: 2px; color: var(--ink); }
@@ -197,7 +199,7 @@ body { overflow-y: auto; }
 .ln-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 56px; }
 .ln-step {
   position: relative; padding: 40px 28px 36px; border-radius: 18px;
-  border: 1px solid var(--hair); background: var(--panel); backdrop-filter: blur(6px);
+  border: 1px solid var(--hair); background: var(--panel);
 }
 .ln-step .sn { font-family: "Space Mono", monospace; font-size: 12px; letter-spacing: 0.2em; color: var(--accent); }
 .ln-step .si { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; margin-top: 18px;
@@ -210,7 +212,7 @@ body { overflow-y: auto; }
 .ln-packs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 50px; }
 .ln-pack {
   position: relative; padding: 30px 26px; border-radius: 18px;
-  border: 1px solid var(--hair); background: var(--panel); backdrop-filter: blur(6px); transition: .22s;
+  border: 1px solid var(--hair); background: var(--panel); transition: .22s;
 }
 .ln-pack:hover { border-color: color-mix(in oklab, var(--accent) 45%, var(--hair)); transform: translateY(-3px); }
 .ln-pack.feature { border-color: color-mix(in oklab, var(--accent) 55%, transparent); background: color-mix(in oklab, var(--accent) 7%, transparent);
@@ -228,7 +230,7 @@ body { overflow-y: auto; }
 .ln-privacy-card {
   display: grid; grid-template-columns: 64px 1fr; gap: 26px; align-items: start;
   border-radius: 22px; border: 1px solid var(--hair); background: var(--panel-2);
-  padding: 40px 42px; backdrop-filter: blur(8px); max-width: 900px; margin: 48px auto 0;
+  padding: 40px 42px; max-width: 900px; margin: 48px auto 0;
 }
 .ln-privacy-card .ic { width: 64px; height: 64px; border-radius: 16px; display: grid; place-items: center;
   border: 1px solid color-mix(in oklab, var(--accent) 40%, var(--hair)); background: color-mix(in oklab, var(--accent) 8%, transparent); color: var(--accent); }
@@ -283,7 +285,7 @@ body { overflow-y: auto; }
 .ln-mobilebar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: none;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  background: color-mix(in oklab, var(--bg-0) 90%, transparent); backdrop-filter: blur(8px);
+  background: color-mix(in oklab, var(--bg-0) 97%, transparent);
   border-top: 1px solid var(--hair); gap: 12px; align-items: center;
 }
 .ln-mobilebar .mb-meta { flex: 1; min-width: 0; }
@@ -327,7 +329,7 @@ body { overflow-y: auto; }
 .ln-rail-dot .lbl { font-family: "Space Mono", monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--ink-dim); white-space: nowrap; pointer-events: none; opacity: 0; transform: translateX(-6px); transition: .2s;
   padding: 6px 11px; border-radius: 999px; border: 1px solid var(--hair-soft);
-  background: color-mix(in oklab, var(--bg-0) 70%, transparent); backdrop-filter: blur(6px); }
+  background: color-mix(in oklab, var(--bg-0) 94%, transparent); }
 .ln-rail-dot:hover .n { border-color: color-mix(in oklab, var(--accent) 50%, var(--hair)); color: var(--ink); }
 .ln-rail-dot:hover .lbl { opacity: 1; transform: translateX(0); }
 .ln-rail-dot.active .n { color: var(--accent-ink); background: var(--accent); border-color: var(--accent);

@@ -1,7 +1,7 @@
 // apps/web/src/services/versusScanService.ts
 import type { VersusResult } from '@fitaura/shared';
 import type { Battle } from '../state/battle';
-import { supabase } from '../lib/supabase';
+import { getSupabase } from '../lib/supabase';
 
 export interface InlineImage {
   mimeType: string;
@@ -42,6 +42,7 @@ export async function runVersusScan(battle: Battle): Promise<VersusScanOutcome> 
 
   const body = { battleId: crypto.randomUUID(), mode, images };
 
+  const supabase = await getSupabase();
   const { data, error } = await supabase.functions.invoke('versus-scan', { body });
 
   if (error || !data) {

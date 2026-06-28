@@ -18,12 +18,12 @@ const {
   }));
 
 vi.mock('../lib/supabase', () => ({
-  supabase: {
+  getSupabase: () => Promise.resolve({
     auth: {
       signUp, signInWithPassword, signInWithOAuth, signOut, resend, resetPasswordForEmail, verifyOtp, updateUser,
     },
     rpc,
-  },
+  }),
 }));
 
 import {
