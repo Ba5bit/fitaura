@@ -122,7 +122,7 @@ export function VersusScan() {
 
   // Guest deferral: a signed-out visitor runs the teaser only, then registers at
   // the reveal; the battle (spend + AI) runs here, once, after register.
-  const { requestRegister } = useRevealGate({
+  const { requestRegister, pending } = useRevealGate({
     redirectTo: '/versus/run',
     readyToResume: credits >= 2,
     onResume: () => startScan(true),
@@ -229,7 +229,7 @@ export function VersusScan() {
             <div className="right">
               <span className="live-chip">
                 <span className="d" />
-                {revealReady ? 'Verdict ready' : errored ? 'Battle hiccup' : 'Scanning'}
+                {revealReady ? 'Verdict ready' : errored ? 'Battle hiccup' : finishingUp ? 'Finishing up' : 'Scanning'}
               </span>
               <button className="leave-btn" onClick={() => navigate('/versus')} aria-label="Leave scan">
                 <Icon.x />
@@ -247,8 +247,8 @@ export function VersusScan() {
                 <p className="sub">
                   {names.a} vs {names.b} — create your free account to reveal the head-to-head.
                 </p>
-                <button className="go" onClick={requestRegister}>
-                  <Icon.bolt /> Sign up to reveal the winner
+                <button className="go" onClick={requestRegister} disabled={pending}>
+                  <Icon.bolt /> {pending ? 'Opening sign-up…' : 'Sign up to reveal the winner'}
                 </button>
               </div>
             ) : errored ? (
