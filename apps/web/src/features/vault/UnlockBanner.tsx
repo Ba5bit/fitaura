@@ -57,7 +57,7 @@ export function UnlockBanner({ variant = 'banner' }: { variant?: 'banner' | 'row
           <Icon.check /> {busy ? 'Redeeming…' : 'Redeem'}
         </button>
       </div>
-      {note && <div className="vlt-redeem-note" style={{ color: note.tone }}>{note.msg}</div>}
+      {note && <div className="vlt-redeem-note" role="status" aria-live="polite" style={{ color: note.tone }}>{note.msg}</div>}
     </form>
   );
 }
