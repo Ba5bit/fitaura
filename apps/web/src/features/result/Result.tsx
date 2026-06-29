@@ -6,6 +6,9 @@ import { CardSwitcher } from '../../components/cards/CardSwitcher';
 import { skinsFor, skinIndex } from '../../components/cards/skins/registry';
 import { ReceiptStampEditor } from '../../components/cards/ReceiptStampEditor';
 import { StaticStamp } from '../../components/cards/ExportOverlays';
+import { EditionSwitch } from '../../components/EditionSwitch';
+import { EditionLockup } from '../../components/cards/EditionLockup';
+import { asEditionId, type EditionId } from '../../components/cards/editions/registry';
 import {
   FaceAnalysisBlock,
   OutfitAnalysisBlock,
@@ -98,6 +101,11 @@ export function Result() {
   // invisible). Persisted per generation, like the stamp state.
   const [faceSkin, setFaceSkin] = usePerCardState<string>(fxKey ? `${fxKey}.skin.face` : null, 'dossier');
   const [outfitSkin, setOutfitSkin] = usePerCardState<string>(fxKey ? `${fxKey}.skin.outfit` : null, 'dossier');
+  // The active edition (a coordinated co-brand re-skin of all three cards), persisted
+  // per generation like the skin/stamp state. `nf` = the nFactorial Edition is active.
+  const [edition, setEditionRaw] = usePerCardState<EditionId>(fxKey ? `${fxKey}.edition` : null, 'default');
+  const setEdition = (id: EditionId) => setEditionRaw(asEditionId(id));
+  const nf = edition === 'nfactorial';
 
   // Offscreen full-scale render hosts used purely for WYSIWYG export. Mounted
   // only while an export is in flight (see `withExportHost`) so the Result page
@@ -302,8 +310,11 @@ export function Result() {
   const outfitContent = result.outfit ? result.outfit.card : null;
   // The active skin's component per kind — used to render the SELECTED skin into
   // the offscreen export host (so a downloaded card matches the on-screen skin).
-  const FaceSkinComp = skinsFor('face')[skinIndex('face', faceSkin)].Comp;
-  const OutfitSkinComp = skinsFor('outfit')[skinIndex('outfit', outfitSkin)].Comp;
+  // The nFactorial Edition re-tints the Dossier base (the scoped CSS targets the
+  // .facecard/.outfitcard markup), so under `nf` we pin export to Dossier (index 0)
+  // regardless of the per-kind skin pick; otherwise export the selected skin.
+  const FaceSkinComp = nf ? skinsFor('face')[0].Comp : skinsFor('face')[skinIndex('face', faceSkin)].Comp;
+  const OutfitSkinComp = nf ? skinsFor('outfit')[0].Comp : skinsFor('outfit')[skinIndex('outfit', outfitSkin)].Comp;
 
   // Visible asset (built-in seal off — the editable layer renders it).
   const assetEl =
@@ -311,6 +322,10 @@ export function Result() {
       <FaceCard content={faceContent!} run roast={result.face!.analysis.roast} />
     ) : kind === 'outfit' ? (
       <OutfitCard content={outfitContent!} run roast={result.outfit!.analysis.verdict} />
+    ) : nf ? (
+      // The nFactorial receipt re-tints the standard Receipt (the scope targets
+      // .asset.receipt); ReceiptPremium is a different layout the scope won't catch.
+      <Receipt content={result.receipt} paper={premiumLike ? 'neon' : paper} sealOn={false} />
     ) : premiumLike ? (
       <ReceiptPremium content={result.receipt} />
     ) : (
@@ -320,7 +335,7 @@ export function Result() {
   // Only the receipt has an editable overlay now (the stamp/seal). Image cards
   // render their skin with no overlay.
   const overlayEl =
-    kind === 'receipt' && !premiumLike ? (
+    kind === 'receipt' && !premiumLike && !nf ? (
       <ReceiptStampEditor preset={receiptPreset} setPreset={setReceiptPreset} editing={editing} />
     ) : null;
 
@@ -429,17 +444,35 @@ export function Result() {
             onTouchEnd={onTouchEnd}
           >
             <div className="rs-frame-inner">
-              <div className="rs-card-mount" data-paper={paper} data-verdict={result.verdict} data-gender={gender}>
+              <div className="rs-card-mount" data-paper={paper} data-verdict={result.verdict} data-gender={gender} data-edition={edition}>
                 {editing && (
                   <div className="st-edithint">
                     {kind === 'receipt' ? 'PICK A POSITION' : 'DRAG'} · <kbd>←↑↓→</kbd> nudge · <kbd>Esc</kbd> done
                   </div>
                 )}
                 {kind === 'receipt' ? (
-                  <>
-                    {assetEl}
-                    {overlayEl}
-                  </>
+                  nf ? (
+                    <div className="nf-cardhost">
+                      {assetEl}
+                      <EditionLockup kind="receipt" />
+                    </div>
+                  ) : (
+                    <>
+                      {assetEl}
+                      {overlayEl}
+                    </>
+                  )
+                ) : nf ? (
+                  // The Edition pins the Dossier base (the scoped re-tint targets it)
+                  // and drops a co-brand lockup; the per-skin deck is hidden while on.
+                  <div className="nf-cardhost">
+                    {kind === 'face' ? (
+                      <FaceCard content={faceContent!} run roast={result.face!.analysis.roast} />
+                    ) : (
+                      <OutfitCard content={outfitContent!} run roast={result.outfit!.analysis.verdict} />
+                    )}
+                    <EditionLockup kind={kind} />
+                  </div>
                 ) : (
                   <CardSwitcher
                     kind={kind}
@@ -460,7 +493,7 @@ export function Result() {
           </div>
 
           {/* skin-switcher dots — below the card, full size (the deck is scaled) */}
-          {kind !== 'receipt' && skinsFor(kind).length > 1 && (
+          {!nf && kind !== 'receipt' && skinsFor(kind).length > 1 && (
             <div className="cs-dots" role="tablist" aria-label="Card skin">
               {skinsFor(kind).map((s) => {
                 const sel = kind === 'face' ? faceSkin : outfitSkin;
@@ -480,8 +513,9 @@ export function Result() {
             </div>
           )}
 
-          {/* contextual controls — receipt */}
-          {!editing && kind === 'receipt' && (
+          {/* contextual controls — receipt (the Edition owns the receipt look, so its
+              paper/stamp bar is hidden while on) */}
+          {!editing && kind === 'receipt' && !nf && (
             <div className="rs-controlbar">
               <span className="rs-cb-label">Paper</span>
               <div className="rs-seg">
@@ -559,6 +593,10 @@ export function Result() {
             </div>
           )}
 
+          {/* edition switch — re-skins all cards together (gated by entitlement;
+              self-hides when the account isn't entitled) */}
+          {!editing && <EditionSwitch value={edition} onChange={setEdition} />}
+
           {/* per-asset export / share */}
           {!editing && (
             <div className="rs-assetactions">
@@ -604,13 +642,15 @@ export function Result() {
       {exporting && (
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         {faceContent && (
-        <div className="rs-export-card" ref={exportRefs.face} data-gender={gender}>
+        <div className="rs-export-card" ref={exportRefs.face} data-gender={gender} data-edition={edition}>
           <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} run={false} roast={result.face!.analysis.roast} />
+          {nf && <EditionLockup kind="face" />}
         </div>
         )}
         {outfitContent && (
-        <div className="rs-export-card" ref={exportRefs.outfit} data-gender={gender}>
+        <div className="rs-export-card" ref={exportRefs.outfit} data-gender={gender} data-edition={edition}>
           <OutfitSkinComp content={outfitContent} verdict={result.verdict} gender={gender} run={false} roast={result.outfit!.analysis.verdict} />
+          {nf && <EditionLockup kind="outfit" />}
         </div>
         )}
         <div
@@ -619,8 +659,14 @@ export function Result() {
           data-paper={paper}
           data-verdict={result.verdict}
           data-gender={gender}
+          data-edition={edition}
         >
-          {premiumLike ? (
+          {nf ? (
+            <>
+              <Receipt content={result.receipt} paper={premiumLike ? 'neon' : paper} sealOn={false} />
+              <EditionLockup kind="receipt" />
+            </>
+          ) : premiumLike ? (
             <ReceiptPremium content={result.receipt} />
           ) : (
             <>

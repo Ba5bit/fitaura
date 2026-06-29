@@ -63,3 +63,8 @@
 [data-edition="nfactorial"] .nf-lockup--outfit{ top:14px; left:16px; color:#fff;
   text-shadow:0 1px 10px rgba(0,0,0,.7); }
 [data-edition="nfactorial"] .nf-lockup--outfit .x{ color:rgba(255,255,255,.6); }
+
+/* lockup host: a relative box that tightly wraps the card so the absolutely
+   positioned lockup anchors to the card's top-left (visible deck + export host) */
+.nf-cardhost{ position:relative; display:inline-block; }
+.rs-export-card[data-edition="nfactorial"]{ position:relative; }
