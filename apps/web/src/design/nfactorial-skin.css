@@ -1,0 +1,65 @@
+/* nFactorial Edition — scoped re-tint of the CURRENT Solo cards. Active only
+   under [data-edition="nfactorial"]; the Default edition never sees these rules.
+   White surface + ¡n! red accent. Reference: nfactorial-skin-kit/nfactorial.css. */
+
+[data-edition="nfactorial"]{
+  /* the only accent the whole Edition rides on */
+  --accent:#e8232a;
+  --accent-ink:#ffffff;
+  --verdict:#e8232a;
+  /* white-edition surface + ink (verify these token names against fitaura.css
+     :root; adjust if a name differs there) */
+  --ink:#16181d;
+  --ink-dim:rgba(22,24,29,.62);
+  --ink-faint:rgba(22,24,29,.42);
+  --hair:rgba(0,0,0,.12);
+  --hair-soft:rgba(0,0,0,.08);
+  --panel:rgba(0,0,0,.03);
+}
+
+/* ---- card surface goes light (face + outfit + receipt body) ---- */
+[data-edition="nfactorial"] .asset.facecard,
+[data-edition="nfactorial"] .asset.outfitcard .oc-body,
+[data-edition="nfactorial"] .asset.receipt .receipt-inner{
+  background:linear-gradient(180deg,#ffffff,#f6f7f9 80%);
+  color:var(--ink);
+}
+[data-edition="nfactorial"] .asset{
+  border-color:rgba(0,0,0,.10);
+  box-shadow:0 34px 70px -34px rgba(20,22,28,.4), 0 6px 20px -12px rgba(20,22,28,.25);
+}
+
+/* ---- red accent on the brand/eyebrow/score + a sealing red top rule ---- */
+[data-edition="nfactorial"] .brand-tag{ color:var(--accent); }
+[data-edition="nfactorial"] .fc-eyebrow{ color:var(--accent); }
+[data-edition="nfactorial"] .fc-line .hl{ color:var(--accent); }
+[data-edition="nfactorial"] .outfit-photo::after{
+  content:""; position:absolute; top:0; left:0; right:0; height:3px; z-index:5;
+  background:var(--accent); box-shadow:0 0 16px -2px var(--accent);
+}
+[data-edition="nfactorial"] .score-badge .sub{
+  background:var(--accent) !important; color:#fff !important;
+}
+
+/* ---- receipt: white paper + red rule ---- */
+[data-edition="nfactorial"] .asset.receipt{ --receipt-ink:#16181d; }
+[data-edition="nfactorial"] .asset.receipt .receipt-inner{ border-top:3px solid var(--accent); }
+[data-edition="nfactorial"] .asset.receipt .r-head .logo,
+[data-edition="nfactorial"] .asset.receipt .r-verdict .r-stamp-big{ color:#16181d; }
+[data-edition="nfactorial"] .asset.receipt .r-row .v.good{ color:#1f9b54; }
+
+/* ---- co-brand lockup placement (markup from <EditionLockup/>) ---- */
+[data-edition="nfactorial"] .nf-lockup{
+  position:absolute; z-index:6; display:flex; align-items:center; gap:8px;
+  font-family:"Space Mono",monospace; font-weight:700; font-size:11px;
+  letter-spacing:0.14em; text-transform:uppercase;
+}
+[data-edition="nfactorial"] .nf-lockup .x{ color:rgba(0,0,0,.4); }
+[data-edition="nfactorial"] .nf-lockup .chip{ width:26px; height:26px; border-radius:50%;
+  box-shadow:0 0 0 1px rgba(0,0,0,.15), 0 6px 16px -6px rgba(232,35,42,.7); }
+[data-edition="nfactorial"] .nf-lockup--face,
+[data-edition="nfactorial"] .nf-lockup--receipt{ top:14px; left:16px; color:var(--ink); }
+/* on the photo-led outfit card the lockup sits over the image → keep it white */
+[data-edition="nfactorial"] .nf-lockup--outfit{ top:14px; left:16px; color:#fff;
+  text-shadow:0 1px 10px rgba(0,0,0,.7); }
+[data-edition="nfactorial"] .nf-lockup--outfit .x{ color:rgba(255,255,255,.6); }
