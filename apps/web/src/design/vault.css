@@ -413,3 +413,17 @@
 @media (prefers-reduced-motion: reduce) {
   .vlt-menu, .vlt-modal, .vlt-toast, .vlt-scrim { animation: none !important; }
 }
+
+/* "Have a code?" redeem field (Vault banner + Settings row) */
+.vlt-redeem{ display:flex; align-items:center; justify-content:space-between; gap:18px;
+  flex-wrap:wrap; }
+.vlt-redeem.banner{ margin:0 0 18px; padding:16px 18px; border-radius:14px;
+  border:1px solid color-mix(in oklab,var(--accent) 30%,var(--hair));
+  background:color-mix(in oklab,var(--accent) 7%,transparent); }
+.vlt-redeem-tx .k{ font-weight:700; }
+.vlt-redeem-tx .s{ color:var(--ink-dim); font-size:13px; }
+.vlt-redeem-field{ display:flex; gap:8px; align-items:center; }
+.vlt-redeem-field input{ font-family:var(--mono,monospace); letter-spacing:.06em;
+  text-transform:uppercase; padding:9px 12px; border-radius:9px;
+  border:1px solid var(--hair); background:var(--panel,rgba(255,255,255,.03)); color:var(--ink); }
+.vlt-redeem-note{ flex-basis:100%; font-size:13px; }

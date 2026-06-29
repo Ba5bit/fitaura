@@ -5,6 +5,7 @@ import { useAccount } from '../account/AccountContext';
 import { usePreferences } from '../../state/preferences';
 import { VaultNav } from './VaultNav';
 import { SubHead } from './SubHead';
+import { UnlockBanner } from './UnlockBanner';
 
 /** Settings — privacy, on-device storage management and app preferences. */
 export function Settings() {
@@ -168,6 +169,14 @@ export function Settings() {
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* redeem a code */}
+          <div className="vlt-panel">
+            <h3 className="vlt-panel-h">
+              <Icon.star /> Editions
+            </h3>
+            <UnlockBanner variant="row" />
           </div>
         </div>
       </div>
