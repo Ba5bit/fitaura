@@ -1,70 +1,719 @@
-/* nFactorial Edition — scoped re-tint of the CURRENT Solo cards. Active only
-   under [data-edition="nfactorial"]; the Default edition never sees these rules.
-   White surface + ¡n! red accent. Reference: nfactorial-skin-kit/nfactorial.css. */
+/* ============================================================
+   FITAURA × nFACTORIAL EDITION — scoped card stylesheet.
 
-[data-edition="nfactorial"]{
+   A faithful port of the user's own skin kit card styles
+   (nfactorial-skin-kit/fitaura.css card rules + nfactorial.css overlay),
+   with the WHITE edition baked in as the DEFAULT surface (no toggle) and
+   the ¡n! red (#e8232a) as the only accent.
+
+   EVERY selector is prefixed with `.nfx ` (descendant). The `.nfx` root wrapper
+   (rendered by NFCards.tsx) is `display:contents` so it adds no layout box while
+   still passing its custom properties down to the card. This scoping guarantees
+   the app's DEFAULT cards — which use the SAME class names UNSCOPED — are never
+   touched by these rules. Only the deck-stage / page-chrome rules are dropped.
+
+   Fonts (Anton / Hanken Grotesk / Space Mono) are already loaded in index.html.
+   ============================================================ */
+
+/* ---------------- scope handle: tokens + white-edition surfaces ---------------- */
+.nfx {
+  display: contents; /* no layout box; custom props still inherit to the card */
+
   /* the only accent the whole Edition rides on */
-  --accent:#e8232a;
-  --accent-ink:#ffffff;
-  --verdict:#e8232a;
-  /* white-edition surface + ink (verify these token names against fitaura.css
-     :root; adjust if a name differs there) */
-  --ink:#16181d;
-  --ink-dim:rgba(22,24,29,.62);
-  --ink-faint:rgba(22,24,29,.42);
-  --hair:rgba(0,0,0,.12);
-  --hair-soft:rgba(0,0,0,.08);
-  --panel:rgba(0,0,0,.03);
+  --accent: #e8232a;
+  --accent-ink: #ffffff;
+  --nf-red: #e8232a;
+  --verdict: #e8232a;
+  --verdict-ink: #fff;
+
+  /* white edition — light surfaces, ink-black type */
+  --ink: #16181d;
+  --ink-dim: rgba(22, 24, 29, 0.62);
+  --ink-faint: rgba(22, 24, 29, 0.42);
+  --ink-ghost: rgba(22, 24, 29, 0.16);
+  --hair: rgba(0, 0, 0, 0.12);
+  --hair-soft: rgba(0, 0, 0, 0.08);
+  --panel: rgba(0, 0, 0, 0.03);
+  --panel-2: rgba(0, 0, 0, 0.05);
+  --lime: #1f9b54; /* readable green on white paper */
+  --chrome: linear-gradient(145deg, #fff 0%, #cdd3da 22%, #8e96a1 48%, #eef1f4 60%, #9aa1ab 78%, #d7dce2 100%);
+  --shadow-card: 0 34px 70px -34px rgba(20, 22, 28, 0.4), 0 6px 20px -12px rgba(20, 22, 28, 0.25);
+
+  font-family: 'Hanken Grotesk', system-ui, sans-serif;
 }
 
-/* ---- card surface goes light (face + outfit + receipt body) ---- */
-[data-edition="nfactorial"] .asset.facecard,
-[data-edition="nfactorial"] .asset.outfitcard .oc-body,
-[data-edition="nfactorial"] .asset.receipt .receipt-inner{
-  background:linear-gradient(180deg,#ffffff,#f6f7f9 80%);
-  color:var(--ink);
+/* ============================ SHARED ASSET ============================ */
+/* the kit's base .asset is absolutely-positioned for its deck stage — in the app
+   each card must be a normal in-flow box (mirrors the kit's .nf-cardwrap rule) */
+.nfx .asset {
+  position: relative;
+  inset: auto;
+  flex: none;
+  width: 360px;
+  height: 640px;
+  border-radius: 26px;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(180deg, #ffffff, #f6f7f9 80%);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-card);
 }
-[data-edition="nfactorial"] .asset{
-  border-color:rgba(0,0,0,.10);
-  box-shadow:0 34px 70px -34px rgba(20,22,28,.4), 0 6px 20px -12px rgba(20,22,28,.25);
-}
-
-/* ---- red accent on the brand/eyebrow/score + a sealing red top rule ---- */
-[data-edition="nfactorial"] .brand-tag{ color:var(--accent); }
-[data-edition="nfactorial"] .fc-eyebrow{ color:var(--accent); }
-[data-edition="nfactorial"] .fc-line .hl{ color:var(--accent); }
-[data-edition="nfactorial"] .outfit-photo::after{
-  content:""; position:absolute; top:0; left:0; right:0; height:3px; z-index:5;
-  background:var(--accent); box-shadow:0 0 16px -2px var(--accent);
-}
-[data-edition="nfactorial"] .score-badge .sub{
-  background:var(--accent) !important; color:#fff !important;
+/* white edition drops the dark-card top sheen */
+.nfx .asset::after {
+  display: none;
 }
 
-/* ---- receipt: white paper + red rule ---- */
-[data-edition="nfactorial"] .asset.receipt{ --receipt-ink:#16181d; }
-[data-edition="nfactorial"] .asset.receipt .receipt-inner{ border-top:3px solid var(--accent); }
-[data-edition="nfactorial"] .asset.receipt .r-head .logo,
-[data-edition="nfactorial"] .asset.receipt .r-verdict .r-stamp-big{ color:#16181d; }
-[data-edition="nfactorial"] .asset.receipt .r-row .v.good{ color:#1f9b54; }
-
-/* ---- co-brand lockup placement (markup from <EditionLockup/>) ---- */
-[data-edition="nfactorial"] .nf-lockup{
-  position:absolute; z-index:6; display:flex; align-items:center; gap:8px;
-  font-family:"Space Mono",monospace; font-weight:700; font-size:11px;
-  letter-spacing:0.14em; text-transform:uppercase;
+.nfx .brand-tag {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  font-size: 11px;
+  text-transform: uppercase;
 }
-[data-edition="nfactorial"] .nf-lockup .x{ color:rgba(0,0,0,.4); }
-[data-edition="nfactorial"] .nf-lockup .chip{ width:26px; height:26px; border-radius:50%;
-  box-shadow:0 0 0 1px rgba(0,0,0,.15), 0 6px 16px -6px rgba(232,35,42,.7); }
-[data-edition="nfactorial"] .nf-lockup--face,
-[data-edition="nfactorial"] .nf-lockup--receipt{ top:14px; left:16px; color:var(--ink); }
-/* on the photo-led outfit card the lockup sits over the image → keep it white */
-[data-edition="nfactorial"] .nf-lockup--outfit{ top:14px; left:16px; color:#fff;
-  text-shadow:0 1px 10px rgba(0,0,0,.7); }
-[data-edition="nfactorial"] .nf-lockup--outfit .x{ color:rgba(255,255,255,.6); }
+.nfx .kind-tag {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
 
-/* lockup host: a relative box that tightly wraps the card so the absolutely
-   positioned lockup anchors to the card's top-left (visible deck + export host) */
-.nf-cardhost{ position:relative; display:inline-block; }
-.rs-export-card[data-edition="nfactorial"]{ position:relative; }
+/* ---------------------------- mini stat ---------------------------- */
+.nfx .mstat .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.nfx .mstat .lbl {
+  font-family: 'Space Mono', monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.nfx .mstat .val {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+.nfx .mstat .track {
+  height: 5px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.09); /* dark-on-light groove */
+  overflow: hidden;
+}
+.nfx .mstat .fill {
+  height: 100%;
+  border-radius: 99px;
+  width: 0;
+  background: linear-gradient(90deg, color-mix(in oklab, var(--accent) 55%, #fff 0%), var(--accent));
+  box-shadow: 0 0 10px -1px var(--accent);
+  transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.nfx .mstat.hot .fill {
+  background: linear-gradient(90deg, color-mix(in oklab, var(--verdict) 55%, #000 0%), var(--verdict));
+  box-shadow: 0 0 10px -1px var(--verdict);
+}
+
+/* ============================ OUTFIT CARD ============================ */
+.nfx .outfitcard {
+  display: flex;
+  flex-direction: column;
+}
+.nfx .outfit-photo {
+  position: relative;
+  height: 440px;
+  overflow: hidden;
+}
+/* full-bleed image (image-slot replaced by a plain <img> in the app) */
+.nfx .outfit-photo image-slot,
+.nfx .outfit-photo img.slot-img,
+.nfx .outfit-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  display: block;
+}
+.nfx .outfit-photo .scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(6, 7, 10, 0.55) 0%, transparent 22%, transparent 55%, rgba(6, 7, 10, 0.85) 100%);
+}
+.nfx .oc-top {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  right: 20px;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.nfx .score-badge {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 4;
+  text-align: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  background: rgba(6, 7, 10, 0.55);
+  backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in oklab, var(--accent) 55%, var(--hair));
+  box-shadow: 0 0 36px -10px var(--accent);
+}
+.nfx .score-badge .num {
+  font-family: 'Anton', sans-serif;
+  font-size: 42px;
+  line-height: 0.82;
+  color: #fff;
+}
+.nfx .score-badge .sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.nfx .caption-bar {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  right: 18px;
+  z-index: 4;
+}
+.nfx .caption-bar .cap {
+  font-family: 'Anton', sans-serif;
+  font-size: 30px;
+  line-height: 0.95;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 18px #000;
+}
+.nfx .oc-body {
+  padding: 18px 22px 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.nfx .oc-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 13px 22px;
+}
+.nfx .oc-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--hair-soft);
+}
+.nfx .barcode {
+  display: flex;
+  gap: 2px;
+  height: 22px;
+  align-items: stretch;
+  opacity: 0.8;
+}
+.nfx .barcode i {
+  width: 2px;
+  background: var(--ink-dim);
+  display: block;
+}
+
+/* ===================== FACE CARD · FULL-BLEED (v2) ===================== */
+.nfx .facecard-fb .fc2-photo {
+  height: 430px;
+}
+/* deeper bottom scrim so the verdict + tagline stay legible over any face */
+.nfx .facecard-fb .scrim {
+  background: linear-gradient(180deg, rgba(6, 7, 10, 0.5) 0%, transparent 20%, transparent 42%, rgba(6, 7, 10, 0.72) 72%, rgba(6, 7, 10, 0.94) 100%);
+}
+/* number badge: solid accent label pill stacked above a big white figure */
+.nfx .facecard-fb .score-badge {
+  width: auto;
+  height: auto;
+  background: none;
+  backdrop-filter: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 0;
+}
+.nfx .facecard-fb .score-badge .sub {
+  margin: 0 0 -3px;
+  padding: 4px 9px 3px 12px;
+  border-radius: 8px;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  color: #06070a;
+  text-transform: uppercase;
+  background: var(--accent);
+  box-shadow: 0 8px 22px -8px color-mix(in oklab, var(--accent) 75%, transparent);
+}
+.nfx .facecard-fb .score-badge .num {
+  font-size: 50px;
+  line-height: 0.82;
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25), 0 8px 26px rgba(0, 0, 0, 0.6);
+}
+.nfx .facecard-fb .fc2-cap {
+  bottom: 20px;
+}
+.nfx .fc2-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 9px;
+}
+.nfx .fc2-name {
+  margin: 0;
+  font-family: 'Anton', sans-serif;
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
+  color: #fff;
+  text-wrap: balance;
+  text-shadow: 0 2px 18px #000, 0 0 30px color-mix(in oklab, var(--verdict) 45%, transparent);
+}
+.nfx .fc2-name .hl {
+  color: var(--verdict);
+}
+.nfx .fc2-tag {
+  margin-top: 11px;
+  max-width: 92%;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.28;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  text-shadow: 0 1px 12px #000;
+  text-wrap: pretty;
+}
+
+/* ============================ RECEIPT ============================ */
+.nfx .receipt {
+  width: 340px;
+  height: 640px;
+  border-radius: 6px;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-family: 'Space Mono', monospace;
+  filter: drop-shadow(var(--shadow-card));
+  box-shadow: none;
+  /* white-paper receipt vars */
+  --receipt-bg: #ffffff;
+  --receipt-ink: #16181d;
+  --receipt-line: rgba(0, 0, 0, 0.32);
+}
+.nfx .receipt::after {
+  display: none;
+}
+.nfx .r-edge {
+  height: 11px;
+  flex: none;
+  background: radial-gradient(circle at 8px -2px, transparent 8px, var(--receipt-bg, #ffffff) 9px) repeat-x;
+  background-size: 16px 11px;
+}
+.nfx .r-edge.top {
+  background-position: 0 -6px;
+}
+.nfx .r-edge.bottom {
+  transform: scaleY(-1);
+}
+.nfx .receipt-inner {
+  flex: 1;
+  background: var(--receipt-bg, #ffffff);
+  padding: 20px 26px 22px;
+  display: flex;
+  flex-direction: column;
+  color: var(--receipt-ink, #16181d);
+  overflow: hidden;
+  position: relative;
+}
+.nfx .r-head {
+  text-align: center;
+}
+.nfx .r-head .logo {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.34em;
+  font-size: 15px;
+  color: #16181d;
+}
+.nfx .r-head .sub {
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  margin-top: 6px;
+  opacity: 0.6;
+}
+.nfx .r-meta {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  margin-top: 9px;
+  opacity: 0.6;
+}
+.nfx .r-dotted {
+  border: 0;
+  border-top: 1.5px dashed var(--receipt-line, rgba(0, 0, 0, 0.32));
+  margin: 10px 0;
+}
+.nfx .r-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.nfx .r-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12.5px;
+}
+.nfx .r-row .k {
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+.nfx .r-row .lead {
+  flex: 1;
+  border-bottom: 1.5px dotted var(--receipt-line, rgba(0, 0, 0, 0.32));
+  transform: translateY(-3px);
+}
+.nfx .r-row .v {
+  white-space: nowrap;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.nfx .r-row .v.hi {
+  color: var(--verdict);
+}
+.nfx .r-row .v.good {
+  color: #1f9b54;
+}
+.nfx .r-subtotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 10px;
+}
+.nfx .r-verdict {
+  margin-top: 12px;
+  text-align: center;
+}
+.nfx .r-verdict .lbl {
+  font-size: 9.5px;
+  letter-spacing: 0.26em;
+  opacity: 0.6;
+}
+.nfx .r-stamp-big {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: 'Anton', sans-serif;
+  font-size: 30px;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  padding: 6px 16px;
+  white-space: nowrap;
+  color: var(--verdict);
+  border: 3px solid var(--verdict);
+  border-radius: 8px;
+  text-shadow: 0 0 24px color-mix(in oklab, var(--verdict) 50%, transparent);
+  box-shadow: 0 0 30px -12px var(--verdict);
+  transform: rotate(-3deg);
+}
+.nfx .r-punch {
+  margin-top: auto;
+  padding-top: 8px;
+  text-align: center;
+}
+.nfx .r-punch .eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.26em;
+  opacity: 0.55;
+}
+.nfx .r-punch .big {
+  font-family: 'Anton', sans-serif;
+  font-size: 20px;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  margin-top: 7px;
+  color: #16181d;
+  text-wrap: balance;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* invite — real scannable QR (replaces the kit's faux module grid) */
+.nfx .r-invite {
+  margin-top: 10px;
+  padding-top: 11px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  border-top: 1px dashed var(--receipt-line, rgba(0, 0, 0, 0.32));
+}
+.nfx .r-qr {
+  width: 130px;
+  height: 130px;
+  flex: none;
+  padding: 7px;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12), 0 6px 16px -9px rgba(0, 0, 0, 0.4);
+}
+.nfx .r-qr svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.nfx .r-invite-copy {
+  flex: 1;
+  min-width: 0;
+}
+.nfx .r-invite-eye {
+  font-family: 'Space Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+.nfx .r-invite-h {
+  font-family: 'Anton', sans-serif;
+  font-size: 21px;
+  line-height: 0.96;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  color: var(--receipt-ink, #16181d);
+}
+.nfx .r-invite-sub {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  opacity: 0.5;
+  margin-top: 8px;
+}
+
+/* ============================================================
+   nFACTORIAL OVERLAY — red co-brand lockup, seal, watermark, accents.
+   ============================================================ */
+
+/* ---- co-brand lockup placed in each card's top bar ---- */
+.nfx .nf-lock {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.nfx .nf-lock .brand-tag {
+  color: #fff; /* always over the photo */
+}
+.nfx .nf-lock .nf-x {
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  transform: translateY(-1px);
+}
+.nfx .nf-chip {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: block;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2), 0 6px 16px -6px rgba(232, 35, 42, 0.85);
+}
+
+/* ---- full-bleed face/outfit: keep labels readable (white on red fill) ---- */
+.nfx .nf-face .fc2-eyebrow,
+.nfx .nf-outfit .fc2-eyebrow {
+  color: var(--nf-red);
+}
+.nfx .facecard-fb.nf-face .score-badge .sub {
+  color: #fff !important;
+  background: var(--nf-red) !important;
+}
+
+/* edition tie: thin red accent sealing the card top, drawn over the photo */
+.nfx .nf-face .outfit-photo::after,
+.nfx .nf-outfit .outfit-photo::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 5;
+  background: var(--nf-red);
+  box-shadow: 0 0 16px -2px var(--nf-red);
+}
+
+/* ============================ RECEIPT — nFactorial ============================ */
+.nfx .nf-receipt .receipt-inner {
+  padding-top: 24px;
+  border-top: 3px solid var(--nf-red); /* red top rule to match the cards */
+}
+.nfx .nf-rcpt-wm {
+  position: absolute;
+  right: -30px;
+  bottom: 54px;
+  width: 168px;
+  height: 168px;
+  opacity: 0.06;
+  pointer-events: none;
+  z-index: 0;
+}
+.nfx .nf-rcpt-seal {
+  position: absolute;
+  top: 13px;
+  right: 13px;
+  width: 52px;
+  height: 52px;
+  transform: rotate(12deg);
+  z-index: 5;
+  opacity: 0.96;
+  filter: drop-shadow(0 6px 14px rgba(232, 35, 42, 0.55));
+}
+.nfx .nf-rcpt-seal img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 50%;
+}
+/* keep the content above the watermark */
+.nfx .nf-receipt .r-head,
+.nfx .nf-receipt .r-rows,
+.nfx .nf-receipt .r-verdict,
+.nfx .nf-receipt .r-punch,
+.nfx .nf-receipt .r-invite,
+.nfx .nf-receipt .r-subtotal,
+.nfx .nf-receipt .r-meta {
+  position: relative;
+  z-index: 1;
+}
+/* white-paper receipt good-row green + QR shadow tuned for white */
+.nfx .nf-receipt .r-row .v.good {
+  color: #1f9b54;
+}
+.nfx .nf-receipt .r-qr {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12), 0 6px 16px -9px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   READABILITY FIXES (nFactorial cards)
+   ============================================================ */
+
+/* stats — keep each label on one line so it never collides with its bar */
+.nfx .nf-face .oc-stats,
+.nfx .nf-outfit .oc-stats {
+  gap: 15px 22px;
+}
+.nfx .nf-face .mstat .top,
+.nfx .nf-outfit .mstat .top {
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.nfx .nf-face .mstat .lbl,
+.nfx .nf-outfit .mstat .lbl {
+  white-space: nowrap;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+.nfx .nf-face .mstat.hot .fill,
+.nfx .nf-outfit .mstat.hot .fill {
+  background: linear-gradient(90deg, color-mix(in oklab, var(--verdict) 55%, #000 0%), var(--verdict));
+}
+/* est-age has no bar — pull its value up snug against the label */
+.nfx .nf-face .mstat--nobar .top {
+  justify-content: flex-start;
+  gap: 11px;
+}
+/* face tagline sits over the photo — keep it white */
+.nfx .nf-face .fc2-tag {
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 12px #000, 0 0 22px rgba(0, 0, 0, 0.5);
+}
+
+/* photo — drop the heavy black scrim; keep only a soft bottom fade */
+.nfx .nf-outfit .outfit-photo .scrim {
+  background: linear-gradient(180deg, transparent 0%, transparent 60%, rgba(6, 7, 10, 0.6) 100%) !important;
+}
+.nfx .facecard-fb.nf-face .scrim {
+  background: linear-gradient(180deg, transparent 0%, transparent 46%, rgba(6, 7, 10, 0.42) 72%, rgba(6, 7, 10, 0.8) 100%) !important;
+}
+.nfx .nf-face .nf-lock .brand-tag,
+.nfx .nf-outfit .nf-lock .brand-tag,
+.nfx .nf-face .nf-lock .nf-x,
+.nfx .nf-outfit .nf-lock .nf-x {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
+}
+
+/* outfit score badge — match the Face card: solid accent label pill above a big
+   white figure (drop the bordered glass box) */
+.nfx .nf-outfit .score-badge {
+  top: 18px;
+  right: 18px;
+  width: auto;
+  height: auto;
+  background: none;
+  backdrop-filter: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 0;
+}
+.nfx .nf-outfit .score-badge .sub {
+  margin: 0 0 -3px;
+  padding: 4px 9px 3px 12px;
+  border-radius: 8px;
+  font-family: 'Space Mono', monospace;
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: #fff !important;
+  text-transform: uppercase;
+  background: var(--nf-red) !important;
+  box-shadow: 0 8px 22px -8px color-mix(in oklab, var(--nf-red) 75%, transparent);
+}
+.nfx .nf-outfit .score-badge .num {
+  font-family: 'Anton', sans-serif;
+  font-size: 50px;
+  line-height: 0.82;
+  color: #fff;
+  text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25), 0 8px 26px rgba(0, 0, 0, 0.6);
+}
