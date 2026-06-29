@@ -23,6 +23,7 @@ const Vault = lazy(() => import('./features/vault/Vault').then((m) => ({ default
 const AccountInfo = lazy(() => import('./features/vault/AccountInfo').then((m) => ({ default: m.AccountInfo })));
 const Pricing = lazy(() => import('./features/vault/Pricing').then((m) => ({ default: m.Pricing })));
 const Settings = lazy(() => import('./features/vault/Settings').then((m) => ({ default: m.Settings })));
+const Unlock = lazy(() => import('./features/unlock/Unlock').then((m) => ({ default: m.Unlock })));
 const AuthConfirm = lazy(() => import('./features/auth/AuthConfirm').then((m) => ({ default: m.AuthConfirm })));
 const AuthCallback = lazy(() => import('./features/auth/AuthCallback').then((m) => ({ default: m.AuthCallback })));
 const UpdatePassword = lazy(() => import('./features/auth/UpdatePassword').then((m) => ({ default: m.UpdatePassword })));
@@ -69,6 +70,7 @@ export function App() {
             <Route path="/account" element={<AccountInfo />} />
             <Route path="/credits" element={<Pricing />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/unlock/:code" element={<Unlock />} />
             {/* Redirects from the old account-area IA into the new vault. */}
             <Route path="/storage" element={<Navigate to="/settings" replace />} />
             <Route path="/results" element={<Navigate to="/vault" replace />} />
