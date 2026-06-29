@@ -175,14 +175,16 @@
 }
 .nfx .score-badge .num {
   font-family: 'Anton', sans-serif;
-  font-size: 42px;
-  line-height: 0.82;
+  font-size: 56px; /* design-system .score-badge .num (was 42px) */
+  line-height: 0.86;
+  letter-spacing: 0.01em;
   color: #fff;
 }
 .nfx .score-badge .sub {
   font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  letter-spacing: 0.14em;
+  font-weight: 700; /* design-system .score-badge .sub */
+  font-size: 11px;
+  letter-spacing: 0.18em;
   color: var(--accent);
   text-transform: uppercase;
   margin-top: 4px;
@@ -263,16 +265,17 @@
   border-radius: 8px;
   font-family: 'Space Mono', monospace;
   font-weight: 700;
-  font-size: 9px;
-  letter-spacing: 0.24em;
+  font-size: 11px; /* design-system .score-badge .sub */
+  letter-spacing: 0.18em;
   color: #06070a;
   text-transform: uppercase;
   background: var(--accent);
   box-shadow: 0 8px 22px -8px color-mix(in oklab, var(--accent) 75%, transparent);
 }
 .nfx .facecard-fb .score-badge .num {
-  font-size: 50px;
-  line-height: 0.82;
+  font-size: 56px; /* design-system .score-badge .num (was 50px) */
+  line-height: 0.86;
+  letter-spacing: 0.01em;
   color: #fff;
   text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25), 0 8px 26px rgba(0, 0, 0, 0.6);
 }
@@ -291,8 +294,8 @@
   margin: 0;
   font-family: 'Anton', sans-serif;
   font-weight: 400;
-  font-size: 34px;
-  line-height: 0.9;
+  font-size: 30px; /* mapped to design-system .caption-bar .cap (was 34px) */
+  line-height: 0.95;
   letter-spacing: 0.005em;
   text-transform: uppercase;
   color: #fff;
@@ -306,10 +309,10 @@
   margin-top: 11px;
   max-width: 92%;
   font-family: 'Hanken Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: 800; /* mapped to design-system .caption-bar .fc-roast (was 700/13px) */
+  font-size: 15px;
   line-height: 1.28;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--ink-dim);
   text-shadow: 0 1px 12px #000;
@@ -440,7 +443,7 @@
   display: inline-block;
   margin-top: 8px;
   font-family: 'Anton', sans-serif;
-  font-size: 30px;
+  font-size: 33px; /* design-system .r-stamp-big (was 30px) */
   line-height: 0.95;
   letter-spacing: 0.02em;
   padding: 6px 16px;
@@ -464,8 +467,8 @@
 }
 .nfx .r-punch .big {
   font-family: 'Anton', sans-serif;
-  font-size: 20px;
-  line-height: 1;
+  font-size: 23px; /* design-system .r-punch .big (was 20px) */
+  line-height: 0.98;
   letter-spacing: 0.01em;
   text-transform: uppercase;
   margin-top: 7px;
@@ -703,7 +706,7 @@
   border-radius: 8px;
   font-family: 'Space Mono', monospace;
   font-weight: 700;
-  font-size: 9px;
+  font-size: 11px; /* design-system .score-badge .sub */
   letter-spacing: 0.18em;
   color: #fff !important;
   text-transform: uppercase;
@@ -712,8 +715,67 @@
 }
 .nfx .nf-outfit .score-badge .num {
   font-family: 'Anton', sans-serif;
-  font-size: 50px;
-  line-height: 0.82;
+  font-size: 56px; /* design-system .score-badge .num (was 50px) */
+  line-height: 0.86;
+  letter-spacing: 0.01em;
   color: #fff;
   text-shadow: 0 3px 0 rgba(0, 0, 0, 0.25), 0 8px 26px rgba(0, 0, 0, 0.6);
+}
+
+/* ============================================================
+   FEMME NEUTRALIZER — keep the nFactorial OUTFIT card red+white for
+   femme users too.
+
+   gender-theme.css applies a magenta/gold + cream "femme" treatment to
+   `.outfitcard` (gold brand-tag/kind-tag, cream oc-body, cream-palette
+   mstat colors, cream oc-foot border, a #fff-mixed "hot" fill). The NF
+   outfit card uses that SAME `.outfitcard` class, so those rules LEAK onto
+   it. (The NF FACE is `.facecard-fb` and the RECEIPT is `.receipt` —
+   neither is targeted by gender-theme, so both are already safe and need
+   nothing here.)
+
+   We re-assert the exact `.nfx` (masc) values so a femme nFactorial outfit
+   card is pixel-identical to the masc one — the femme STATS still come from
+   the data; only the femme STYLING is blocked. (`--accent: magenta` never
+   reaches here: `.nfx` re-declares `--accent: #e8232a`, so the accent stays
+   red regardless.)
+
+   Anchored on the same `.rs-card-mount` / `.rs-export-card[data-gender="femme"]`
+   hosts as gender-theme PLUS `.nfx`, which adds +1 specificity (0,5,0 beats
+   gender-theme's 0,4,0) so these win regardless of source order.
+   ============================================================ */
+.rs-card-mount[data-gender="femme"] .nfx .outfitcard .brand-tag,
+.rs-export-card[data-gender="femme"] .nfx .outfitcard .brand-tag {
+  color: #fff; /* NF lockup brand-tag is always white over the photo */
+}
+.rs-card-mount[data-gender="femme"] .nfx .outfitcard .oc-foot .kind-tag,
+.rs-export-card[data-gender="femme"] .nfx .outfitcard .oc-foot .kind-tag {
+  color: var(--ink-faint); /* NF .kind-tag default */
+}
+.rs-card-mount[data-gender="femme"] .nfx .outfitcard .oc-body,
+.rs-export-card[data-gender="femme"] .nfx .outfitcard .oc-body {
+  background: transparent; /* NF oc-body is unfilled — the white .asset shows through */
+}
+.rs-card-mount[data-gender="femme"] .nfx .outfitcard .oc-body .mstat .lbl,
+.rs-export-card[data-gender="femme"] .nfx .outfitcard .oc-body .mstat .lbl {
+  color: var(--ink-dim);
+}
+.rs-card-mount[data-gender="femme"] .nfx .outfitcard .oc-body .mstat .val,
+.rs-export-card[data-gender="femme"] .nfx .outfitcard .oc-body .mstat .val {
+  color: var(--ink);
+}
+.rs-card-mount[data-gender="femme"] .nfx .outfitcard .oc-body .mstat .track,
+.rs-export-card[data-gender="femme"] .nfx .outfitcard .oc-body .mstat .track {
+  background: rgba(0, 0, 0, 0.09); /* NF dark-on-light groove */
+}
+.rs-card-mount[data-gender="femme"] .nfx .outfitcard .oc-foot,
+.rs-export-card[data-gender="femme"] .nfx .outfitcard .oc-foot {
+  border-top-color: var(--hair-soft);
+}
+/* "hot" stat bar: gender-theme remixes the fill with #fff (lighter start) — restore
+   the NF solid-verdict fill so a hot stat reads identical to masc. */
+.rs-card-mount[data-gender="femme"] .nfx .outfitcard .oc-body .mstat.hot .fill,
+.rs-export-card[data-gender="femme"] .nfx .outfitcard .oc-body .mstat.hot .fill {
+  background: linear-gradient(90deg, color-mix(in oklab, var(--verdict) 55%, #000 0%), var(--verdict));
+  box-shadow: 0 0 10px -1px var(--verdict);
 }
