@@ -101,6 +101,18 @@ nFactorial cards became a **faithful port of the kit's own card designs**.
 ## Status
 Promo gate (Plan 1) + skin (Plan 2, incl. the exact-copy port) complete on
 `feat/nfactorial-edition`. `tsc --noEmit` clean; **213/213** web tests pass; **prod build green**
-(the DEV bypass compiles out). Nothing pushed/merged/deployed; the prod migration apply +
-seed is the single remaining **gated** step, intentionally held for deploy time after the
-user's visual adjustments. Visual fine-tuning is expected to continue in-browser.
+(the DEV bypass compiles out).
+
+**Backend deployed (2026-06-29):** the two migrations were applied to **production** —
+`promo_codes` / `code_redemptions` / `account_entitlements` (RLS on) + the `redeem_code` RPC,
+with `NFACTORIAL2026 → theme:company-nfactorial` seeded (active, expires 2026-12-31). Smoke:
+tables present, RPC present, seed row present, 2 owner-read policies (`promo_codes` has none by
+design). Security advisor: `promo_codes` rls-enabled-no-policy (INFO, intentional) +
+`redeem_code` authenticated-executable (WARN, intentional — same pattern as the existing
+account RPCs); everything else flagged is pre-existing.
+
+**Frontend deliberately NOT deployed:** the website stays on its current working version — the
+`feat/nfactorial-edition` branch is **not merged or pushed**, so no promo-code/skin UI is live.
+The applied migration is inert (nothing in the live site references it). When the frontend is
+later merged + pushed it will work against this live backend. Visual fine-tuning continues
+in-browser meanwhile.
