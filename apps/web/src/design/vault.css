@@ -427,3 +427,12 @@
   text-transform:uppercase; padding:9px 12px; border-radius:9px;
   border:1px solid var(--hair); background:var(--panel,rgba(255,255,255,.03)); color:var(--ink); }
 .vlt-redeem-note{ flex-basis:100%; font-size:13px; }
+
+/* Applied editions — the modes unlocked via promo codes, shown in Settings */
+.vlt-editions{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.vlt-edition-chip{ display:inline-flex; align-items:center; gap:7px; padding:7px 12px;
+  border-radius:999px; font-size:12.5px; font-weight:700;
+  border:1px solid color-mix(in oklab,var(--accent) 45%,var(--hair));
+  background:color-mix(in oklab,var(--accent) 10%,transparent); color:var(--accent); }
+.vlt-edition-chip svg{ width:14px; height:14px; }
+.vlt-editions-empty{ margin:0 0 14px; color:var(--ink-dim); font-size:13px; }

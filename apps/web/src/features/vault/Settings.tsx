@@ -6,6 +6,7 @@ import { usePreferences } from '../../state/preferences';
 import { VaultNav } from './VaultNav';
 import { SubHead } from './SubHead';
 import { UnlockBanner } from './UnlockBanner';
+import { AppliedEditions } from './AppliedEditions';
 
 /** Settings — privacy, on-device storage management and app preferences. */
 export function Settings() {
@@ -171,11 +172,12 @@ export function Settings() {
             </div>
           </div>
 
-          {/* redeem a code */}
+          {/* editions — modes unlocked via promo codes + the redeem field */}
           <div className="vlt-panel">
             <h3 className="vlt-panel-h">
               <Icon.star /> Editions
             </h3>
+            <AppliedEditions />
             <UnlockBanner variant="row" />
           </div>
         </div>
