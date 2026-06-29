@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type PointerEvent, type CSSProperties } from 'react';
 import { Icon } from '../../lib/icons';
 import { WebcamCapture } from './WebcamCapture';
+import { revealAboveBar } from './revealAboveBar';
 import { ZOOM_MIN, ZOOM_MAX, clampView, imgStyle, bakeCrop, type View, type Frame } from './cropMath';
 
 export type ZoneKind = 'face' | 'outfit';
@@ -62,6 +63,7 @@ export function UploadZone({ kind, mobile, missing, frame: frameOverride, onConf
   const imgElRef = useRef<HTMLImageElement | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const cropRef = useRef<HTMLDivElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef(view);
   viewRef.current = view;
   const fileInfo = useRef('');
@@ -78,6 +80,15 @@ export function UploadZone({ kind, mobile, missing, frame: frameOverride, onConf
   useEffect(() => {
     onReadyChange?.(status === 'ready');
   }, [status, onReadyChange]);
+
+  // Once a photo is ingested, the tall crop view pushes its Reset/Replace/Remove
+  // buttons under the fixed CTA bar. Nudge them just clear of it (keeping the crop
+  // visible) so the user doesn't have to hunt for them.
+  useEffect(() => {
+    if (status !== 'ready') return;
+    const id = requestAnimationFrame(() => revealAboveBar(actionsRef.current));
+    return () => cancelAnimationFrame(id);
+  }, [status]);
 
   // Live crop: re-bake the committed image whenever the framing settles, so
   // drag/zoom tweaks apply automatically — no "Looks good" confirm step. Debounced
@@ -436,7 +447,7 @@ export function UploadZone({ kind, mobile, missing, frame: frameOverride, onConf
             </span>
           </div>
 
-          <div className="crop-ctrls">
+          <div className="crop-ctrls" ref={actionsRef}>
             <button className="cbtn" onClick={resetCrop}>
               <Icon.reset /> Reset
             </button>

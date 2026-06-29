@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from '../../lib/icons';
+import { revealAboveBar } from './revealAboveBar';
 
 interface WebcamCaptureProps {
   /** Called with a captured JPEG File (un-mirrored), then the capture view closes. */
@@ -13,7 +14,13 @@ interface WebcamCaptureProps {
 export function WebcamCapture({ onCapture, onCancel }: WebcamCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const ctrlsRef = useRef<HTMLDivElement>(null);
   const [err, setErr] = useState<string | null>(null);
+
+  // Once the live preview has real dimensions (layout settled), nudge the
+  // Capture/Cancel buttons just clear of the page's fixed CTA bar — keeping the
+  // preview visible (the tall video otherwise hides them under the bar).
+  const revealControls = () => requestAnimationFrame(() => revealAboveBar(ctrlsRef.current));
 
   useEffect(() => {
     let cancelled = false;
@@ -60,8 +67,8 @@ export function WebcamCapture({ onCapture, onCancel }: WebcamCaptureProps) {
   }
   return (
     <div className="webcam-capture">
-      <video ref={videoRef} playsInline muted style={{ width: '100%', borderRadius: 14, transform: 'scaleX(-1)' }} />
-      <div className="crop-ctrls" style={{ marginTop: 12 }}>
+      <video ref={videoRef} playsInline muted onLoadedMetadata={revealControls} style={{ width: '100%', borderRadius: 14, transform: 'scaleX(-1)' }} />
+      <div className="crop-ctrls" ref={ctrlsRef} style={{ marginTop: 12 }}>
         <button className="cbtn" onClick={capture}><Icon.face /> Capture</button>
         <button className="cbtn danger" onClick={onCancel}><Icon.x /> Cancel</button>
       </div>
