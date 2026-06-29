@@ -31,6 +31,9 @@ const GOOD: Record<string, string> = {
 
 const CROWN = '#ffd23f';
 const INK = '#f3f6f9';
+// nFactorial Edition accents (winner = red, the other side = neutral charcoal).
+const NF_RED = '#e8232a';
+const NF_CHARCOAL = '#3a3a40';
 
 const mono = "'Space Mono', monospace";
 const anton = "'Anton', sans-serif";
@@ -60,6 +63,8 @@ export interface VerdictShareCardProps {
   /** Contender A colour (icy) and B colour (this matchup's gold/lime/red). */
   colA: string;
   colB: string;
+  /** Active edition; 'nfactorial' recolors winner→red / loser→charcoal + co-brand. */
+  edition?: 'default' | 'nfactorial';
   cardRef?: Ref<HTMLDivElement>;
 }
 
@@ -122,10 +127,12 @@ function CrownMark({ size = 16 }: { size?: number }) {
   );
 }
 
-function TopChrome({ label }: { label: string }) {
+function TopChrome({ label, nf }: { label: string; nf?: boolean }) {
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 16px', pointerEvents: 'none' }}>
-      <span style={{ fontWeight: 800, letterSpacing: '0.3em', fontSize: 9.5, textTransform: 'uppercase', color: '#fff', textShadow: '0 1px 8px #000' }}>FITAURA</span>
+      <span style={{ fontWeight: 800, letterSpacing: '0.3em', fontSize: 9.5, textTransform: 'uppercase', color: '#fff', textShadow: '0 1px 8px #000' }}>
+        FITAURA{nf && <span style={{ color: NF_RED }}> × nFACTORIAL</span>}
+      </span>
       <span style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.78)', textTransform: 'uppercase', textShadow: '0 1px 8px #000' }}>{label}</span>
     </div>
   );
@@ -151,8 +158,14 @@ function Headline({ winnerLabel, winRim, tie, size, crown }: { winnerLabel: stri
 }
 
 export function VerdictShareCard(props: VerdictShareCardProps) {
-  const { view, kind, names, colA, colB, cardRef } = props;
-  const s = useShare(props);
+  const { view, kind, names, cardRef } = props;
+  // nFactorial Edition: recolor winner→red / loser→charcoal (keeps the A/B mapping),
+  // so both the per-side colours and the derived win/lose rims read as the co-brand.
+  const nf = props.edition === 'nfactorial';
+  const winner = props.group.winner;
+  const colA = nf ? (winner === 'a' ? NF_RED : NF_CHARCOAL) : props.colA;
+  const colB = nf ? (winner === 'b' ? NF_RED : NF_CHARCOAL) : props.colB;
+  const s = useShare({ ...props, colA, colB });
   const kindLabel = kind === 'face' ? 'Face' : 'Outfit';
   // Short headline "{winner} wins". Long names (that would wrap to a 2nd line) fall
   // back to the generic "Player A/B" so the headline stays a single tidy line.
@@ -169,7 +182,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
         <div style={{ position: 'absolute', inset: 0, ...photo(s.winFit) }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(6,7,10,.5) 0%, transparent 22%, rgba(6,7,10,.22) 52%, rgba(6,7,10,.97) 84%)' }} />
         <div style={{ position: 'absolute', inset: 0, borderRadius: 24, boxShadow: `inset 0 0 0 2px ${s.winRim}`, pointerEvents: 'none' }} />
-        <TopChrome label="Outfit · VS" />
+        <TopChrome label="Outfit · VS" nf={nf} />
         <div style={{ position: 'absolute', top: 48, right: 15, zIndex: 5, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
           <span style={{ fontFamily: mono, fontSize: 8.5, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: '#06070a', padding: '3px 8px', borderRadius: 7, background: s.winRim }}>{s.winTag}</span>
           <span style={{ fontFamily: anton, fontSize: 52, lineHeight: 0.78, color: '#fff', textShadow: '0 3px 18px #000', marginTop: 2 }}>{s.winScore}</span>
@@ -200,7 +213,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
       <div className="vs-sharecard" ref={cardRef} style={{ ...rootStyle, display: 'flex', flexDirection: 'column', background: 'linear-gradient(175deg,#15181f,#0a0c11 72%)' }}>
         <div style={{ position: 'absolute', inset: 0, borderRadius: 24, boxShadow: `inset 0 0 0 2px ${s.winRim}`, pointerEvents: 'none', zIndex: 7 }} />
         <div style={{ position: 'relative', height: 304, flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `radial-gradient(120% 84% at 50% 16%, color-mix(in oklab, ${s.winRim} 24%, transparent), transparent 62%)` }}>
-          <TopChrome label="Face · VS" />
+          <TopChrome label="Face · VS" nf={nf} />
           <div style={{ position: 'relative', width: 224, height: 224, marginTop: 8 }}>
             <span style={{ position: 'absolute', top: -36, left: '50%', transform: 'translateX(-50%)', zIndex: 6, color: CROWN, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,.6))' }}>
               <svg viewBox="0 0 24 24" width="42" height="42" fill="currentColor"><path d="M3 7l4 4 5-7 5 7 4-4v11H3z" /></svg>
@@ -281,7 +294,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
             </div>
           );
         })}
-        <TopChrome label="Face · VS" />
+        <TopChrome label="Face · VS" nf={nf} />
       </div>
     );
   }
@@ -308,7 +321,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
           );
         })}
         <div style={{ position: 'absolute', top: 0, bottom: 0, left: '50%', width: 1.5, transform: 'translateX(-0.75px)', background: `linear-gradient(180deg, ${colA}, ${colB})`, boxShadow: '0 0 16px 1px rgba(255,255,255,0.22)', zIndex: 3 }} />
-        <TopChrome label={`${kindLabel} · VS`} />
+        <TopChrome label={`${kindLabel} · VS`} nf={nf} />
       </div>
       <div style={{ textAlign: 'center', padding: '11px 18px 2px' }}>
         <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.4)' }}>{kindLabel} winner</div>
