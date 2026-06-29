@@ -7,7 +7,7 @@ import { skinsFor, skinIndex } from '../../components/cards/skins/registry';
 import { ReceiptStampEditor } from '../../components/cards/ReceiptStampEditor';
 import { StaticStamp } from '../../components/cards/ExportOverlays';
 import { EditionSwitch } from '../../components/EditionSwitch';
-import { EditionLockup } from '../../components/cards/EditionLockup';
+import { NFFace, NFOutfit, NFReceipt } from '../../components/cards/nfactorial/NFCards';
 import { asEditionId, type EditionId } from '../../components/cards/editions/registry';
 import {
   FaceAnalysisBlock,
@@ -310,11 +310,10 @@ export function Result() {
   const outfitContent = result.outfit ? result.outfit.card : null;
   // The active skin's component per kind — used to render the SELECTED skin into
   // the offscreen export host (so a downloaded card matches the on-screen skin).
-  // The nFactorial Edition re-tints the Dossier base (the scoped CSS targets the
-  // .facecard/.outfitcard markup), so under `nf` we pin export to Dossier (index 0)
-  // regardless of the per-kind skin pick; otherwise export the selected skin.
-  const FaceSkinComp = nf ? skinsFor('face')[0].Comp : skinsFor('face')[skinIndex('face', faceSkin)].Comp;
-  const OutfitSkinComp = nf ? skinsFor('outfit')[0].Comp : skinsFor('outfit')[skinIndex('outfit', outfitSkin)].Comp;
+  // The active skin's component per kind — renders the SELECTED skin into the
+  // offscreen export host (the nFactorial Edition uses its own NF* cards instead).
+  const FaceSkinComp = skinsFor('face')[skinIndex('face', faceSkin)].Comp;
+  const OutfitSkinComp = skinsFor('outfit')[skinIndex('outfit', outfitSkin)].Comp;
 
   // Visible asset (built-in seal off — the editable layer renders it).
   const assetEl =
@@ -322,10 +321,6 @@ export function Result() {
       <FaceCard content={faceContent!} run roast={result.face!.analysis.roast} />
     ) : kind === 'outfit' ? (
       <OutfitCard content={outfitContent!} run roast={result.outfit!.analysis.verdict} />
-    ) : nf ? (
-      // The nFactorial receipt re-tints the standard Receipt (the scope targets
-      // .asset.receipt); ReceiptPremium is a different layout the scope won't catch.
-      <Receipt content={result.receipt} paper={premiumLike ? 'neon' : paper} sealOn={false} />
     ) : premiumLike ? (
       <ReceiptPremium content={result.receipt} />
     ) : (
@@ -452,10 +447,7 @@ export function Result() {
                 )}
                 {kind === 'receipt' ? (
                   nf ? (
-                    <div className="nf-cardhost">
-                      {assetEl}
-                      <EditionLockup kind="receipt" />
-                    </div>
+                    <NFReceipt content={result.receipt} />
                   ) : (
                     <>
                       {assetEl}
@@ -463,16 +455,13 @@ export function Result() {
                     </>
                   )
                 ) : nf ? (
-                  // The Edition pins the Dossier base (the scoped re-tint targets it)
-                  // and drops a co-brand lockup; the per-skin deck is hidden while on.
-                  <div className="nf-cardhost">
-                    {kind === 'face' ? (
-                      <FaceCard content={faceContent!} run roast={result.face!.analysis.roast} />
-                    ) : (
-                      <OutfitCard content={outfitContent!} run roast={result.outfit!.analysis.verdict} />
-                    )}
-                    <EditionLockup kind={kind} />
-                  </div>
+                  // The Edition renders the kit's nFactorial cards (scoped under .nfx);
+                  // the per-skin deck + dots are hidden while on.
+                  kind === 'face' ? (
+                    <NFFace content={faceContent!} roast={result.face!.analysis.roast} run />
+                  ) : (
+                    <NFOutfit content={outfitContent!} run />
+                  )
                 ) : (
                   <CardSwitcher
                     kind={kind}
@@ -643,14 +632,20 @@ export function Result() {
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         {faceContent && (
         <div className="rs-export-card" ref={exportRefs.face} data-gender={gender} data-edition={edition}>
-          <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} run={false} roast={result.face!.analysis.roast} />
-          {nf && <EditionLockup kind="face" />}
+          {nf ? (
+            <NFFace content={faceContent} roast={result.face!.analysis.roast} run={false} />
+          ) : (
+            <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} run={false} roast={result.face!.analysis.roast} />
+          )}
         </div>
         )}
         {outfitContent && (
         <div className="rs-export-card" ref={exportRefs.outfit} data-gender={gender} data-edition={edition}>
-          <OutfitSkinComp content={outfitContent} verdict={result.verdict} gender={gender} run={false} roast={result.outfit!.analysis.verdict} />
-          {nf && <EditionLockup kind="outfit" />}
+          {nf ? (
+            <NFOutfit content={outfitContent} run={false} />
+          ) : (
+            <OutfitSkinComp content={outfitContent} verdict={result.verdict} gender={gender} run={false} roast={result.outfit!.analysis.verdict} />
+          )}
         </div>
         )}
         <div
@@ -662,10 +657,7 @@ export function Result() {
           data-edition={edition}
         >
           {nf ? (
-            <>
-              <Receipt content={result.receipt} paper={premiumLike ? 'neon' : paper} sealOn={false} />
-              <EditionLockup kind="receipt" />
-            </>
+            <NFReceipt content={result.receipt} />
           ) : premiumLike ? (
             <ReceiptPremium content={result.receipt} />
           ) : (
