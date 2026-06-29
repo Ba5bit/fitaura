@@ -76,8 +76,31 @@ change; the rest of the versus page is untouched. Per-battle `edition` state thr
 locally **without** the prod migration. `DEV` is statically false in the production build, so
 the real entitlement gate is preserved in prod (nothing to remove before deploy).
 
+## Revision (same session) — exact-copy port replaces the re-tint
+
+After a first look, the direction changed: instead of re-tinting the current cards, the Solo
+nFactorial cards became a **faithful port of the kit's own card designs**.
+
+- **Solo cards** = dedicated components `NFFace / NFOutfit / NFReceipt`
+  (`components/cards/nfactorial/NFCards.tsx`) replicating the kit markup, bound to real data,
+  styled by `nfactorial-skin.css` with **every selector scoped under `.nfx`** (a
+  `display:contents` wrapper that passes tokens down). Same shared class names as the default
+  cards (`.outfitcard`, `.mstat`, `.receipt`…) but the `.nfx` prefix keeps the Default cards
+  untouched. White edition is the default surface; the receipt uses the app's real `<QrCode>`.
+  `Result.tsx` now renders these under `nf` for both the on-screen card and the export host
+  (the Dossier re-tint + the `EditionLockup` overlay were removed; `EditionLockup.tsx` deleted).
+- **FvsF** = the share card surfaces (card body + verdict/breakdown panels) go **white + red**
+  under `nf` (`cardBg`/`panelBg`/ink helpers); contender photos keep their dark scrims.
+- **Type** aligned to the design system (`fitaura.css`): score number → Anton 56px, receipt
+  stamp 33px / punch 23px, caption sizes, etc.
+- **Femme** stays nFactorial red+white: the default femme treatment leaked onto the NF outfit
+  via the shared `.outfitcard` class, so `nfactorial-skin.css` re-asserts the masc values under
+  `.rs-card-mount[data-gender="femme"] .nfx .outfitcard …` (0,5,0 — beats gender-theme's 0,4,0
+  regardless of order). NF face (`.facecard-fb`) + receipt (`.receipt`) were never targeted.
+
 ## Status
-6 gate commits + 7 skin commits on the branch. `tsc --noEmit` clean; 213/213 web tests pass.
-Pending: local visual QA + tuning, then (at deploy time) apply the migration + seed, merge,
-and push. Visual fine-tuning of the re-tint (and the FvsF winner/charcoal split) is expected
-to need in-browser iteration.
+Promo gate (Plan 1) + skin (Plan 2, incl. the exact-copy port) complete on
+`feat/nfactorial-edition`. `tsc --noEmit` clean; **213/213** web tests pass; **prod build green**
+(the DEV bypass compiles out). Nothing pushed/merged/deployed; the prod migration apply +
+seed is the single remaining **gated** step, intentionally held for deploy time after the
+user's visual adjustments. Visual fine-tuning is expected to continue in-browser.
