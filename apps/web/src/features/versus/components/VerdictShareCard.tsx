@@ -166,6 +166,15 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
   const colA = nf ? (winner === 'a' ? NF_RED : NF_CHARCOAL) : props.colA;
   const colB = nf ? (winner === 'b' ? NF_RED : NF_CHARCOAL) : props.colB;
   const s = useShare({ ...props, colA, colB });
+  // nFactorial Edition surfaces: the card + its non-photo panels go WHITE with ink
+  // text + red accents (contender photos keep their dark scrims for legibility).
+  const cardBg = nf ? 'linear-gradient(180deg,#ffffff,#f6f7f9 80%)' : '#0a0c11';
+  const panelBg = nf ? '#ffffff' : 'rgba(255,255,255,0.04)';
+  const panelLine = nf ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.1)';
+  const inkStrong = nf ? '#16181d' : '#fff';
+  const inkSoft = nf ? 'rgba(22,24,29,0.7)' : 'rgba(243,246,249,0.78)';
+  const inkFaint = nf ? 'rgba(22,24,29,0.5)' : 'rgba(243,246,249,0.46)';
+  const grooveBg = nf ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)';
   const kindLabel = kind === 'face' ? 'Face' : 'Outfit';
   // Short headline "{winner} wins". Long names (that would wrap to a 2nd line) fall
   // back to the generic "Player A/B" so the headline stays a single tidy line.
@@ -174,7 +183,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
   // ---- OUTFIT VERDICT — full-bleed winner photo + verdict + stat lines + humiliated panel
   if (view === 'verdict' && kind === 'fit') {
     return (
-      <div className="vs-sharecard" ref={cardRef} style={rootStyle}>
+      <div className="vs-sharecard" ref={cardRef} style={{ ...rootStyle, background: cardBg }}>
         {/* In-flow sizer — every other layer is position:absolute, so without an
             in-flow child the block collapses to 0 height in snapdom's export clone
             (the "blurry blob" download bug). This gives the card its real height. */}
@@ -210,7 +219,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
   // ---- FACE VERDICT — humiliation circle card
   if (view === 'verdict' && kind === 'face') {
     return (
-      <div className="vs-sharecard" ref={cardRef} style={{ ...rootStyle, display: 'flex', flexDirection: 'column', background: 'linear-gradient(175deg,#15181f,#0a0c11 72%)' }}>
+      <div className="vs-sharecard" ref={cardRef} style={{ ...rootStyle, display: 'flex', flexDirection: 'column', background: cardBg }}>
         <div style={{ position: 'absolute', inset: 0, borderRadius: 24, boxShadow: `inset 0 0 0 2px ${s.winRim}`, pointerEvents: 'none', zIndex: 7 }} />
         <div style={{ position: 'relative', height: 304, flex: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: `radial-gradient(120% 84% at 50% 16%, color-mix(in oklab, ${s.winRim} 24%, transparent), transparent 62%)` }}>
           <TopChrome label="Face · VS" nf={nf} />
@@ -226,11 +235,11 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
             </div>
           </div>
         </div>
-        <div style={{ position: 'relative', flex: 1, background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.1)', padding: '16px 20px 24px', display: 'flex', flexDirection: 'column' }}>
-          <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.42)' }}>The verdict is in</div>
+        <div style={{ position: 'relative', flex: 1, background: panelBg, borderTop: '1px solid ' + panelLine, padding: '16px 20px 24px', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: inkFaint }}>The verdict is in</div>
           <Headline winnerLabel={winnerLabel} winRim={s.winRim} tie={s.tie} size={35} />
-          <p style={{ margin: '9px 0 0', fontWeight: 800, fontSize: 13, lineHeight: 1.3, letterSpacing: '0.02em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.78)' }}>{s.sub}</p>
-          <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.46)', marginTop: 12 }}>Most recognised</div>
+          <p style={{ margin: '9px 0 0', fontWeight: 800, fontSize: 13, lineHeight: 1.3, letterSpacing: '0.02em', textTransform: 'uppercase', color: inkSoft }}>{s.sub}</p>
+          <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: inkFaint, marginTop: 12 }}>Most recognised</div>
           <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
             {s.reads.map((r, i) => (
               <span key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 11px', borderRadius: 999, fontFamily: mono, fontSize: 10, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)', whiteSpace: 'nowrap', border: `1px solid color-mix(in oklab, ${s.winRim} 55%, transparent)`, background: `color-mix(in oklab, ${s.winRim} 20%, rgba(0,0,0,0.35))` }}>
@@ -245,8 +254,8 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: s.loseRim }}>Humiliated by {s.winName}</div>
-              <div style={{ fontWeight: 800, fontSize: 26, color: '#fff', lineHeight: 1.12, marginTop: 2 }}>{s.loseName}</div>
-              <div style={{ fontFamily: mono, fontSize: 12.5, letterSpacing: '0.02em', color: 'rgba(243,246,249,0.72)', marginTop: 4 }}>{s.loserLine}</div>
+              <div style={{ fontWeight: 800, fontSize: 26, color: inkStrong, lineHeight: 1.12, marginTop: 2 }}>{s.loseName}</div>
+              <div style={{ fontFamily: mono, fontSize: 12.5, letterSpacing: '0.02em', color: inkSoft, marginTop: 4 }}>{s.loserLine}</div>
             </div>
             <div style={{ textAlign: 'right', flex: 'none' }}>
               <div style={{ fontFamily: mono, fontSize: 9, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.6)', marginBottom: 2 }}>{s.winTag}</div>
@@ -262,7 +271,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
   if (view === 'stats' && kind === 'face') {
     const halves: ('a' | 'b')[] = ['a', 'b'];
     return (
-      <div className="vs-sharecard" ref={cardRef} style={{ ...rootStyle, display: 'flex', flexDirection: 'column' }}>
+      <div className="vs-sharecard" ref={cardRef} style={{ ...rootStyle, display: 'flex', flexDirection: 'column', background: cardBg }}>
         {halves.map((side, i) => {
           const sideName = side === 'a' ? names.a : names.b;
           const sideScore = side === 'a' ? s.avgA : s.avgB;
@@ -324,8 +333,8 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
         <TopChrome label={`${kindLabel} · VS`} nf={nf} />
       </div>
       <div style={{ textAlign: 'center', padding: '11px 18px 2px' }}>
-        <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.4)' }}>{kindLabel} winner</div>
-        <h2 style={{ fontFamily: anton, fontWeight: 400, margin: '3px 0 0', fontSize: 27, lineHeight: 0.84, textTransform: 'uppercase', color: '#fff', textShadow: '0 2px 14px rgba(0,0,0,0.5)' }}>{winnerName}</h2>
+        <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: inkFaint }}>{kindLabel} winner</div>
+        <h2 style={{ fontFamily: anton, fontWeight: 400, margin: '3px 0 0', fontSize: 27, lineHeight: 0.84, textTransform: 'uppercase', color: inkStrong, textShadow: nf ? 'none' : '0 2px 14px rgba(0,0,0,0.5)' }}>{winnerName}</h2>
       </div>
       <div style={{ flex: 1, padding: '10px 18px 13px', display: 'flex', flexDirection: 'column', gap: 9 }}>
         {s.metrics.slice(0, 4).map((m) => {
@@ -336,10 +345,10 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
             <div key={m.key}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
                 <span style={num(colA, aWin, 'left')}>{m.a}</span>
-                <span style={{ flex: 1, textAlign: 'center', fontFamily: mono, fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.5)' }}>{m.label}</span>
+                <span style={{ flex: 1, textAlign: 'center', fontFamily: mono, fontSize: 9.5, letterSpacing: '0.14em', textTransform: 'uppercase', color: inkFaint }}>{m.label}</span>
                 <span style={num(colB, !aWin, 'right')}>{m.b}</span>
               </div>
-              <div style={{ position: 'relative', height: 6, borderRadius: 99, overflow: 'hidden', background: 'rgba(255,255,255,0.06)', marginTop: 4 }}>
+              <div style={{ position: 'relative', height: 6, borderRadius: 99, overflow: 'hidden', background: grooveBg, marginTop: 4 }}>
                 <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${p.a}%`, background: `linear-gradient(90deg, color-mix(in oklab, ${colA} 55%, #fff), ${colA})`, borderRadius: '99px 0 0 99px' }} />
                 <span style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: `${p.b}%`, background: `linear-gradient(90deg, ${colB}, color-mix(in oklab, ${colB} 55%, #fff))`, borderRadius: '0 99px 99px 0' }} />
                 <span style={{ position: 'absolute', top: -2, bottom: -2, left: `${p.a}%`, width: 2, transform: 'translateX(-1px)', background: '#fff', boxShadow: '0 0 8px 1px rgba(255,255,255,.7)' }} />
