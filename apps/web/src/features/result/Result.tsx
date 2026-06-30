@@ -9,7 +9,7 @@ import { StaticStamp } from '../../components/cards/ExportOverlays';
 import { EditionSwitch } from '../../components/EditionSwitch';
 import { NFReceipt } from '../../components/cards/nfactorial/NFCards';
 import nfLogo from '../../assets/nfactorial-logo.png';
-import { asEditionId, type EditionId } from '../../components/cards/editions/registry';
+import { asEditionId, NFACTORIAL_ENTITLEMENT, type EditionId } from '../../components/cards/editions/registry';
 import {
   FaceAnalysisBlock,
   OutfitAnalysisBlock,
@@ -45,7 +45,7 @@ const TABS: { id: number; slug: Kind; name: string; n: string }[] = [
 export function Result() {
   const navigate = useNavigate();
   const { result, startNewScan, hydrated } = useGeneration();
-  const { credits } = useAccount();
+  const { credits, entitlements } = useAccount();
 
   const tabs = useMemo(
     () => (result
@@ -317,6 +317,15 @@ export function Result() {
   const OutfitSkinComp = skinsFor('outfit')[skinIndex('outfit', outfitSkin)].Comp;
 
   const nfReceipt = paper === 'nfactorial';
+  // The nFactorial paper option (and its receipt) is gated by the promo-code
+  // entitlement: the pill only appears once the code is redeemed (DEV always sees
+  // it so the skin stays testable without the prod migration).
+  const nfEntitled = import.meta.env.DEV || entitlements.includes(NFACTORIAL_ENTITLEMENT);
+  // The card mount's edition drives the NF red re-tint (`--accent`/`--verdict`).
+  // On the receipt tab it must follow the ACTUAL paper, not the face/outfit edition
+  // toggle — otherwise the red leaks onto thermal/neon/onyx/ivory receipts, which
+  // should look exactly as they did before the nFactorial skin existed.
+  const mountEdition: EditionId = kind === 'receipt' ? (nfReceipt ? 'nfactorial' : 'default') : edition;
 
   // Visible asset (built-in seal off — the editable layer renders it).
   const assetEl =
@@ -447,7 +456,7 @@ export function Result() {
             onTouchEnd={onTouchEnd}
           >
             <div className="rs-frame-inner">
-              <div className="rs-card-mount" data-paper={paper} data-verdict={result.verdict} data-gender={gender} data-edition={edition}>
+              <div className="rs-card-mount" data-paper={paper} data-verdict={result.verdict} data-gender={gender} data-edition={mountEdition}>
                 {editing && (
                   <div className="st-edithint">
                     {kind === 'receipt' ? 'PICK A POSITION' : 'DRAG'} · <kbd>←↑↓→</kbd> nudge · <kbd>Esc</kbd> done
@@ -526,9 +535,11 @@ export function Result() {
                 <button aria-pressed={paper === 'white'} onClick={() => setPaper('white')}>
                   Ivory
                 </button>
-                <button aria-pressed={paper === 'nfactorial'} onClick={() => setPaper('nfactorial')}>
-                  nFactorial
-                </button>
+                {nfEntitled && (
+                  <button aria-pressed={paper === 'nfactorial'} onClick={() => setPaper('nfactorial')}>
+                    nFactorial
+                  </button>
+                )}
               </div>
               <span className="rs-cb-spacer" />
               {!premiumLike && !nfReceipt && (
@@ -665,7 +676,7 @@ export function Result() {
           data-paper={paper}
           data-verdict={result.verdict}
           data-gender={gender}
-          data-edition={edition}
+          data-edition={nfReceipt ? 'nfactorial' : 'default'}
         >
           {nfReceipt ? (
             <NFReceipt content={result.receipt} />
