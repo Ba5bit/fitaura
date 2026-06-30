@@ -404,6 +404,9 @@
   .vlt-navmid .vlt-navlink span { display: none; }
   .vlt-navlink { padding: 9px 11px; }
   .vlt-navright { gap: 8px; }
+  /* The header redeem chip needs room the tightened mobile bar doesn't have;
+     redeem stays reachable via the Vault banner + Settings panel. */
+  .vlt-redeempill { display: none; }
   .vlt-head { flex-direction: column; align-items: stretch; }
   .vlt-head-r { align-items: stretch; }
   .vlt-packs { grid-template-columns: 1fr; }
@@ -417,9 +420,10 @@
 /* "Have a code?" redeem field (Vault banner + Settings row) */
 .vlt-redeem{ display:flex; align-items:center; justify-content:space-between; gap:18px;
   flex-wrap:wrap; }
-.vlt-redeem.banner{ margin:0 0 18px; padding:16px 18px; border-radius:14px;
+.vlt-redeem.banner{ position:relative; margin:22px 0 18px; padding:16px 18px; border-radius:14px;
   border:1px solid color-mix(in oklab,var(--accent) 30%,var(--hair));
   background:color-mix(in oklab,var(--accent) 7%,transparent); }
+.vlt-redeem-tx{ flex:1 1 auto; }  /* absorb free space so the field + close sit at the right */
 .vlt-redeem-tx .k{ font-weight:700; }
 .vlt-redeem-tx .s{ color:var(--ink-dim); font-size:13px; }
 .vlt-redeem-field{ display:flex; gap:8px; align-items:center; }
@@ -427,12 +431,47 @@
   text-transform:uppercase; padding:9px 12px; border-radius:9px;
   border:1px solid var(--hair); background:var(--panel,rgba(255,255,255,.03)); color:var(--ink); }
 .vlt-redeem-note{ flex-basis:100%; font-size:13px; }
+.vlt-redeem-x{ flex:none; display:inline-grid; place-items:center; width:30px; height:30px;
+  border-radius:8px; border:1px solid var(--hair); background:transparent; color:var(--ink-dim);
+  cursor:pointer; transition:color .15s, border-color .15s; }
+.vlt-redeem-x:hover{ color:var(--ink); border-color:color-mix(in oklab,var(--accent) 40%,var(--hair)); }
+.vlt-redeem-x svg{ width:15px; height:15px; }
+
+/* Header "Have a code?" control — a chip that animates open into a code field.
+   One container transitions its width so the button visibly becomes the input. */
+.vlt-redeempill{ position:relative; flex:none; width:132px; height:38px; overflow:hidden;
+  border-radius:999px; border:1px solid var(--hair); background:var(--panel,rgba(255,255,255,.03));
+  transition:width .28s cubic-bezier(.4,0,.2,1), border-color .2s; }
+.vlt-redeempill:hover{ border-color:color-mix(in oklab,var(--accent) 45%,var(--hair)); }
+.vlt-redeempill[data-open="true"]{ width:250px;
+  border-color:color-mix(in oklab,var(--accent) 50%,var(--hair)); }
+.vlt-redeempill-label{ position:absolute; inset:0; display:flex; align-items:center;
+  justify-content:center; border:0; background:transparent; color:var(--ink);
+  font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; transition:opacity .16s; }
+.vlt-redeempill[data-open="true"] .vlt-redeempill-label{ opacity:0; pointer-events:none; }
+.vlt-redeempill-form{ position:absolute; inset:0; display:flex; align-items:center; gap:6px;
+  padding:0 5px 0 13px; opacity:0; pointer-events:none; transition:opacity .2s .06s; }
+.vlt-redeempill[data-open="true"] .vlt-redeempill-form{ opacity:1; pointer-events:auto; }
+.vlt-redeempill-form input{ flex:1; min-width:0; height:100%; border:0; background:transparent;
+  color:var(--ink); font-family:var(--mono,monospace); font-size:12px; letter-spacing:.06em;
+  text-transform:uppercase; }
+.vlt-redeempill-form input::placeholder{ color:var(--ink-faint,var(--ink-dim)); letter-spacing:.04em; }
+.vlt-redeempill-form input:focus{ outline:none; }
+.vlt-redeempill-go{ flex:none; display:inline-grid; place-items:center; width:30px; height:30px;
+  border-radius:50%; cursor:pointer; color:var(--accent); background:transparent;
+  border:1px solid color-mix(in oklab,var(--accent) 40%,var(--hair)); transition:.15s; }
+.vlt-redeempill-go:hover:not(:disabled){ background:color-mix(in oklab,var(--accent) 12%,transparent); }
+.vlt-redeempill-go:disabled{ opacity:.45; cursor:default; }
+.vlt-redeempill-go svg{ width:15px; height:15px; }
+@media (prefers-reduced-motion: reduce){
+  .vlt-redeempill, .vlt-redeempill-label, .vlt-redeempill-form{ transition:none; }
+}
 
 /* Applied editions — the modes unlocked via promo codes, shown in Settings */
-.vlt-editions{ display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+.vlt-editions{ display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 16px; }
 .vlt-edition-chip{ display:inline-flex; align-items:center; gap:7px; padding:7px 12px;
   border-radius:999px; font-size:12.5px; font-weight:700;
   border:1px solid color-mix(in oklab,var(--accent) 45%,var(--hair));
   background:color-mix(in oklab,var(--accent) 10%,transparent); color:var(--accent); }
 .vlt-edition-chip svg{ width:14px; height:14px; }
-.vlt-editions-empty{ margin:0 0 14px; color:var(--ink-dim); font-size:13px; }
+.vlt-editions-empty{ margin:12px 0 16px; color:var(--ink-dim); font-size:13px; }

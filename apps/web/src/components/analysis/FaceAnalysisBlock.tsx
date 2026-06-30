@@ -2,6 +2,15 @@ import { VERDICT_LABEL, type FaceResult, type DatingVerdict } from '@fitaura/sha
 import { ScoreRing } from './ScoreRing';
 import { GymCard } from './GymCard';
 
+const FACE_LABEL_OVERRIDE: Record<string, string> = {
+  jaw: 'Jawline Frame',
+  presence: 'Eye Presence',
+  haircut: 'Hair Match',
+  grooming: 'Grooming Polish',
+  'main-character': 'Facial Structure',
+};
+
+
 interface FaceAnalysisBlockProps {
   face: FaceResult;
   verdict: DatingVerdict;
@@ -34,7 +43,7 @@ export function FaceAnalysisBlock({ face, verdict, run }: FaceAnalysisBlockProps
         </h3>
         <div className="rs-breakgrid">
           {analysis.breakdown.map((trait) => (
-            <GymCard key={trait.id} trait={trait} run={run} />
+            <GymCard key={trait.id} trait={{ ...trait, label: FACE_LABEL_OVERRIDE[trait.id] ?? trait.label }} run={run} />
           ))}
         </div>
       </section>

@@ -15,7 +15,7 @@ export function AppliedEditions() {
   const unlocked = EDITIONS.filter((e) => e.entitlement && owned.includes(e.entitlement));
 
   if (unlocked.length === 0) {
-    return <p className="vlt-editions-empty">No editions unlocked yet — redeem a code below to add one.</p>;
+    return <p className="vlt-editions-empty">No themes unlocked yet — redeem a code below to add one.</p>;
   }
   return (
     <div className="vlt-editions">

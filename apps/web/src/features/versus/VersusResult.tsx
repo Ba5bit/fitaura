@@ -404,6 +404,8 @@ function VerdictTab({
       {/* LEFT — the fanned share-card deck (Solo Scan card-stack logic). The other
           card splays behind; tap the front (or a peek / dot) to switch. */}
       <div className="vs-stack" ref={stackRef}>
+        {/* edition switch — above the cards (matches the Solo result layout) */}
+        <EditionSwitch value={edition} onChange={setEdition} />
         <div className="vs-fanwrap" style={{ width: CARD_W * scale, height: CARD_H * scale }}>
           <div className="vs-fandeck" style={{ transform: `scale(${scale})` }}>
             {views.map((v) => {
@@ -426,7 +428,6 @@ function VerdictTab({
             <button key={v} aria-current={view === v} aria-label={`Card ${i + 1}`} onClick={() => setView(v)} />
           ))}
         </div>
-        <EditionSwitch value={edition} onChange={setEdition} />
         <button className="ctrl primary" onClick={download} disabled={busy} style={{ minWidth: 210 }}>
           <Icon.download /> {busy ? 'Rendering…' : 'Download card'}
         </button>

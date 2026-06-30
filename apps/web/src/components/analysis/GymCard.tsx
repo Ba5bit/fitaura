@@ -11,7 +11,7 @@ const TIER_LABEL = { high: 'HIGH', mid: 'MID', low: 'LOW' } as const;
 const ICON_BY_ID: Record<string, FaceTraitIcon> = {
   jaw: 'face',
   haircut: 'scissors',
-  grooming: 'razor',
+  grooming: 'droplet',
 };
 
 /** Gym-app "Score Breakdown" trait card. Ported from the design's `GymCard`. */

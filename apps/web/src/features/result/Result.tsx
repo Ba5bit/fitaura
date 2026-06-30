@@ -7,7 +7,8 @@ import { skinsFor, skinIndex } from '../../components/cards/skins/registry';
 import { ReceiptStampEditor } from '../../components/cards/ReceiptStampEditor';
 import { StaticStamp } from '../../components/cards/ExportOverlays';
 import { EditionSwitch } from '../../components/EditionSwitch';
-import { NFFace, NFOutfit, NFReceipt } from '../../components/cards/nfactorial/NFCards';
+import { NFReceipt } from '../../components/cards/nfactorial/NFCards';
+import nfLogo from '../../assets/nfactorial-logo.png';
 import { asEditionId, type EditionId } from '../../components/cards/editions/registry';
 import {
   FaceAnalysisBlock,
@@ -315,12 +316,16 @@ export function Result() {
   const FaceSkinComp = skinsFor('face')[skinIndex('face', faceSkin)].Comp;
   const OutfitSkinComp = skinsFor('outfit')[skinIndex('outfit', outfitSkin)].Comp;
 
+  const nfReceipt = paper === 'nfactorial';
+
   // Visible asset (built-in seal off — the editable layer renders it).
   const assetEl =
     kind === 'face' ? (
       <FaceCard content={faceContent!} run roast={result.face!.analysis.roast} />
     ) : kind === 'outfit' ? (
       <OutfitCard content={outfitContent!} run roast={result.outfit!.analysis.verdict} />
+    ) : nfReceipt ? (
+      <NFReceipt content={result.receipt} />
     ) : premiumLike ? (
       <ReceiptPremium content={result.receipt} />
     ) : (
@@ -330,7 +335,7 @@ export function Result() {
   // Only the receipt has an editable overlay now (the stamp/seal). Image cards
   // render their skin with no overlay.
   const overlayEl =
-    kind === 'receipt' && !premiumLike && !nf ? (
+    kind === 'receipt' && !premiumLike && !nfReceipt ? (
       <ReceiptStampEditor preset={receiptPreset} setPreset={setReceiptPreset} editing={editing} />
     ) : null;
 
@@ -432,6 +437,9 @@ export function Result() {
       {/* STAGE */}
       <main className="rs-stage">
         <div className="rs-asset">
+          {/* edition switch — above the cards; re-skins all cards together (gated
+              by entitlement, self-hides when the account isn't entitled) */}
+          {!editing && kind !== 'receipt' && <EditionSwitch value={edition} onChange={setEdition} />}
           <div
             className={'rs-frame' + (editing ? ' editing' : '')}
             ref={frameRef}
@@ -454,14 +462,6 @@ export function Result() {
                       {overlayEl}
                     </>
                   )
-                ) : nf ? (
-                  // The Edition renders the kit's nFactorial cards (scoped under .nfx);
-                  // the per-skin deck + dots are hidden while on.
-                  kind === 'face' ? (
-                    <NFFace content={faceContent!} roast={result.face!.analysis.roast} run />
-                  ) : (
-                    <NFOutfit content={outfitContent!} run />
-                  )
                 ) : (
                   <CardSwitcher
                     kind={kind}
@@ -475,6 +475,13 @@ export function Result() {
                       roast: kind === 'face' ? result.face!.analysis.roast : result.outfit!.analysis.verdict,
                     }}
                     overlay={overlayEl}
+                    lockup={nf ? (
+                      <div className="nf-brand-lockup" aria-hidden="true">
+                        <span className="nf-bl-word">FITAURA</span>
+                        <span className="nf-bl-x">×</span>
+                        <img className="nf-bl-badge" src={nfLogo} alt="" />
+                      </div>
+                    ) : undefined}
                   />
                 )}
               </div>
@@ -482,7 +489,7 @@ export function Result() {
           </div>
 
           {/* skin-switcher dots — below the card, full size (the deck is scaled) */}
-          {!nf && kind !== 'receipt' && skinsFor(kind).length > 1 && (
+          {kind !== 'receipt' && skinsFor(kind).length > 1 && (
             <div className="cs-dots" role="tablist" aria-label="Card skin">
               {skinsFor(kind).map((s) => {
                 const sel = kind === 'face' ? faceSkin : outfitSkin;
@@ -502,9 +509,8 @@ export function Result() {
             </div>
           )}
 
-          {/* contextual controls — receipt (the Edition owns the receipt look, so its
-              paper/stamp bar is hidden while on) */}
-          {!editing && kind === 'receipt' && !nf && (
+          {/* contextual controls — receipt paper selector */}
+          {!editing && kind === 'receipt' && (
             <div className="rs-controlbar">
               <span className="rs-cb-label">Paper</span>
               <div className="rs-seg">
@@ -520,9 +526,12 @@ export function Result() {
                 <button aria-pressed={paper === 'white'} onClick={() => setPaper('white')}>
                   Ivory
                 </button>
+                <button aria-pressed={paper === 'nfactorial'} onClick={() => setPaper('nfactorial')}>
+                  nFactorial
+                </button>
               </div>
               <span className="rs-cb-spacer" />
-              {!premiumLike && (
+              {!premiumLike && !nfReceipt && (
                 <>
                   <button
                     className={'rs-cb-btn' + (receiptPreset ? ' on' : '')}
@@ -582,10 +591,6 @@ export function Result() {
             </div>
           )}
 
-          {/* edition switch — re-skins all cards together (gated by entitlement;
-              self-hides when the account isn't entitled) */}
-          {!editing && <EditionSwitch value={edition} onChange={setEdition} />}
-
           {/* per-asset export / share */}
           {!editing && (
             <div className="rs-assetactions">
@@ -632,19 +637,25 @@ export function Result() {
       <div className="rs-exporthost" aria-hidden="true" ref={exportHostRef}>
         {faceContent && (
         <div className="rs-export-card" ref={exportRefs.face} data-gender={gender} data-edition={edition}>
-          {nf ? (
-            <NFFace content={faceContent} roast={result.face!.analysis.roast} run={false} />
-          ) : (
-            <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} run={false} roast={result.face!.analysis.roast} />
+          <FaceSkinComp content={faceContent} verdict={result.verdict} gender={gender} run={false} roast={result.face!.analysis.roast} />
+          {nf && (
+            <div className="nf-brand-lockup" aria-hidden="true">
+              <span className="nf-bl-word">FITAURA</span>
+              <span className="nf-bl-x">×</span>
+              <img className="nf-bl-badge" src={nfLogo} alt="" />
+            </div>
           )}
         </div>
         )}
         {outfitContent && (
         <div className="rs-export-card" ref={exportRefs.outfit} data-gender={gender} data-edition={edition}>
-          {nf ? (
-            <NFOutfit content={outfitContent} run={false} />
-          ) : (
-            <OutfitSkinComp content={outfitContent} verdict={result.verdict} gender={gender} run={false} roast={result.outfit!.analysis.verdict} />
+          <OutfitSkinComp content={outfitContent} verdict={result.verdict} gender={gender} run={false} roast={result.outfit!.analysis.verdict} />
+          {nf && (
+            <div className="nf-brand-lockup" aria-hidden="true">
+              <span className="nf-bl-word">FITAURA</span>
+              <span className="nf-bl-x">×</span>
+              <img className="nf-bl-badge" src={nfLogo} alt="" />
+            </div>
           )}
         </div>
         )}
@@ -656,7 +667,7 @@ export function Result() {
           data-gender={gender}
           data-edition={edition}
         >
-          {nf ? (
+          {nfReceipt ? (
             <NFReceipt content={result.receipt} />
           ) : premiumLike ? (
             <ReceiptPremium content={result.receipt} />

@@ -2,15 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAccount } from '../account/AccountContext';
-
-const MESSAGE: Record<string, string> = {
-  ok: 'Unlocked! The nFactorial Edition is now on your account.',
-  already_owned: 'You already own this — the Edition is on your account.',
-  invalid: "That code isn't valid.",
-  expired: 'That code has expired.',
-  exhausted: 'That code has reached its redemption limit.',
-  unauthenticated: 'Please sign in to redeem your code.',
-};
+import { REDEEM_MESSAGE } from '../../lib/redeemMessages';
 
 /**
  * Deep-link redeem funnel (fitaura.studio/unlock/<CODE>). Signed in → redeem on
@@ -31,7 +23,7 @@ export function Unlock() {
     if (triedRef.current) return;
     triedRef.current = true;
     void redeemCode(code).then((res) => {
-      flash(MESSAGE[res.status] ?? MESSAGE.invalid);
+      flash(REDEEM_MESSAGE[res.status]);
       navigate('/vault', { replace: true });
     });
   }, [signedIn, code, redeemCode, flash, openAuth, navigate]);

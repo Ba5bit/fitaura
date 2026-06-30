@@ -131,6 +131,15 @@ export function Settings() {
             </div>
           </div>
 
+          {/* editions — modes unlocked via promo codes + the redeem field */}
+          <div className="vlt-panel">
+            <h3 className="vlt-panel-h">
+              <Icon.star /> Themes
+            </h3>
+            <AppliedEditions />
+            <UnlockBanner variant="row" />
+          </div>
+
           {/* preferences */}
           <div className="vlt-panel">
             <h3 className="vlt-panel-h">
@@ -170,15 +179,6 @@ export function Settings() {
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* editions — modes unlocked via promo codes + the redeem field */}
-          <div className="vlt-panel">
-            <h3 className="vlt-panel-h">
-              <Icon.star /> Editions
-            </h3>
-            <AppliedEditions />
-            <UnlockBanner variant="row" />
           </div>
         </div>
       </div>

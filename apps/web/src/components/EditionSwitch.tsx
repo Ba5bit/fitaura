@@ -17,10 +17,11 @@ export function EditionSwitch({ value, onChange }: { value: EditionId; onChange:
   const options = entitledEditions(owned);
   if (options.length < 2) return null;
   return (
-    <div className="rs-seg edition-seg" role="tablist" aria-label="Card edition">
+    <div className="edition-seg" role="tablist" aria-label="Card edition">
       {options.map((e) => (
         <button
           key={e.id}
+          className="tab"
           role="tab"
           aria-selected={value === e.id}
           onClick={() => onChange(asEditionId(e.id))}

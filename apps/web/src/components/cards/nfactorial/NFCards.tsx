@@ -195,17 +195,16 @@ export function NFOutfit({ content, run = true }: { content: OutfitCardContent; 
 export function NFReceipt({ content }: { content: DatingReceiptResult }) {
   const verdictLabel = VERDICT_LABEL[content.datingVerdict];
   return (
-    <div className="nfx">
-      <div className="asset receipt nf-receipt">
-        <div className="r-edge top" />
-        <div className="receipt-inner">
-          <img className="nf-rcpt-wm" src={nfLogo} alt="" aria-hidden="true" />
-          <div className="nf-rcpt-seal">
-            <img src={nfLogo} alt="nFactorial" />
-          </div>
+    <div className="asset receipt nf-receipt">
+      <div className="r-edge top" />
+      <div className="receipt-inner">
+        <img className="nf-rcpt-wm" src={nfLogo} alt="" aria-hidden="true" />
+        <div className="nf-rcpt-seal">
+          <img src={nfLogo} alt="nFactorial" />
+        </div>
           <div className="r-head">
             <div className="logo">FITAURA</div>
-            <div className="sub">nFACTORIAL EDITION · DATING RECEIPT</div>
+            <div className="sub">DATING RECEIPT</div>
           </div>
           <div className="r-meta">
             <span>NO. {content.generationId}</span>
@@ -254,6 +253,5 @@ export function NFReceipt({ content }: { content: DatingReceiptResult }) {
         </div>
         <div className="r-edge bottom" />
       </div>
-    </div>
   );
 }

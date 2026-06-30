@@ -19,7 +19,7 @@ export const DEFAULT_PREFERENCES: AccountPreferences = {
   reduceMotion: false,
 };
 
-const PAPERS: readonly ReceiptPaper[] = ['neon', 'thermal', 'premium', 'white'];
+const PAPERS: readonly ReceiptPaper[] = ['neon', 'thermal', 'premium', 'white', 'nfactorial'];
 const asPaper = (v: unknown): ReceiptPaper =>
   PAPERS.includes(v as ReceiptPaper) ? (v as ReceiptPaper) : DEFAULT_PREFERENCES.receiptPaper;
 

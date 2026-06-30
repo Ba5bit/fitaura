@@ -102,7 +102,8 @@ export type FaceTraitIcon =
   | 'star'
   | 'face'
   | 'scissors'
-  | 'razor';
+  | 'razor'
+  | 'droplet';
 
 export interface FaceAnalysisContent {
   /** Aura score driving the ring (0–100). */
@@ -214,7 +215,7 @@ export interface ReceiptRow {
   tone?: ReceiptRowTone;
 }
 
-export type ReceiptPaper = 'neon' | 'thermal' | 'premium' | 'white';
+export type ReceiptPaper = 'neon' | 'thermal' | 'premium' | 'white' | 'nfactorial';
 
 export interface DatingReceiptResult {
   /** Generation identifier shown on the receipt (e.g. "0xA73F"). */
