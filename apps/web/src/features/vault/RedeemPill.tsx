@@ -77,14 +77,22 @@ export function RedeemPill() {
           }}
           spellCheck={false}
           autoCapitalize="characters"
+          enterKeyHint="go"
           tabIndex={open ? 0 : -1}
         />
+        {/* Trailing control is a close (✕), not a submit — redeem fires on Enter
+            (form onSubmit). Always enabled so the field can be dismissed. */}
         <button
+          type="button"
           className="vlt-redeempill-go"
-          disabled={busy || !code.trim()}
-          aria-label="Redeem code"
+          onClick={() => {
+            setCode('');
+            setOpen(false);
+          }}
+          tabIndex={open ? 0 : -1}
+          aria-label="Close"
         >
-          <Icon.check />
+          <Icon.x />
         </button>
       </form>
     </div>

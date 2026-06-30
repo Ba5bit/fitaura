@@ -409,21 +409,35 @@
      overlay that takes the place of Home/Vault/credits. The avatar (order 3) stays
      put on the far right; reuses RedeemPill's redeem logic unchanged. */
   .vlt-navright .aw-chip{ order:1; }
+  /* Drop the " credits" word so the gem + number + the new key fit the tight bar. */
+  .vlt-navright .aw-chip .credit-word{ display:none; }
   .vlt-navright .vlt-redeempill{ order:2; width:38px; min-width:38px; height:38px;
     overflow:visible; background:transparent;
-    border-color:color-mix(in oklab,var(--accent) 42%,var(--hair)); }
+    border-color:color-mix(in oklab,var(--accent) 45%,var(--hair)); }
   .vlt-navright .vlt-profile{ order:3; }
-  /* The pill stays a circle; the FORM is what grows (over the bar), not the pill. */
-  .vlt-redeempill[data-open="true"]{ width:38px; }
-  .vlt-redeempill-text{ display:none; }
-  .vlt-redeempill-label svg{ display:block; }
-  .vlt-redeempill-form{ position:absolute; top:50%; right:0; left:auto;
+  /* The pill stays a circle; the FORM is what grows (over the bar), not the pill.
+     All overrides are prefixed with .vlt-navright so they beat the base
+     .vlt-redeempill* rules, which sit LATER in this file (equal specificity would
+     otherwise let the base inset:0 / width:250px win and break positioning). */
+  .vlt-navright .vlt-redeempill[data-open="true"]{ width:38px; }
+  .vlt-navright .vlt-redeempill-text{ display:none; }
+  /* Show the key glyph — needs to out-specify the desktop `svg{display:none}`
+     rule, which is later in the file and would otherwise win on mobile too. */
+  .vlt-navright .vlt-redeempill-label svg{ display:block; }
+  .vlt-navright .vlt-redeempill-form{ position:absolute; top:50%; right:0; bottom:auto; left:auto;
     transform:translateY(-50%); width:38px; height:40px; padding:0 6px 0 14px;
-    border-radius:999px; background:var(--panel,#14161c);
-    border:1px solid color-mix(in oklab,var(--accent) 50%,var(--hair));
-    box-shadow:0 10px 26px -12px rgba(0,0,0,.65); z-index:30;
+    border-radius:999px; z-index:30; overflow:hidden;
+    /* OPAQUE field — translucent panel composited over the solid page base so it
+       fully covers Home/Vault/credits underneath (var(--panel) alone is ~96%
+       transparent, which is why the buttons showed through). */
+    background:linear-gradient(var(--panel),var(--panel)), var(--bg-0);
+    border:1px solid color-mix(in oklab,var(--accent) 55%,var(--hair));
+    box-shadow:0 10px 26px -12px rgba(0,0,0,.65);
     transition:width .26s cubic-bezier(.4,0,.2,1), opacity .18s; }
-  .vlt-redeempill[data-open="true"] .vlt-redeempill-form{ width:min(70vw,280px); }
+  /* Grow leftward from the key, stopping clear of the FITAURA brand (its right
+     edge is ~105px; the vw terms cancel so the left edge lands ~constant) and
+     short of the avatar — landing over Home/Vault/credits only. */
+  .vlt-navright .vlt-redeempill[data-open="true"] .vlt-redeempill-form{ width:calc(100vw - 195px); max-width:300px; }
   .vlt-head { flex-direction: column; align-items: stretch; }
   .vlt-head-r { align-items: stretch; }
   .vlt-packs { grid-template-columns: 1fr; }
