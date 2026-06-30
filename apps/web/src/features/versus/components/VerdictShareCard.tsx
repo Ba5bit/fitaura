@@ -38,6 +38,10 @@ const NF_CHARCOAL = '#3a3a40';
 
 const mono = "'Space Mono', monospace";
 const anton = "'Anton', sans-serif";
+// Brand sans. MUST be set explicitly on every text node that uses it — relying on
+// inheritance breaks the snapdom export on mobile (the bare element captures with
+// no font → system serif in the downloaded PNG).
+const sans = "'Hanken Grotesk', system-ui, sans-serif";
 
 /** Background-image style for a contender photo (with the studio fallback gradient). */
 function photo(src?: string): CSSProperties {
@@ -131,7 +135,7 @@ function CrownMark({ size = 16 }: { size?: number }) {
 function TopChrome({ label, nf, rightEl }: { label: string; nf?: boolean; rightEl?: ReactNode }) {
   return (
     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '15px 16px', pointerEvents: 'none' }}>
-      <span style={{ fontWeight: 800, letterSpacing: '0.3em', fontSize: 9.5, textTransform: 'uppercase', color: '#fff', textShadow: '0 1px 8px #000' }}>
+      <span style={{ fontFamily: sans, fontWeight: 800, letterSpacing: '0.3em', fontSize: 9.5, textTransform: 'uppercase', color: '#fff', textShadow: '0 1px 8px #000' }}>
         FITAURA{nf && <span style={{ color: NF_RED }}> × nFACTORIAL</span>}
       </span>
       {rightEl ?? <span style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.2em', color: 'rgba(255,255,255,0.78)', textTransform: 'uppercase', textShadow: '0 1px 8px #000' }}>{label}</span>}
@@ -238,7 +242,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
         <div style={{ position: 'relative', flex: 1, background: 'rgba(255,255,255,0.04)', borderTop: '1px solid rgba(255,255,255,0.1)', padding: '16px 20px 24px', display: 'flex', flexDirection: 'column' }}>
           <div style={{ fontFamily: mono, fontSize: 8.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.42)' }}>The verdict is in</div>
           <Headline winnerLabel={winnerLabel} winRim={s.winRim} tie={s.tie} size={35} />
-          <p style={{ margin: '9px 0 0', fontWeight: 800, fontSize: 13, lineHeight: 1.3, letterSpacing: '0.02em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.78)' }}>{s.sub}</p>
+          <p style={{ fontFamily: sans, margin: '9px 0 0', fontWeight: 800, fontSize: 13, lineHeight: 1.3, letterSpacing: '0.02em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.78)' }}>{s.sub}</p>
           <div style={{ fontFamily: mono, fontSize: 8, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(243,246,249,0.46)', marginTop: 12 }}>Most recognised</div>
           <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 7 }}>
             {s.reads.map((r, i) => (
@@ -254,7 +258,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontFamily: mono, fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: fvLoseRim }}>Humiliated by {s.winName}</div>
-              <div style={{ fontWeight: 800, fontSize: 26, color: '#fff', lineHeight: 1.12, marginTop: 2 }}>{s.loseName}</div>
+              <div style={{ fontFamily: sans, fontWeight: 800, fontSize: 26, color: '#fff', lineHeight: 1.12, marginTop: 2 }}>{s.loseName}</div>
               <div style={{ fontFamily: mono, fontSize: 12.5, letterSpacing: '0.02em', color: 'rgba(243,246,249,0.72)', marginTop: 4 }}>{s.loserLine}</div>
             </div>
             <div style={{ textAlign: 'right', flex: 'none' }}>
