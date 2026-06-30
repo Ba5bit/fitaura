@@ -410,7 +410,8 @@ function VerdictTab({
       {/* LEFT — the fanned share-card deck (Solo Scan card-stack logic). The other
           card splays behind; tap the front (or a peek / dot) to switch. */}
       <div className="vs-stack" ref={stackRef}>
-        {/* edition switch — above the cards (matches the Solo result layout) */}
+        {/* edition switch — above the cards (matches the Solo result layout).
+            Self-hides unless entitled AND a theme is active (Settings → Themes). */}
         <EditionSwitch value={edition} onChange={setEdition} />
         <div className="vs-fanwrap" style={{ width: CARD_W * scale, height: CARD_H * scale }}>
           <div className="vs-fandeck" style={{ transform: `scale(${scale})` }}>

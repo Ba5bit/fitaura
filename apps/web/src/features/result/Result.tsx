@@ -446,8 +446,8 @@ export function Result() {
       {/* STAGE */}
       <main className="rs-stage">
         <div className="rs-asset">
-          {/* edition switch — above the cards; re-skins all cards together (gated
-              by entitlement, self-hides when the account isn't entitled) */}
+          {/* edition switch — above the cards; re-skins all cards together. Self-hides
+              unless entitled AND a theme is active (turned on via Settings → Themes). */}
           {!editing && kind !== 'receipt' && <EditionSwitch value={edition} onChange={setEdition} />}
           <div
             className={'rs-frame' + (editing ? ' editing' : '')}
