@@ -454,8 +454,7 @@
   color: var(--verdict);
   border: 3px solid var(--verdict);
   border-radius: 8px;
-  text-shadow: 0 0 24px color-mix(in oklab, var(--verdict) 50%, transparent);
-  box-shadow: 0 0 30px -12px var(--verdict);
+  /* red glow removed per request — the stamp stays red (colour + border), no halo */
   transform: rotate(-3deg);
 }
 .nf-receipt .r-punch {

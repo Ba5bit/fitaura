@@ -44,12 +44,20 @@ export interface ExportResult {
 
 async function ensureFonts() {
   try {
+    // Load EVERY family+weight the cards actually use, then await `ready`. Missing a
+    // weight (e.g. Space Mono 400 — used all over the cards, while only 700 was
+    // requested) means snapdom can't embed it and that text falls back to a system
+    // font in the downloaded PNG (the serif/wrong-font bug on the FvF cards).
     await Promise.all([
       document.fonts.load('400 80px "Anton"'),
-      document.fonts.load('800 40px "Hanken Grotesk"'),
+      document.fonts.load('400 30px "Space Mono"'),
       document.fonts.load('700 30px "Space Mono"'),
-      document.fonts.ready,
+      document.fonts.load('400 30px "Hanken Grotesk"'),
+      document.fonts.load('600 30px "Hanken Grotesk"'),
+      document.fonts.load('700 30px "Hanken Grotesk"'),
+      document.fonts.load('800 30px "Hanken Grotesk"'),
     ]);
+    await document.fonts.ready;
   } catch {
     /* fonts may already be cached */
   }

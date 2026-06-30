@@ -421,10 +421,13 @@
 .vs-fandeck { position: absolute; top: 0; left: 0; width: 360px; height: 640px; transform-origin: top left; }
 .vs-fancard { position: absolute; inset: 0; transform-origin: 50% 50%;
   transition: transform .5s cubic-bezier(.22, 1, .36, 1), opacity .45s ease, filter .45s ease;
-  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7)); }
+  /* PERF: box-shadow, NOT filter: drop-shadow. drop-shadow re-rasterizes the whole
+     360x640 card every frame of the deck flip/scale — the mobile lag. box-shadow
+     is composited and rides the transform for free. 24px = the card root radius. */
+  border-radius: 24px; box-shadow: 0 40px 70px rgba(0,0,0,.7); }
 .vs-fancard.front { transform: scale(.96); z-index: 5; cursor: pointer; }
 .vs-fancard.back { transform: translateX(48px) translateY(2px) rotate(7deg) scale(.9); z-index: 2; cursor: pointer;
-  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7)) brightness(.74); }
+  filter: brightness(.74); }
 
 /* breakdown panel (right) — --c2 is set inline to the overall winner's color */
 .vs-bd { border: 1px solid var(--hair); border-radius: 20px; padding: clamp(14px, 1.6vw, 18px);

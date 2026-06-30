@@ -691,7 +691,10 @@ export function VersusResult() {
         <VerdictShareCard view="verdict" kind={mobileKind} group={mobileGroup} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} edition={edition} cardRef={mobileCardRef} />
       </div>
 
-      {/* Mobile action bar — mirrors the Solo Scan footer (Save / Share / New battle). */}
+      {/* Mobile action bar (Save / Share / New battle) — only on the Verdict tab.
+         The face/outfit reveal tabs are head-to-head views, not a shareable card,
+         so the bottom bar would be misleading there (New battle stays in the header). */}
+      {activeTab === 'verdict' && (
       <div className="rs-mobilebar">
         <button className="mb-btn" onClick={mobileSave} disabled={mobileBusy}>
           <Icon.download />
@@ -706,6 +709,7 @@ export function VersusResult() {
           New battle
         </button>
       </div>
+      )}
     </div>
   );
 }
