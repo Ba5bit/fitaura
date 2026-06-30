@@ -376,10 +376,12 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
   .rs-saved span{ display:none; }
   .rs-credits{ padding:7px 10px; }
   /* "Have a code?" -> a transparent key circle on the result header too (mirrors the
-     Vault nav); it sits left of the Vault button (DOM order) and the field expands
-     leftward over the result label when tapped, clearing the FITAURA brand. */
-  .rs-h-actions .vlt-redeempill{ width:38px; min-width:38px; height:38px; overflow:visible;
+     Vault nav). On mobile it moves (flex order) to sit just LEFT OF THE PROFILE
+     avatar — the rightmost spot — so the field has room to expand leftward without
+     ever reaching the FITAURA brand. (Desktop keeps it left of Vault via DOM order.) */
+  .rs-h-actions .vlt-redeempill{ order:1; width:38px; min-width:38px; height:38px; overflow:visible;
     background:transparent; border-color:color-mix(in oklab,var(--accent) 45%,var(--hair)); }
+  .rs-h-actions .vlt-profile, .rs-h-actions .rs-avatar{ order:2; }   /* avatar stays rightmost */
   .rs-h-actions .vlt-redeempill[data-open="true"]{ width:38px; }
   .rs-h-actions .vlt-redeempill-text{ display:none; }
   .rs-h-actions .vlt-redeempill-label svg{ display:block; }
@@ -390,7 +392,13 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
     border:1px solid color-mix(in oklab,var(--accent) 55%,var(--hair));
     box-shadow:0 10px 26px -12px rgba(0,0,0,.65);
     transition:width .26s cubic-bezier(.4,0,.2,1), opacity .18s; }
-  .rs-h-actions .vlt-redeempill[data-open="true"] .vlt-redeempill-form{ width:calc(100vw - 256px); max-width:280px; }
+  /* When the field is OPEN, hide the other header controls (saved/credits/Vault/
+     New scan) so the input gets the full width — only the brand + field + avatar
+     stay. */
+  .rs-h-right:has(.vlt-redeempill[data-open="true"]) .rs-saved,
+  .rs-h-right:has(.vlt-redeempill[data-open="true"]) .rs-credits,
+  .rs-h-actions:has(.vlt-redeempill[data-open="true"]) .rs-newscan{ display:none; }
+  .rs-h-actions .vlt-redeempill[data-open="true"] .vlt-redeempill-form{ width:calc(100vw - 215px); max-width:360px; }
   .rs-nav{ padding:0 14px; gap:10px; }
   .rs-tabs{ flex:1; min-width:0; gap:6px; }
   .rs-tabs .tab{ flex:1; justify-content:center; padding:11px 8px; }
