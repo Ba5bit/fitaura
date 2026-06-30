@@ -844,6 +844,14 @@
 .rs-export-card[data-edition="nfactorial"] .facecard .selfie-ring {
   background: conic-gradient(from 0deg, #e8232a, rgba(232,35,42,.28), #e8232a, rgba(232,35,42,.12), #e8232a);
 }
+/* White edition: the dark-card accent glow behind the selfie reads as a washed
+   pink/white smudge on white — drop it. And give the FITAURA brand-tag a real
+   colour (it has none of its own, so it inherited the near-white --ink and
+   vanished on white) so it's legible. */
+.rs-card-mount[data-edition="nfactorial"] .facecard .glow,
+.rs-export-card[data-edition="nfactorial"] .facecard .glow { display: none; }
+.rs-card-mount[data-edition="nfactorial"] .facecard .fc-top .brand-tag,
+.rs-export-card[data-edition="nfactorial"] .facecard .fc-top .brand-tag { color: #e8232a; }
 
 /* ── 4. DOSSIER OUTFIT — white stats + footer panel ─────────── */
 .rs-card-mount[data-edition="nfactorial"] .outfitcard .oc-body,
