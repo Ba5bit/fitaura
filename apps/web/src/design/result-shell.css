@@ -375,6 +375,22 @@ button.rs-brand:focus-visible{ outline:2px solid var(--accent); outline-offset:2
   .rs-newscan{ padding:9px 11px; }
   .rs-saved span{ display:none; }
   .rs-credits{ padding:7px 10px; }
+  /* "Have a code?" -> a transparent key circle on the result header too (mirrors the
+     Vault nav); it sits left of the Vault button (DOM order) and the field expands
+     leftward over the result label when tapped, clearing the FITAURA brand. */
+  .rs-h-actions .vlt-redeempill{ width:38px; min-width:38px; height:38px; overflow:visible;
+    background:transparent; border-color:color-mix(in oklab,var(--accent) 45%,var(--hair)); }
+  .rs-h-actions .vlt-redeempill[data-open="true"]{ width:38px; }
+  .rs-h-actions .vlt-redeempill-text{ display:none; }
+  .rs-h-actions .vlt-redeempill-label svg{ display:block; }
+  .rs-h-actions .vlt-redeempill-form{ position:absolute; top:50%; right:0; bottom:auto; left:auto;
+    transform:translateY(-50%); width:38px; height:40px; padding:0 6px 0 14px;
+    border-radius:999px; z-index:30; overflow:hidden;
+    background:linear-gradient(var(--panel),var(--panel)), var(--bg-0);
+    border:1px solid color-mix(in oklab,var(--accent) 55%,var(--hair));
+    box-shadow:0 10px 26px -12px rgba(0,0,0,.65);
+    transition:width .26s cubic-bezier(.4,0,.2,1), opacity .18s; }
+  .rs-h-actions .vlt-redeempill[data-open="true"] .vlt-redeempill-form{ width:calc(100vw - 256px); max-width:280px; }
   .rs-nav{ padding:0 14px; gap:10px; }
   .rs-tabs{ flex:1; min-width:0; gap:6px; }
   .rs-tabs .tab{ flex:1; justify-content:center; padding:11px 8px; }

@@ -23,6 +23,7 @@ import { swipeStep } from './swipeGesture';
 import { useGeneration } from '../../state/generation';
 import { useAccount } from '../account/AccountContext';
 import { ProfileMenu } from '../account/ProfileMenu';
+import { RedeemPill } from '../vault/RedeemPill';
 import { usePreferences } from '../../state/preferences';
 import { usePerCardState } from '../../state/usePerCardState';
 import '../../design/result-shell.css';
@@ -400,6 +401,7 @@ export function Result() {
             <b>{credits}</b> left
           </button>
           <div className="rs-h-actions" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <RedeemPill />
             <button className="rs-newscan" onClick={() => navigate('/vault', { state: { vaultMode: 'solo' } })}>
               <Icon.grid />
               <span>Vault</span>
