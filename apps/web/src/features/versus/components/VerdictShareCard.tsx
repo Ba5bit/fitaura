@@ -170,11 +170,7 @@ export function VerdictShareCard(props: VerdictShareCardProps) {
   // nFactorial Edition surfaces: the card + its non-photo panels go WHITE with ink
   // text + red accents (contender photos keep their dark scrims for legibility).
   const cardBg = nf ? 'linear-gradient(180deg,#ffffff,#f6f7f9 80%)' : '#0a0c11';
-  const panelBg = nf ? '#ffffff' : 'rgba(255,255,255,0.04)';
-  const panelLine = nf ? 'rgba(0,0,0,0.12)' : 'rgba(255,255,255,0.1)';
   const inkStrong = nf ? '#16181d' : '#fff';
-  const inkSoft = nf ? 'rgba(22,24,29,0.7)' : 'rgba(243,246,249,0.78)';
-  const inkFaint = nf ? 'rgba(22,24,29,0.5)' : 'rgba(243,246,249,0.46)';
   const grooveBg = nf ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.06)';
   const kindLabel = kind === 'face' ? 'Face' : 'Outfit';
   // Short headline "{winner} wins". Long names (that would wrap to a 2nd line) fall
