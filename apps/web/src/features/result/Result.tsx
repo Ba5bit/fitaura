@@ -454,14 +454,14 @@ export function Result() {
                   </div>
                 )}
                 {kind === 'receipt' ? (
-                  nf ? (
-                    <NFReceipt content={result.receipt} />
-                  ) : (
-                    <>
-                      {assetEl}
-                      {overlayEl}
-                    </>
-                  )
+                  // The receipt is driven by the Paper control (`paper`), NOT the
+                  // edition flag — `assetEl` already renders NFReceipt when paper ===
+                  // 'nfactorial'. This matches the export host (which keys off `paper`)
+                  // and keeps the Paper picker able to switch away from the nF receipt.
+                  <>
+                    {assetEl}
+                    {overlayEl}
+                  </>
                 ) : (
                   <CardSwitcher
                     kind={kind}

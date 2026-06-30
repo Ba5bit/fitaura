@@ -341,13 +341,18 @@ function VerdictTab({
   // height, so the card never forces the page to scroll. Capped below 1 so it always
   // reads as a compact deck rather than dominating the column. Export captures the
   // unscaled card, so the PNG stays crisp.
-  const [scale, setScale] = useState(0.78);
+  const [scale, setScale] = useState(0.72);
   useEffect(() => {
     const fit = () => {
       const colW = stackRef.current?.clientWidth ?? CARD_W;
-      const availH = window.innerHeight - 300; // header + nav + dots + button + paddings
+      // Reserve must cover ALL the chrome around the deck (header + nav + edition
+      // switch + dots + download button + stage paddings ≈ 360px), or the left
+      // column outgrows the viewport and the page scrolls. Mirrors the Solo result's
+      // card-fit reserve; the cap is held below the column-fit so the deck reads as a
+      // compact stack (like Solo's) rather than dominating the column.
+      const availH = window.innerHeight - 360;
       const s = Math.min(colW / CARD_W, availH / CARD_H);
-      setScale(Math.max(0.5, Math.min(0.78, s)));
+      setScale(Math.max(0.5, Math.min(0.72, s)));
     };
     fit();
     window.addEventListener('resize', fit);
