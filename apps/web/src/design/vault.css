@@ -443,6 +443,11 @@
   .vlt-packs { grid-template-columns: 1fr; }
   .vlt-store-cols { grid-template-columns: 1fr; }
   .vlt-unlock ul { grid-template-columns: 1fr; }
+  /* Settings rows: stack the label ABOVE the control on mobile. The receipt-paper
+     segmented control is flex:none, so side-by-side it squished the description to
+     one word per line. Stacked, the label reads full-width and the buttons wrap. */
+  .vlt-setrow { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .vlt-seg { flex-wrap: wrap; }
 }
 @media (prefers-reduced-motion: reduce) {
   .vlt-menu, .vlt-modal, .vlt-toast, .vlt-scrim { animation: none !important; }
