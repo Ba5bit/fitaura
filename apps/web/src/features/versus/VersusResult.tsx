@@ -21,6 +21,7 @@ import { renderCardBlob, renderPanelShot, downloadResult, shareResult } from '..
 import { battleNames, useBattle, type Battle } from '../../state/battle';
 import { useAccount } from '../account/AccountContext';
 import { ProfileMenu } from '../account/ProfileMenu';
+import { RedeemPill } from '../vault/RedeemPill';
 import {
   Crown,
   CrownAvatar,
@@ -616,6 +617,7 @@ export function VersusResult() {
             <b>{credits}</b> left
           </button>
           <div className="rs-h-actions" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <RedeemPill />
             <button className="rs-newscan" onClick={() => navigate('/vault', { state: { vaultMode: 'friend' } })}>
               <Icon.grid />
               <span>Vault</span>
