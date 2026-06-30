@@ -12,18 +12,28 @@
   position: absolute; inset: 0; margin: auto; width: 360px; height: 640px;
   transition: transform .5s cubic-bezier(.22,1,.36,1), opacity .45s ease, filter .45s ease;
   transform-origin: 50% 50%;
-  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7));
+  /* PERF: a box-shadow, NOT filter: drop-shadow. drop-shadow re-rasterizes the
+     entire 360x640 card every frame its spinning .selfie-ring moves (and again,
+     mid-transition, while rotating) — the main source of the card-stack lag.
+     box-shadow is composited and rides the transform for free. 26px = the skin
+     roots' radius, so the rounded shadow matches the card edge. */
+  border-radius: 26px;
+  box-shadow: 0 40px 70px rgba(0,0,0,.7);
 }
 /* Browse: front near full-size and lifted; side skins splayed wide (±150/9°) and
    large, bleeding off the column edges like the Landing fan. */
 .cs-card.front-live { transform: translateY(-6px) scale(.94); z-index: 5; }
 .cs-card.backRight  { transform: translateX(154px) rotate(9deg) scale(.84);  z-index: 2;
-  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7)) brightness(.82); cursor: pointer; }
+  filter: brightness(.82); cursor: pointer; }
 .cs-card.backLeft   { transform: translateX(-154px) rotate(-9deg) scale(.84); z-index: 2;
-  filter: drop-shadow(0 40px 70px rgba(0,0,0,.7)) brightness(.82); cursor: pointer; }
+  filter: brightness(.82); cursor: pointer; }
 /* peeking cards are inert previews: suppress all their pointer events so taps fall
    through to the rotation zones below. The live front card stays interactive. */
 .cs-card:not(.front-live) { pointer-events: none; }
+/* PERF: the peeks are decorative — pause their spinning selfie-ring so it doesn't
+   paint (and, under the peek's brightness filter, force a re-raster) every frame.
+   Only the live front card animates. */
+.cs-card:not(.front-live) .selfie-ring { animation: none; }
 /* Browsing: the front card itself is tappable (advances clockwise). */
 .cs-deck:not(.editing) .cs-card.front-live { cursor: pointer; }
 
