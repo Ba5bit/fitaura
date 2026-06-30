@@ -203,6 +203,12 @@
 .aw-toast svg { width: 16px; height: 16px; color: var(--lime); }
 .aw-toast--error svg { color: var(--red); }  /* ✕ on failures (e.g. invalid code) */
 @keyframes awtoast { from { transform: translate(-50%, 10px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+/* Mobile: surface the toast at the TOP, just below the sticky header (~86px),
+   so promo feedback — especially errors, which keep the field + keyboard open —
+   is never hidden behind the on-screen keyboard or a bottom action bar. */
+@media (max-width: 620px) {
+  .aw-toast { top: 96px; bottom: auto; }
+}
 
 .aw-formerror {
   margin: 10px 0 0;
