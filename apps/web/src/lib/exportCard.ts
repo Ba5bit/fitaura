@@ -160,7 +160,12 @@ export async function renderCardBlob(args: ExportArgs): Promise<ExportResult> {
     force(assetEl, 'transform', 'none');
   }
 
-  const { snapdom } = await import('@zumer/snapdom');
+  const { snapdom, preCache } = await import('@zumer/snapdom');
+  // Warm snapdom's font cache BEFORE the capture. embedFonts inlines fonts at
+  // capture time, but on the FIRST export (e.g. tapping the FvF mobile "Save" right
+  // after opening) the web-font files aren't fetched yet, so snapdom falls back to
+  // a system serif in the PNG. preCache fetches them up front. Best-effort.
+  try { await preCache(el, { embedFonts: true }); } catch { /* preload best-effort */ }
   let cardCanvas: HTMLCanvasElement;
   try {
     cardCanvas = await snapdom.toCanvas(el, {
@@ -226,7 +231,8 @@ export async function renderPanelShot(args: PanelShotArgs): Promise<ExportResult
   await ensureFonts();
   await decodeAllImages(el);
 
-  const { snapdom } = await import('@zumer/snapdom');
+  const { snapdom, preCache } = await import('@zumer/snapdom');
+  try { await preCache(el, { embedFonts: true }); } catch { /* preload best-effort */ }
   const card = await snapdom.toCanvas(el, {
     scale: 2,
     embedFonts: true,
