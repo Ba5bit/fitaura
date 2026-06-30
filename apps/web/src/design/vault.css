@@ -404,9 +404,26 @@
   .vlt-navmid .vlt-navlink span { display: none; }
   .vlt-navlink { padding: 9px 11px; }
   .vlt-navright { gap: 8px; }
-  /* The header redeem chip needs room the tightened mobile bar doesn't have;
-     redeem stays reachable via the Vault banner + Settings panel. */
-  .vlt-redeempill { display: none; }
+  /* Promo code on mobile: the redeem chip becomes a transparent key circle sitting
+     right of the credits chip (flex order), and tapping it expands the field as an
+     overlay that takes the place of Home/Vault/credits. The avatar (order 3) stays
+     put on the far right; reuses RedeemPill's redeem logic unchanged. */
+  .vlt-navright .aw-chip{ order:1; }
+  .vlt-navright .vlt-redeempill{ order:2; width:38px; min-width:38px; height:38px;
+    overflow:visible; background:transparent;
+    border-color:color-mix(in oklab,var(--accent) 42%,var(--hair)); }
+  .vlt-navright .vlt-profile{ order:3; }
+  /* The pill stays a circle; the FORM is what grows (over the bar), not the pill. */
+  .vlt-redeempill[data-open="true"]{ width:38px; }
+  .vlt-redeempill-text{ display:none; }
+  .vlt-redeempill-label svg{ display:block; }
+  .vlt-redeempill-form{ position:absolute; top:50%; right:0; left:auto;
+    transform:translateY(-50%); width:38px; height:40px; padding:0 6px 0 14px;
+    border-radius:999px; background:var(--panel,#14161c);
+    border:1px solid color-mix(in oklab,var(--accent) 50%,var(--hair));
+    box-shadow:0 10px 26px -12px rgba(0,0,0,.65); z-index:30;
+    transition:width .26s cubic-bezier(.4,0,.2,1), opacity .18s; }
+  .vlt-redeempill[data-open="true"] .vlt-redeempill-form{ width:min(70vw,280px); }
   .vlt-head { flex-direction: column; align-items: stretch; }
   .vlt-head-r { align-items: stretch; }
   .vlt-packs { grid-template-columns: 1fr; }
@@ -446,8 +463,9 @@
 .vlt-redeempill[data-open="true"]{ width:250px;
   border-color:color-mix(in oklab,var(--accent) 50%,var(--hair)); }
 .vlt-redeempill-label{ position:absolute; inset:0; display:flex; align-items:center;
-  justify-content:center; border:0; background:transparent; color:var(--ink);
+  justify-content:center; gap:7px; border:0; background:transparent; color:var(--ink);
   font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer; transition:opacity .16s; }
+.vlt-redeempill-label svg{ display:none; width:17px; height:17px; }  /* mobile-only key glyph */
 .vlt-redeempill[data-open="true"] .vlt-redeempill-label{ opacity:0; pointer-events:none; }
 .vlt-redeempill-form{ position:absolute; inset:0; display:flex; align-items:center; gap:6px;
   padding:0 5px 0 13px; opacity:0; pointer-events:none; transition:opacity .2s .06s; }

@@ -60,8 +60,10 @@ export function RedeemPill() {
         onClick={() => setOpen(true)}
         tabIndex={open ? -1 : 0}
         aria-hidden={open}
+        aria-label="Have a code?"
       >
-        Have a code?
+        <Icon.key />
+        <span className="vlt-redeempill-text">Have a code?</span>
       </button>
       <form className="vlt-redeempill-form" onSubmit={submit}>
         <input
