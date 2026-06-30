@@ -39,6 +39,7 @@ export function TraitIcon({ name }: { name: FaceTraitIcon }) {
         <path d="M12 8.5 V20" />
       </g>
     ),
+    droplet: <path d="M12 3 C12 3 5 11 5 15.5 a7 7 0 0 0 14 0 C19 11 12 3 12 3 z" />,
   };
   return (
     <svg

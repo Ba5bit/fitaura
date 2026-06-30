@@ -93,12 +93,12 @@ export function shapeV4Result(ai: SoloScanV4Output, scanId: string, parts: ScanP
       sticker: pickSticker('face', ai.face.stickerId),
     };
     const breakdown: FaceTrait[] = [
-      { id: 'jaw', label: 'Jaw Presence', value: ratingOf('jawPresence', fa), descriptor: descriptorFor(fa.jawPresence.rating), icon: 'jaw' },
+      { id: 'jaw', label: 'Jawline Frame', value: ratingOf('jawPresence', fa), descriptor: descriptorFor(fa.jawPresence.rating), icon: 'jaw' },
       { id: 'harmony', label: 'Face Harmony', value: ratingOf('faceHarmony', fa), descriptor: descriptorFor(fa.faceHarmony.rating), icon: 'harmony' },
-      { id: 'presence', label: 'Visual Presence', value: ratingOf('visualPresence', fa), descriptor: descriptorFor(fa.visualPresence.rating), icon: 'eye' },
-      { id: 'haircut', label: 'Haircut Match', value: ratingOf('haircutMatch', fa), descriptor: descriptorFor(fa.haircutMatch.rating), icon: 'brow' },
-      { id: 'grooming', label: 'Grooming', value: ratingOf('groomingCoherence', fa), descriptor: descriptorFor(fa.groomingCoherence.rating), icon: 'beard' },
-      { id: 'main-character', label: 'Main Character', value: ratingOf('mainCharacterEnergy', fa), descriptor: descriptorFor(fa.mainCharacterEnergy.rating), icon: 'star' },
+      { id: 'presence', label: 'Eye Presence', value: ratingOf('visualPresence', fa), descriptor: descriptorFor(fa.visualPresence.rating), icon: 'eye' },
+      { id: 'haircut', label: 'Hair Match', value: ratingOf('haircutMatch', fa), descriptor: descriptorFor(fa.haircutMatch.rating), icon: 'brow' },
+      { id: 'grooming', label: 'Grooming Polish', value: ratingOf('groomingCoherence', fa), descriptor: descriptorFor(fa.groomingCoherence.rating), icon: 'droplet' },
+      { id: 'main-character', label: 'Facial Structure', value: ratingOf('mainCharacterEnergy', fa), descriptor: descriptorFor(fa.mainCharacterEnergy.rating), icon: 'star' },
     ];
     faceResult = { card: faceCard, analysis: { aura, explanation: ai.face.summary, roast: ai.face.roast, breakdown } };
   }

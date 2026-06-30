@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { VaultNav } from './VaultNav';
+import { UnlockBanner } from './UnlockBanner';
 import { SoloMode } from './SoloMode';
 import { LockedMode } from './LockedMode';
 import { FriendMode } from './FriendMode';
@@ -95,6 +96,7 @@ export function Vault() {
     <div className="vlt">
       <VaultNav />
       <div className="vlt-body">
+        <UnlockBanner variant="banner" />
         <div className="vlt-cols">
           <ModeRail mode={mode} onSelect={selectMode} />
           <main>

@@ -6,6 +6,7 @@ import {
   getCurrentSession, onAuthChange, type SimpleResult,
 } from '../../services/authService';
 import { getBalance, refundCredit, spendCredit } from '../../services/creditsService';
+import { getEntitlements, redeemCode as redeemCodeSvc, type RedeemResult } from '../../services/entitlementsService';
 import { createCheckout, openCheckoutOverlay, pollBalanceUntilChange } from '../../services/checkoutService';
 import { accountKeyFor, clearAccount } from '../../state/generationDb';
 
@@ -66,6 +67,12 @@ interface AccountContextValue {
   spendForBattle: () => Promise<boolean>;
   /** Give back what spendForBattle took (2), when a battle ultimately fails. */
   refundBattle: () => Promise<void>;
+  /** Entitlement keys the signed-in account owns (e.g. 'theme:company-nfactorial'). */
+  entitlements: string[];
+  /** True when the signed-in account owns `key`. */
+  hasEntitlement: (key: string) => boolean;
+  /** Redeem a promo code; on success refreshes `entitlements`. */
+  redeemCode: (code: string) => Promise<RedeemResult>;
 
   scene: Scene;
   authStatus: AuthStatus;
@@ -125,6 +132,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AccountUser | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [credits, setCredits] = useState(0);
+  const [entitlements, setEntitlements] = useState<string[]>([]);
 
   const [scene, setScene] = useState<Scene>(null);
   const [authStatus, setAuthStatus] = useState<AuthStatus>('idle');
@@ -195,6 +203,23 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     let active = true;
     getBalance(userId).then((b) => {
       if (active) setCredits(b);
+    });
+    return () => {
+      active = false;
+    };
+  }, [userId]);
+
+  // Load the account's entitlements whenever the signed-in user changes. Kept out
+  // of onAuthChange (see the identity effect above) so the query runs after the
+  // auth lock is released.
+  useEffect(() => {
+    if (!userId) {
+      setEntitlements([]);
+      return;
+    }
+    let active = true;
+    getEntitlements(userId).then((keys) => {
+      if (active) setEntitlements(keys);
     });
     return () => {
       active = false;
@@ -414,6 +439,20 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     setCredits(next);
   }, [signedIn, userId]);
 
+  const hasEntitlement = useCallback((key: string) => entitlements.includes(key), [entitlements]);
+
+  const redeemCode = useCallback<AccountContextValue['redeemCode']>(
+    async (code) => {
+      const res = await redeemCodeSvc(code);
+      if ((res.status === 'ok' || res.status === 'already_owned') && userId) {
+        const keys = await getEntitlements(userId);
+        setEntitlements(keys);
+      }
+      return res;
+    },
+    [userId],
+  );
+
   const startCheckout = useCallback(
     (packId?: string) => {
       if (packId) setPack(packId);
@@ -472,6 +511,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       refundScan,
       spendForBattle,
       refundBattle,
+      entitlements,
+      hasEntitlement,
+      redeemCode,
       scene,
       authStatus,
       authError,
@@ -505,7 +547,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       openMissing,
     }),
     [
-      signedIn, userId, user, credits, canScan, spendForScan, refundScan, spendForBattle, refundBattle, scene, authStatus, authError,
+      signedIn, userId, user, credits, canScan, spendForScan, refundScan, spendForBattle, refundBattle, entitlements, hasEntitlement, redeemCode, scene, authStatus, authError,
       pack, lastPurchaseCredits, missingId, toast, pendingEmail, confirmKind, resendCooldown,
       resendConfirmation, requestPasswordReset, flash, closeScene, openAuth, authInitialMode, signUp, logIn,
       signInWithGoogle, requestLogout, confirmLogout, openChangePassword, requestDeleteAccount, confirmDeleteAccount,

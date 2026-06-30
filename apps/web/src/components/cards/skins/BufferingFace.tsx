@@ -1,6 +1,7 @@
 import type { FaceCardContent } from '@fitaura/shared';
 import { CardImage } from '../CardImage';
 import type { SkinProps } from './types';
+import nfLogo from '../../../assets/nfactorial-logo.png';
 
 /**
  * Buffering skin (face) — a "loading screen" card: a contained photo on top
@@ -20,6 +21,7 @@ export function BufferingFace({ content, roast }: SkinProps) {
         <CardImage src={c.imageUrl} shape="rect" placeholder="drop face photo" alt="Your face" />
         <div className="buffering-photo-top">
           <span className="buffering-pill">BUFFERING<span className="cur">_</span></span>
+          <img className="buffering-nf-logo" src={nfLogo} alt="nFactorial" />
         </div>
         <div className="score-badge">
           <span className="sub">AURA</span>

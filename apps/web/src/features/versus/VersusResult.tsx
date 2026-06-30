@@ -31,6 +31,9 @@ import {
 } from './components/versusBits';
 import { VerdictShareCard } from './components/VerdictShareCard';
 import { pickPalette } from './palette';
+import { EditionSwitch } from '../../components/EditionSwitch';
+import { asEditionId, type EditionId } from '../../components/cards/editions/registry';
+import { usePerCardState } from '../../state/usePerCardState';
 import '../../design/result-shell.css';
 import '../../design/versus.css';
 
@@ -310,6 +313,8 @@ function VerdictTab({
   copy,
   palette,
   onRematch,
+  edition,
+  setEdition,
 }: {
   battle: Battle;
   names: { a: string; b: string };
@@ -319,6 +324,9 @@ function VerdictTab({
   /** This battle's contender colours (for the exported card's accent). */
   palette: { a: string; b: string };
   onRematch: () => void;
+  /** Active edition + setter (re-skins the share cards; gated by entitlement). */
+  edition: EditionId;
+  setEdition: (id: EditionId) => void;
 }) {
   const summary = useMemo(() => summarizeBattle(verdict), [verdict]);
   const reads = useMemo(() => deriveReads(verdict, copy, names), [verdict, copy, names]);
@@ -390,12 +398,14 @@ function VerdictTab({
           the fan deck's CSS scale transforms, which makes snapdom mis-size the flex
           stats cards (clipped / stretched PNGs). This copy is plain 360×640. */}
       <div className="vs-export-offscreen" aria-hidden="true">
-        <VerdictShareCard view={view} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} cardRef={cardRef} />
+        <VerdictShareCard view={view} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} edition={edition} cardRef={cardRef} />
       </div>
 
       {/* LEFT — the fanned share-card deck (Solo Scan card-stack logic). The other
           card splays behind; tap the front (or a peek / dot) to switch. */}
       <div className="vs-stack" ref={stackRef}>
+        {/* edition switch — above the cards (matches the Solo result layout) */}
+        <EditionSwitch value={edition} onChange={setEdition} />
         <div className="vs-fanwrap" style={{ width: CARD_W * scale, height: CARD_H * scale }}>
           <div className="vs-fandeck" style={{ transform: `scale(${scale})` }}>
             {views.map((v) => {
@@ -407,7 +417,7 @@ function VerdictTab({
                   aria-hidden={!isFront}
                   onClick={() => setView(isFront ? otherView(view) : v)}
                 >
-                  <VerdictShareCard view={v} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} />
+                  <VerdictShareCard view={v} kind={kind} group={group} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} edition={edition} />
                 </div>
               );
             })}
@@ -457,6 +467,11 @@ export function VersusResult() {
   const { credits } = useAccount();
 
   const names = battleNames(battle);
+  // Per-battle edition (re-skins the FvsF share cards). Default 'default'; persisted
+  // by a stable battle key so a vault reopen restores it.
+  const battleKey = battle ? `fitaura.battlefx.${(battle as { id?: string }).id ?? `${names.a}|${names.b}`}` : null;
+  const [edition, setEditionRaw] = usePerCardState<EditionId>(battleKey ? `${battleKey}.edition` : null, 'default');
+  const setEdition = (id: EditionId) => setEditionRaw(asEditionId(id));
   // The AI copy when a stored verdict exists; null on the dev fallback (refresh
   // straight onto /versus/result), which hides the AI-only bits rather than crash.
   const copy = result?.copy ?? null;
@@ -660,13 +675,13 @@ export function VersusResult() {
           />
         )}
         {activeTab === 'verdict' && (
-          <VerdictTab battle={battle} names={names} verdict={verdict} copy={copy} palette={palette} onRematch={rematch} />
+          <VerdictTab battle={battle} names={names} verdict={verdict} copy={copy} palette={palette} onRematch={rematch} edition={edition} setEdition={setEdition} />
         )}
       </main>
 
       {/* Offscreen verdict card — the mobile footer's Save/Share capture target. */}
       <div className="vs-export-offscreen" aria-hidden="true">
-        <VerdictShareCard view="verdict" kind={mobileKind} group={mobileGroup} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} cardRef={mobileCardRef} />
+        <VerdictShareCard view="verdict" kind={mobileKind} group={mobileGroup} names={names} imgs={battle.imgs} colA={palette.a} colB={palette.b} edition={edition} cardRef={mobileCardRef} />
       </div>
 
       {/* Mobile action bar — mirrors the Solo Scan footer (Save / Share / New battle). */}

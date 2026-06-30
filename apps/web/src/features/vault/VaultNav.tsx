@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Icon } from '../../lib/icons';
 import { CreditChip } from '../account/AccountChrome';
 import { ProfileMenu } from '../account/ProfileMenu';
+import { RedeemPill } from './RedeemPill';
 
 /**
  * Compact Vault top nav (v3 IA): Home · Vault · profile. Credits / Storage /
@@ -30,6 +31,7 @@ export function VaultNav() {
         </button>
       </div>
       <div className="vlt-navright">
+        <RedeemPill />
         <CreditChip />
         <ProfileMenu avatarClassName="vlt-avatar" />
       </div>

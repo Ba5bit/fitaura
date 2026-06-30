@@ -680,17 +680,17 @@
   background: rgba(6,7,10,.66); border: 1px solid var(--hair); backdrop-filter: blur(4px);
 }
 .vlt-vs-thumb .vs-tags {
-  position: absolute; left: 0; right: 0; bottom: 0; z-index: 3;
+  position: absolute; left: 0; right: 0; top: 0; z-index: 3;
   display: flex; justify-content: space-between; gap: 8px; padding: 11px 13px;
   font: 700 13px/1 "Hanken Grotesk", sans-serif; text-transform: uppercase; letter-spacing: 0.03em;
 }
 /* Each score is a neon badge — a contender-coloured glow + border around the big
    number (no name label), matching the Versus result palette (icy A / matchup B). */
 .vlt-vs-thumb .vs-tags .t { --tc: var(--icy); display: inline-flex; align-items: center; white-space: nowrap;
-  padding: 2px 13px; border-radius: 13px;
-  border: 1.5px solid color-mix(in oklab, var(--tc) 80%, transparent);
-  background: linear-gradient(180deg, color-mix(in oklab, var(--tc) 22%, rgba(6,7,10,.5)), rgba(6,7,10,.74));
-  box-shadow: 0 0 24px -7px var(--tc), inset 0 0 16px -9px var(--tc); }
+  padding: 9px 14px; border-radius: 14px;
+  border: 1px solid color-mix(in oklab, var(--tc) 50%, var(--hair));
+  background: rgba(6,7,10,.5); backdrop-filter: blur(8px);
+  box-shadow: 0 0 28px -10px var(--tc); }
 .vlt-vs-thumb .vs-tags .t.a { --tc: var(--icy); }
 .vlt-vs-thumb .vs-tags .t.b { --tc: var(--gold); }
 .vlt-vs-thumb .vs-tags .t b { font-family: "Anton", sans-serif; font-weight: 400; font-size: 36px; line-height: .92; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,.6); }

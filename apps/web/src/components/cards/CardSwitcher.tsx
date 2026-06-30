@@ -14,6 +14,8 @@ interface CardSwitcherProps {
   skinProps: Omit<SkinProps, 'preview' | 'run'>;
   /** Overlay (sticker editor) rendered on top of the FRONT skin only. */
   overlay?: React.ReactNode;
+  /** Brand lockup rendered on top of EVERY skin (rotates with the deck). */
+  lockup?: React.ReactNode;
   /** Disable switching (e.g. while editing a sticker). */
   locked?: boolean;
 }
@@ -32,7 +34,7 @@ interface CardSwitcherProps {
  * directly. Deck order is held in state so switches *animate* (a true rotation)
  * rather than snapping. With one skin it renders only the front — a plain card.
  */
-export function CardSwitcher({ kind, skinId, setSkinId, skinProps, overlay, locked }: CardSwitcherProps) {
+export function CardSwitcher({ kind, skinId, setSkinId, skinProps, overlay, lockup, locked }: CardSwitcherProps) {
   const skins = skinsFor(kind);
   const n = skins.length;
   const target = skinIndex(kind, skinId);
@@ -94,6 +96,7 @@ export function CardSwitcher({ kind, skinId, setSkinId, skinProps, overlay, lock
             >
               <Comp {...skinProps} run={isFront} preview={!isFront} />
               {isFront && overlay}
+              {lockup}
             </div>
           );
         })}
