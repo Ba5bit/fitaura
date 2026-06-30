@@ -19,7 +19,7 @@ import {
  * global toast. Mounted once at the app root so any surface can open a scene.
  */
 export function AccountOverlays() {
-  const { scene, toast } = useAccount();
+  const { scene, toast, toastTone } = useAccount();
   return (
     <>
       {scene === 'auth' && <AuthGate />}
@@ -34,8 +34,8 @@ export function AccountOverlays() {
       {scene === 'deleteAccount' && <DeleteAccountConfirm />}
       {scene === 'missing' && <MissingResult />}
       {toast && (
-        <div className="aw-toast">
-          <Icon.check />
+        <div className={'aw-toast' + (toastTone === 'error' ? ' aw-toast--error' : '')}>
+          {toastTone === 'error' ? <Icon.x /> : <Icon.check />}
           {toast}
         </div>
       )}

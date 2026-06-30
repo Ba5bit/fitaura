@@ -83,6 +83,8 @@ interface AccountContextValue {
   lastPurchaseCredits: number;
   missingId: string | null;
   toast: string | null;
+  /** Icon/colour of the active toast — 'error' shows an ✕, 'success' a ✓. */
+  toastTone: 'success' | 'error';
 
   /** Email awaiting confirmation / reset, shown on the confirm scene. */
   pendingEmail: string | null;
@@ -95,7 +97,7 @@ interface AccountContextValue {
   /** Send a password-reset email and open the recovery confirm scene. */
   requestPasswordReset: (email: string) => Promise<void>;
 
-  flash: (msg: string) => void;
+  flash: (msg: string, tone?: 'success' | 'error') => void;
   closeScene: () => void;
   openAuth: (redirectTo?: string, mode?: 'signup' | 'login') => void;
   /** Initial tab for the auth modal when it next opens. */
@@ -142,6 +144,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
   const [lastPurchaseCredits, setLastPurchaseCredits] = useState(0);
   const [missingId, setMissingId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [toastTone, setToastTone] = useState<'success' | 'error'>('success');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const authRedirect = useRef<string | null>(null);
 
@@ -226,8 +229,9 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     };
   }, [userId]);
 
-  const flash = useCallback((msg: string) => {
+  const flash = useCallback((msg: string, tone: 'success' | 'error' = 'success') => {
     setToast(msg);
+    setToastTone(tone);
     if (toastTimer.current) clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2400);
   }, []);
@@ -522,6 +526,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
       lastPurchaseCredits,
       missingId,
       toast,
+      toastTone,
       pendingEmail,
       confirmKind,
       resendCooldown,
@@ -548,7 +553,7 @@ export function AccountProvider({ children }: { children: ReactNode }) {
     }),
     [
       signedIn, userId, user, credits, canScan, spendForScan, refundScan, spendForBattle, refundBattle, entitlements, hasEntitlement, redeemCode, scene, authStatus, authError,
-      pack, lastPurchaseCredits, missingId, toast, pendingEmail, confirmKind, resendCooldown,
+      pack, lastPurchaseCredits, missingId, toast, toastTone, pendingEmail, confirmKind, resendCooldown,
       resendConfirmation, requestPasswordReset, flash, closeScene, openAuth, authInitialMode, signUp, logIn,
       signInWithGoogle, requestLogout, confirmLogout, openChangePassword, requestDeleteAccount, confirmDeleteAccount,
       openPaywall, startCheckout, pay, refreshBalanceAfterPurchase, failPayment, openMissing,

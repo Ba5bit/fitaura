@@ -201,6 +201,7 @@
   box-shadow: 0 18px 50px -20px #000; backdrop-filter: blur(10px); animation: awtoast .3s ease;
 }
 .aw-toast svg { width: 16px; height: 16px; color: var(--lime); }
+.aw-toast--error svg { color: var(--red); }  /* ✕ on failures (e.g. invalid code) */
 @keyframes awtoast { from { transform: translate(-50%, 10px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
 .aw-formerror {

@@ -42,11 +42,18 @@ export function RedeemPill() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (busy || !code.trim()) return;
+    // Drop the mobile keyboard so the bottom-anchored toast is visible (otherwise
+    // the on-screen keyboard covers the feedback — esp. on an error, where the
+    // field stays open).
+    inputRef.current?.blur();
     setBusy(true);
     const res = await redeemCode(code);
     setBusy(false);
-    flash(REDEEM_MESSAGE[res.status]);
-    if (res.status === 'ok' || res.status === 'already_owned') {
+    const ok = res.status === 'ok' || res.status === 'already_owned';
+    // Tone drives the toast icon: ✓ on success, ✕ on any failure (invalid /
+    // expired / exhausted / unauthenticated) — no more green check on an error.
+    flash(REDEEM_MESSAGE[res.status], ok ? 'success' : 'error');
+    if (ok) {
       setCode('');
       setOpen(false);
     }
@@ -80,19 +87,16 @@ export function RedeemPill() {
           enterKeyHint="go"
           tabIndex={open ? 0 : -1}
         />
-        {/* Trailing control is a close (✕), not a submit — redeem fires on Enter
-            (form onSubmit). Always enabled so the field can be dismissed. */}
+        {/* Submit (redeem) — a tap on mobile redeems AND fires the toast, not
+            just Enter. The error/success distinction shows on the toast, not here. */}
         <button
-          type="button"
+          type="submit"
           className="vlt-redeempill-go"
-          onClick={() => {
-            setCode('');
-            setOpen(false);
-          }}
+          disabled={busy || !code.trim()}
           tabIndex={open ? 0 : -1}
-          aria-label="Close"
+          aria-label="Redeem code"
         >
-          <Icon.x />
+          <Icon.check />
         </button>
       </form>
     </div>
