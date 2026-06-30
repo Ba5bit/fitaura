@@ -26,16 +26,33 @@ import {
 
 const PAPER_KEY = 'fitaura.paper';
 const MOTION_KEY = 'fitaura.reduceMotion';
-// Active card theme/edition. Device-local (not account-synced) so it needs no
-// profiles column; the UI only lets you pick editions you've actually unlocked.
+// Active card theme/edition (what the cards actually render as). Device-local (not
+// account-synced) so it needs no profiles column; the UI only lets you pick
+// editions you've actually unlocked.
 const EDITION_KEY = 'fitaura.edition';
+// Which theme is *turned on* via the Settings → Themes pills. Separate from the
+// active edition: turning a theme on reveals the Default | <theme> switch on the
+// result pages, and that switch sets `edition`. So you can sit on Default while
+// the theme stays on (switch visible). Device-local, same as EDITION_KEY.
+const EDITION_ON_KEY = 'fitaura.editionEnabled';
 
-function readEdition(): EditionId {
+function readEdition(key: string): EditionId {
   try {
-    return asEditionId(localStorage.getItem(EDITION_KEY));
+    return asEditionId(localStorage.getItem(key));
   } catch {
     return 'default';
   }
+}
+
+/** Persist an edition value to its localStorage key; returns the narrowed id. */
+function writeEdition(key: string, id: EditionId): EditionId {
+  const e = asEditionId(id);
+  try {
+    localStorage.setItem(key, e);
+  } catch {
+    /* storage unavailable — keep the in-memory value */
+  }
+  return e;
 }
 
 function readMirror(): AccountPreferences {
@@ -65,9 +82,12 @@ function writeMirror(prefs: AccountPreferences): void {
 interface PreferencesValue extends AccountPreferences {
   setReceiptPaper: (paper: ReceiptPaper) => void;
   setReduceMotion: (on: boolean) => void;
-  /** Active card theme/edition; toggled by the Themes pills + the result EditionSwitch. */
+  /** Active card theme/edition (what renders); set by the result EditionSwitch. */
   edition: EditionId;
   setEdition: (id: EditionId) => void;
+  /** Theme turned on via the Settings → Themes pills; gates the result EditionSwitch. */
+  enabledEdition: EditionId;
+  setEnabledEdition: (id: EditionId) => void;
 }
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
@@ -75,16 +95,15 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const { userId } = useAccount();
   const [prefs, setPrefs] = useState<AccountPreferences>(() => readMirror());
-  const [edition, setEditionState] = useState<EditionId>(() => readEdition());
+  const [edition, setEditionState] = useState<EditionId>(() => readEdition(EDITION_KEY));
+  const [enabledEdition, setEnabledEditionState] = useState<EditionId>(() => readEdition(EDITION_ON_KEY));
 
   const setEdition = useCallback((id: EditionId) => {
-    const e = asEditionId(id);
-    setEditionState(e);
-    try {
-      localStorage.setItem(EDITION_KEY, e);
-    } catch {
-      /* storage unavailable — keep the in-memory value */
-    }
+    setEditionState(writeEdition(EDITION_KEY, id));
+  }, []);
+
+  const setEnabledEdition = useCallback((id: EditionId) => {
+    setEnabledEditionState(writeEdition(EDITION_ON_KEY, id));
   }, []);
 
   // Reflect reduce-motion on <html> for CSS/motion code to key off. Lives here
@@ -128,8 +147,10 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       setReduceMotion: (on) => update({ reduceMotion: on }),
       edition,
       setEdition,
+      enabledEdition,
+      setEnabledEdition,
     }),
-    [prefs, update, edition, setEdition],
+    [prefs, update, edition, setEdition, enabledEdition, setEnabledEdition],
   );
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;

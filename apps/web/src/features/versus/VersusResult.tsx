@@ -411,7 +411,7 @@ function VerdictTab({
           card splays behind; tap the front (or a peek / dot) to switch. */}
       <div className="vs-stack" ref={stackRef}>
         {/* edition switch — above the cards (matches the Solo result layout).
-            Self-hides unless entitled AND a theme is active (Settings → Themes). */}
+            Self-hides unless a theme is turned on (Settings → Themes) and still owned. */}
         <EditionSwitch value={edition} onChange={setEdition} />
         <div className="vs-fanwrap" style={{ width: CARD_W * scale, height: CARD_H * scale }}>
           <div className="vs-fandeck" style={{ transform: `scale(${scale})` }}>
