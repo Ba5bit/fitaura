@@ -506,9 +506,12 @@
 
 /* Applied editions — the modes unlocked via promo codes, shown in Settings */
 .vlt-editions{ display:flex; flex-wrap:wrap; gap:8px; margin:12px 0 16px; }
+/* Toggle pill: OFF = muted outline, ON = filled accent + check. */
 .vlt-edition-chip{ display:inline-flex; align-items:center; gap:7px; padding:7px 12px;
-  border-radius:999px; font-size:12.5px; font-weight:700;
-  border:1px solid color-mix(in oklab,var(--accent) 45%,var(--hair));
+  border-radius:999px; font-size:12.5px; font-weight:700; cursor:pointer; transition:.15s;
+  border:1px solid var(--hair); background:transparent; color:var(--ink-dim); }
+.vlt-edition-chip:hover{ border-color:color-mix(in oklab,var(--accent) 45%,var(--hair)); color:var(--ink); }
+.vlt-edition-chip.on{ border-color:color-mix(in oklab,var(--accent) 45%,var(--hair));
   background:color-mix(in oklab,var(--accent) 10%,transparent); color:var(--accent); }
 .vlt-edition-chip svg{ width:14px; height:14px; }
 .vlt-editions-empty{ margin:12px 0 16px; color:var(--ink-dim); font-size:13px; }

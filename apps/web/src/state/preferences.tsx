@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { ReceiptPaper } from '@fitaura/shared';
 import { useAccount } from '../features/account/AccountContext';
+import { asEditionId, type EditionId } from '../components/cards/editions/registry';
 import {
   DEFAULT_PREFERENCES,
   getPreferences,
@@ -25,6 +26,17 @@ import {
 
 const PAPER_KEY = 'fitaura.paper';
 const MOTION_KEY = 'fitaura.reduceMotion';
+// Active card theme/edition. Device-local (not account-synced) so it needs no
+// profiles column; the UI only lets you pick editions you've actually unlocked.
+const EDITION_KEY = 'fitaura.edition';
+
+function readEdition(): EditionId {
+  try {
+    return asEditionId(localStorage.getItem(EDITION_KEY));
+  } catch {
+    return 'default';
+  }
+}
 
 function readMirror(): AccountPreferences {
   const read = <T,>(key: string, fallback: T): T => {
@@ -53,6 +65,9 @@ function writeMirror(prefs: AccountPreferences): void {
 interface PreferencesValue extends AccountPreferences {
   setReceiptPaper: (paper: ReceiptPaper) => void;
   setReduceMotion: (on: boolean) => void;
+  /** Active card theme/edition; toggled by the Themes pills + the result EditionSwitch. */
+  edition: EditionId;
+  setEdition: (id: EditionId) => void;
 }
 
 const PreferencesContext = createContext<PreferencesValue | null>(null);
@@ -60,6 +75,17 @@ const PreferencesContext = createContext<PreferencesValue | null>(null);
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const { userId } = useAccount();
   const [prefs, setPrefs] = useState<AccountPreferences>(() => readMirror());
+  const [edition, setEditionState] = useState<EditionId>(() => readEdition());
+
+  const setEdition = useCallback((id: EditionId) => {
+    const e = asEditionId(id);
+    setEditionState(e);
+    try {
+      localStorage.setItem(EDITION_KEY, e);
+    } catch {
+      /* storage unavailable — keep the in-memory value */
+    }
+  }, []);
 
   // Reflect reduce-motion on <html> for CSS/motion code to key off. Lives here
   // (always mounted) rather than on the Settings page so it applies app-wide.
@@ -100,8 +126,10 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       ...prefs,
       setReceiptPaper: (paper) => update({ receiptPaper: paper }),
       setReduceMotion: (on) => update({ reduceMotion: on }),
+      edition,
+      setEdition,
     }),
-    [prefs, update],
+    [prefs, update, edition, setEdition],
   );
 
   return <PreferencesContext.Provider value={value}>{children}</PreferencesContext.Provider>;

@@ -9,7 +9,7 @@ import { StaticStamp } from '../../components/cards/ExportOverlays';
 import { EditionSwitch } from '../../components/EditionSwitch';
 import { NFReceipt } from '../../components/cards/nfactorial/NFCards';
 import nfLogo from '../../assets/nfactorial-logo.png';
-import { asEditionId, NFACTORIAL_ENTITLEMENT, type EditionId } from '../../components/cards/editions/registry';
+import { NFACTORIAL_ENTITLEMENT, type EditionId } from '../../components/cards/editions/registry';
 import {
   FaceAnalysisBlock,
   OutfitAnalysisBlock,
@@ -83,7 +83,7 @@ export function Result() {
   const [editing, setEditing] = useState(false);
   // Default paper comes from the account-synced preference; the on-card switcher
   // (below) updates the same preference, so a change here follows the account too.
-  const { receiptPaper: paper, setReceiptPaper: setPaper } = usePreferences();
+  const { receiptPaper: paper, setReceiptPaper: setPaper, edition, setEdition } = usePreferences();
   // Premium + white share the "verified pass" (ReceiptPremium) layout and have no
   // editable seal slots — white is just its ivory/cream skin.
   const premiumLike = paper === 'premium' || paper === 'white';
@@ -103,10 +103,9 @@ export function Result() {
   // invisible). Persisted per generation, like the stamp state.
   const [faceSkin, setFaceSkin] = usePerCardState<string>(fxKey ? `${fxKey}.skin.face` : null, 'dossier');
   const [outfitSkin, setOutfitSkin] = usePerCardState<string>(fxKey ? `${fxKey}.skin.outfit` : null, 'dossier');
-  // The active edition (a coordinated co-brand re-skin of all three cards), persisted
-  // per generation like the skin/stamp state. `nf` = the nFactorial Edition is active.
-  const [edition, setEditionRaw] = usePerCardState<EditionId>(fxKey ? `${fxKey}.edition` : null, 'default');
-  const setEdition = (id: EditionId) => setEditionRaw(asEditionId(id));
+  // The active edition (a coordinated co-brand re-skin of all three cards) is a
+  // global, device-local preference (toggled from the Themes pills or the
+  // EditionSwitch), so every result reflects the same chosen theme. `nf` = nFactorial.
   const nf = edition === 'nfactorial';
 
   // Offscreen full-scale render hosts used purely for WYSIWYG export. Mounted

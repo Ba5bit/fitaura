@@ -33,8 +33,8 @@ import {
 import { VerdictShareCard } from './components/VerdictShareCard';
 import { pickPalette } from './palette';
 import { EditionSwitch } from '../../components/EditionSwitch';
-import { asEditionId, type EditionId } from '../../components/cards/editions/registry';
-import { usePerCardState } from '../../state/usePerCardState';
+import { type EditionId } from '../../components/cards/editions/registry';
+import { usePreferences } from '../../state/preferences';
 import '../../design/result-shell.css';
 import '../../design/versus.css';
 
@@ -473,11 +473,10 @@ export function VersusResult() {
   const { credits } = useAccount();
 
   const names = battleNames(battle);
-  // Per-battle edition (re-skins the FvsF share cards). Default 'default'; persisted
-  // by a stable battle key so a vault reopen restores it.
-  const battleKey = battle ? `fitaura.battlefx.${(battle as { id?: string }).id ?? `${names.a}|${names.b}`}` : null;
-  const [edition, setEditionRaw] = usePerCardState<EditionId>(battleKey ? `${battleKey}.edition` : null, 'default');
-  const setEdition = (id: EditionId) => setEditionRaw(asEditionId(id));
+  // The active edition (re-skins the FvsF share cards) is a global, device-local
+  // preference shared with Solo + the Themes pills, so the chosen theme applies
+  // everywhere rather than per-battle.
+  const { edition, setEdition } = usePreferences();
   // The AI copy when a stored verdict exists; null on the dev fallback (refresh
   // straight onto /versus/result), which hides the AI-only bits rather than crash.
   const copy = result?.copy ?? null;

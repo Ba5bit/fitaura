@@ -1,14 +1,17 @@
 import { Icon } from '../../lib/icons';
 import { useAccount } from '../account/AccountContext';
+import { usePreferences } from '../../state/preferences';
 import { EDITIONS } from '../../components/cards/editions/registry';
 
 /**
- * The editions a user has unlocked via promo codes, listed in the Settings
- * Editions panel. Reflects only the account's real redeemed entitlements
- * (identical in dev and prod) — nothing shows until a code is redeemed.
+ * The editions a user has unlocked via promo codes, shown in the Settings Themes
+ * panel as ON/OFF toggle pills. Clicking a pill makes that theme the active card
+ * edition (used app-wide via `usePreferences().edition`); clicking the active one
+ * turns it back to Default. Only the account's real redeemed editions appear.
  */
 export function AppliedEditions() {
   const { entitlements } = useAccount();
+  const { edition, setEdition } = usePreferences();
   const unlocked = EDITIONS.filter((e) => e.entitlement && entitlements.includes(e.entitlement));
 
   if (unlocked.length === 0) {
@@ -16,11 +19,20 @@ export function AppliedEditions() {
   }
   return (
     <div className="vlt-editions">
-      {unlocked.map((e) => (
-        <span className="vlt-edition-chip" key={e.id}>
-          <Icon.check /> {e.label} Edition
-        </span>
-      ))}
+      {unlocked.map((e) => {
+        const active = edition === e.id;
+        return (
+          <button
+            key={e.id}
+            type="button"
+            className={'vlt-edition-chip' + (active ? ' on' : '')}
+            aria-pressed={active}
+            onClick={() => setEdition(active ? 'default' : e.id)}
+          >
+            {active && <Icon.check />} {e.label} Edition
+          </button>
+        );
+      })}
     </div>
   );
 }
