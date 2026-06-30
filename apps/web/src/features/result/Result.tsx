@@ -318,9 +318,8 @@ export function Result() {
 
   const nfReceipt = paper === 'nfactorial';
   // The nFactorial paper option (and its receipt) is gated by the promo-code
-  // entitlement: the pill only appears once the code is redeemed (DEV always sees
-  // it so the skin stays testable without the prod migration).
-  const nfEntitled = import.meta.env.DEV || entitlements.includes(NFACTORIAL_ENTITLEMENT);
+  // entitlement: the pill only appears once the code is redeemed (same in dev/prod).
+  const nfEntitled = entitlements.includes(NFACTORIAL_ENTITLEMENT);
   // The card mount's edition drives the NF red re-tint (`--accent`/`--verdict`).
   // On the receipt tab it must follow the ACTUAL paper, not the face/outfit edition
   // toggle — otherwise the red leaks onto thermal/neon/onyx/ivory receipts, which
